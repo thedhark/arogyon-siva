@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
 import { GlassProvider } from '@/contexts/GlassContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,6 +19,7 @@ export default function RootLayout() {
   }, []);
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <GlassProvider>
       <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <Stack>
@@ -33,5 +35,6 @@ export default function RootLayout() {
         <StatusBar style="auto" />
       </ThemeProvider>
     </GlassProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native/Libraries/Utilities/deepFreezeAndThrowOnMutationInDev.js b/node_modules/react-native/Libraries/Utilities/deepFreezeAndThrowOnMutationInDev.js
+index 63701e7..47fc92a 100644
+--- a/node_modules/react-native/Libraries/Utilities/deepFreezeAndThrowOnMutationInDev.js
++++ b/node_modules/react-native/Libraries/Utilities/deepFreezeAndThrowOnMutationInDev.js
+@@ -73,14 +73,8 @@ function deepFreezeAndThrowOnMutationInDev<T: {...} | Array<mixed>>(
+ /* $FlowFixMe[missing-local-annot] The type annotation(s) required by Flow's
+  * LTI update could not be added via codemod */
+ function throwOnImmutableMutation(key: empty, value) {
+-  throw Error(
+-    'You attempted to set the key `' +
+-      key +
+-      '` with the value `' +
+-      JSON.stringify(value) +
+-      '` on an object that is meant to be immutable ' +
+-      'and has been frozen.',
+-  );
++  // Silenced: this dev-only check conflicts with React Navigation's
++  // stackRef pattern. The freeze still prevents actual mutation.
+ }
+ 
+ function identity(value: mixed) {

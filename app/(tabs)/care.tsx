@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, MapPin, Bell, SlidersHorizontal, Grid, UserRound, Activity, Stethoscope, Building2, MoreHorizontal } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
+import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 
 import TopFogOverlay from '@/components/TopFogOverlay';
 import HomeHeader from '@/components/HomeHeader';
@@ -46,12 +47,26 @@ export default function CareScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
-      <TopFogOverlay />
+      <TopFogOverlay scrollY={scrollY} />
       
-      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={styles.scrollContent}>
+      <Animated.ScrollView 
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false} 
+        bounces={false} 
+        overScrollMode="never" 
+        contentContainerStyle={styles.scrollContent}
+      >
         
         <HomeHeader currentCity="Bangalore" avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" />
 
@@ -121,7 +136,7 @@ export default function CareScreen() {
         {/* Support Banner */}
         <CareSupportBanner colors={colors} isDark={isDark} />
 
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

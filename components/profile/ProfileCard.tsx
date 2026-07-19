@@ -7,14 +7,20 @@ export default function ProfileCard() {
   const { colors, isDark } = useTheme();
 
   return (
-    <View style={[
-      styles.card, 
-      { 
-        backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-        borderColor: isDark ? '#333' : 'transparent',
-        borderWidth: isDark ? 1 : 0,
-      }
-    ]}>
+    <View style={styles.wrapper}>
+      {/* Background Stacked Card 2 (Bottom layer) */}
+      <View style={[styles.bgCard2, { backgroundColor: isDark ? '#141414' : '#E8EEF5', borderColor: isDark ? '#262626' : '#D1DBE8' }]} />
+      {/* Background Stacked Card 1 (Middle layer) */}
+      <View style={[styles.bgCard1, { backgroundColor: isDark ? '#181818' : '#F1F5F9', borderColor: isDark ? '#2D2D2D' : '#E2E8F0' }]} />
+
+      <View style={[
+        styles.card, 
+        { 
+          backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
+          borderColor: isDark ? '#333' : 'transparent',
+          borderWidth: isDark ? 1 : 0,
+        }
+      ]}>
       {/* Top Profile Info */}
       <View style={styles.topRow}>
         <Image 
@@ -66,15 +72,40 @@ export default function ProfileCard() {
           </View>
         </View>
       </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    position: 'relative',
+    marginBottom: 32,
+  },
+  bgCard1: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    bottom: -10,
+    height: '100%',
+    borderRadius: 24,
+    borderWidth: 1,
+    zIndex: -1,
+  },
+  bgCard2: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: -18,
+    height: '100%',
+    borderRadius: 24,
+    borderWidth: 1,
+    zIndex: -2,
+  },
   card: {
     borderRadius: 24,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 0,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

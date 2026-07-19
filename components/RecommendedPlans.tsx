@@ -10,7 +10,7 @@ export default function RecommendedPlans() {
   return (
     <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recommended Plans</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Recommended Packages</Text>
         <TouchableOpacity><Text style={[styles.seeAll, { color: '#2FA882' }]}>See All</Text></TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} overScrollMode="never" style={styles.fullWidthScroll} contentContainerStyle={styles.plansGrid}>

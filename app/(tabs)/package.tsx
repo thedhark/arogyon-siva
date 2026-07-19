@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import AnimatedScreen from '@/components/AnimatedScreen';
@@ -78,12 +78,25 @@ const TOP_CATEGORIES = [
 export default function PlansScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   return (
     <AnimatedScreen entrance="up">
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
-        <TopFogOverlay />
-        <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={styles.scrollContent}>
+        <TopFogOverlay scrollY={scrollY} />
+        <Animated.ScrollView 
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false} 
+          bounces={false} 
+          overScrollMode="never" 
+          contentContainerStyle={styles.scrollContent}
+        >
           
           <HomeHeader currentCity="Bangalore" avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" />
 
@@ -128,7 +141,7 @@ export default function PlansScreen() {
             ))}
           </Animated.View>
 
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
     </AnimatedScreen>
   );

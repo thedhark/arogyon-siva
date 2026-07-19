@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, Platform } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
 import { Search, Mic } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { useTheme } from '@/hooks/useTheme';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 
 const searchTerms = [
-  "Search doctor",
-  "Search pregnancy",
-  "Book appointment",
-  "Book online consultation"
+  'Search "General Physician"',
+  'Search "Pregnancy Care"',
+  'Search "Blood Tests"',
+  'Search "Skin Specialist"'
 ];
 
 export default function PremiumSearchBar() {
-  const { colors, isDark } = useTheme();
+  const { isDark, colors } = useTheme();
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const supportsLiquidGlass = isLiquidGlassAvailable();
   
   // Use refs to persist animated values across re-renders
   const translateY = useRef(new Animated.Value(15)).current;
@@ -79,81 +81,108 @@ export default function PremiumSearchBar() {
     };
   }, []);
 
-  const innerContent = (
-    <View style={styles.contentContainer}>
-      <Search size={18} color={isDark ? '#AAAAAA' : '#666666'} style={styles.icon} />
-      <View style={styles.textContainer}>
-        <Animated.View 
-          style={{
-            opacity: opacity,
-            transform: [{ translateY: translateY }]
-          }}
-        >
-          <Text 
-            style={[
-              styles.animatedText, 
-              { color: isDark ? '#AAAAAA' : '#888888' }
-            ]}
-          >
-            {searchTerms[currentIndex]}...
-          </Text>
-        </Animated.View>
-      </View>
-      <View style={styles.divider} />
-      <Mic size={20} color="#EF4444" style={styles.micIcon} />
-    </View>
-  );
+  const textColor = isDark ? '#9CA3AF' : '#6B7280';
+  const iconColor = colors.success;
+
+  const containerBgStyle = supportsLiquidGlass 
+    ? styles.glassTransparent 
+    : (Platform.OS === 'ios' ? styles.blurContainer : (isDark ? styles.containerDark : styles.containerLight));
 
   return (
-    <View style={styles.outerWrapper}>
-      <Pressable 
-        style={({ pressed }) => [
-          styles.container, 
-          Platform.OS === 'android' && { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-          pressed && Platform.OS === 'ios' && { opacity: 0.8, transform: [{ scale: 0.99 }] }
-        ]}
-        android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-        onPress={() => router.push('/search')}
-      >
-        {Platform.OS === 'ios' ? (
-          <BlurView intensity={isDark ? 50 : 80} tint={isDark ? "dark" : "light"} style={styles.glassView}>
-            {innerContent}
-          </BlurView>
-        ) : innerContent}
-      </Pressable>
-    </View>
+    <TouchableOpacity 
+      activeOpacity={0.9} 
+      style={styles.outerWrapper}
+      onPress={() => router.push('/search')}
+    >
+      <View style={[styles.container, containerBgStyle]}>
+        {supportsLiquidGlass && (
+          <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} />
+        )}
+        {!supportsLiquidGlass && Platform.OS === 'ios' && (
+          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} />
+        )}
+
+        <View style={styles.leftSection}>
+          <Search size={20} color={iconColor} style={styles.icon} />
+          
+          <View style={styles.textContainer}>
+            <Animated.View 
+              style={{
+                opacity: opacity,
+                transform: [{ translateY: translateY }],
+                width: '100%',
+              }}
+            >
+              <Text 
+                numberOfLines={1} 
+                ellipsizeMode="tail" 
+                style={[styles.animatedText, { color: textColor }]}
+              >
+                {searchTerms[currentIndex]}
+              </Text>
+            </Animated.View>
+          </View>
+        </View>
+
+        <View style={styles.rightSection}>
+          <View style={styles.divider} />
+          <Mic size={20} color={iconColor} />
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   outerWrapper: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   container: {
-    height: 48, // Slightly taller M3 pill
-    borderRadius: 24, // Perfect fully rounded pill
-    borderWidth: Platform.OS === 'android' ? 1 : 0, // Let BlurView handle background on iOS
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 44,
+    borderRadius: 14,
+    borderCurve: 'continuous',
+    paddingHorizontal: 16,
+  },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
+  },
+  containerDark: {
+    backgroundColor: '#1E1E1E',
+  },
+  glassTransparent: {
+    backgroundColor: 'transparent',
     overflow: 'hidden',
   },
-  glassView: {
-    flex: 1,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    borderRadius: 24,
+  blurContainer: {
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.18)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+    }),
   },
-  contentContainer: {
+  leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    paddingHorizontal: Platform.OS === 'android' ? 16 : 0,
+    marginRight: 12,
   },
   icon: {
-    marginRight: 10,
+    marginRight: 12,
   },
   textContainer: {
     flex: 1,
@@ -162,17 +191,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   animatedText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   divider: {
     width: 1,
-    height: 24,
+    height: 20,
     backgroundColor: '#E5E7EB',
-    marginHorizontal: 12,
+    marginRight: 14,
   },
-  micIcon: {
-    padding: 4,
-  },
-  softGlassDark: {}
 });

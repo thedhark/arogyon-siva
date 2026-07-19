@@ -18,9 +18,8 @@ import RecommendedPlans from '@/components/RecommendedPlans';
 import WellnessForYou from '@/components/WellnessForYou';
 import ExploreCategories from '@/components/ExploreCategories';
 import ExploreFilters from '@/components/ExploreFilters';
-import FloatingBlurControl from '@/components/FloatingBlurControl';
-import GlassTuner from '@/components/GlassTuner';
-import { GlassView } from 'expo-glass-effect';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
 import { useGlass } from '@/contexts/GlassContext';
 
 const { width } = Dimensions.get('window');
@@ -71,100 +70,133 @@ export default function HomeScreen() {
     },
   });
 
-  const stickyY = insets.top + 56; // search bar height + padding
+  const supportsLiquidGlass = isLiquidGlassAvailable();
+  const statusBarHeight = insets.top > 0 ? insets.top : 24;
+  const categoriesTriggerPoint = categoriesY > 0 ? categoriesY - statusBarHeight : 99999;
 
-  const cloneStyle = useAnimatedStyle(() => {
-    const isStuck = categoriesY > 0 && scrollY.value >= categoriesY - stickyY;
+  const categoriesStickyStyle = useAnimatedStyle(() => {
+    const isStuck = categoriesY > 0 && scrollY.value >= categoriesTriggerPoint;
+    const progress = interpolate(
+      scrollY.value,
+      [categoriesTriggerPoint - 20, categoriesTriggerPoint],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
     return {
-      opacity: isStuck ? 1 : 0,
-      transform: [{ translateY: isStuck ? 0 : -9999 }],
+      marginHorizontal: interpolate(progress, [0, 1], [0, -12]),
+      marginTop: isStuck ? statusBarHeight : 0,
+      paddingTop: 12,
+      paddingBottom: 12,
+    };
+  });
+
+  const categoriesWrapperStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
+      scrollY.value,
+      [categoriesTriggerPoint - 20, categoriesTriggerPoint],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    
+    let backgroundColor = 'transparent';
+    if (supportsLiquidGlass || Platform.OS === 'ios') {
+      backgroundColor = isDark ? `rgba(18,18,18,${progress * 0.2})` : `rgba(253,253,253,${progress * 0.2})`;
+    } else {
+      backgroundColor = isDark ? `rgba(30,30,30,${progress * 1})` : `rgba(255,255,255,${progress * 1})`;
+    }
+
+    return {
+      borderRadius: interpolate(progress, [0, 1], [14, 0]),
+      borderCurve: 'continuous',
+      backgroundColor,
+      borderWidth: StyleSheet.hairlineWidth * progress,
+      borderColor: isDark ? `rgba(255,255,255,${progress * 0.15})` : `rgba(0,0,0,${progress * 0.08})`,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: progress * 4 },
+      shadowOpacity: progress * 0.08,
+      shadowRadius: progress * 10,
+      elevation: progress * 6,
+      overflow: 'hidden',
+    };
+  });
+
+  const categoriesGlassStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
+      scrollY.value,
+      [categoriesTriggerPoint - 20, categoriesTriggerPoint],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity: progress,
     };
   });
 
   return (
     <AnimatedScreen entrance="up">
       <View style={[styles.screen, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
-        <FloatingBlurControl />
-        <GlassTuner />
         <Animated.ScrollView 
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false} 
           contentContainerStyle={styles.scrollContent}
-          stickyHeaderIndices={[1]}
+          stickyHeaderIndices={[5]}
           bounces={false}
           overScrollMode="never"
         >
           
-          {/* Location Header */}
-          <View style={{ marginBottom: -insets.top }}>
-            <HomeHeader currentCity={currentCity} avatarUrl={AVATAR_URL} />
-          </View>
-
-          {/* Sticky Header Group: Search Only */}
-          <View style={{ zIndex: 10, paddingTop: insets.top, marginHorizontal: -12 }}>
-            <GlassView 
-              glassEffectStyle="regular" 
-              colorScheme={isDark ? 'dark' : 'light'} 
-              style={StyleSheet.absoluteFill} 
-            />
-            
-            <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
-              <Animated.View entering={FadeInDown.delay(150)}>
-                <PremiumSearchBar />
-              </Animated.View>
+          {/* Index 0: Header & Search Bar (Not sticky, scrolls out naturally) */}
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ marginBottom: 4 }}>
+              <HomeHeader currentCity={currentCity} avatarUrl={AVATAR_URL} />
             </View>
-            
-            {/* Cloned Categories for Sticky Effect */}
-            <Animated.View style={[cloneStyle, { 
-              position: 'absolute', 
-              top: '100%', 
-              left: 0, 
-              right: 0, 
-              paddingBottom: 12
-            }]}>
-              <GlassView 
-                glassEffectStyle="regular" 
-                colorScheme={isDark ? 'dark' : 'light'} 
-                style={StyleSheet.absoluteFill} 
-              />
-              <View style={{ paddingHorizontal: 12 }}>
-                <ExploreCategories 
-                  activeTab={activeDirectoryTab} 
-                  onTabChange={setActiveDirectoryTab} 
-                />
-              </View>
+            <Animated.View entering={FadeInDown.delay(150)}>
+              <PremiumSearchBar />
             </Animated.View>
           </View>
 
-          {/* Recommended Plans */}
+          {/* Index 1: Recommended Plans */}
           <RecommendedPlans />
 
-          {/* Family Banner */}
+          {/* Index 2: Family Banner */}
           <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
             <FamilyBanner />
           </Animated.View>
 
-          {/* Category Grid (Specialties) */}
+          {/* Index 3: Category Grid (Specialties) */}
           <Animated.View entering={FadeInDown.delay(300)}>
             <CategoryGrid />
           </Animated.View>
 
-          {/* Wellness For You */}
+          {/* Index 4: Wellness For You */}
           <WellnessForYou />
 
-          {/* Explore Categories (Original) */}
-          <View onLayout={(e) => setCategoriesY(e.nativeEvent.layout.y)} style={{ paddingBottom: 12 }}>
-            <ExploreCategories 
-              activeTab={activeDirectoryTab} 
-              onTabChange={setActiveDirectoryTab} 
-            />
-          </View>
+          {/* Index 5: Sticky Explore Categories & Filters */}
+          <Animated.View 
+            onLayout={(e) => {
+              if (categoriesY === 0) setCategoriesY(e.nativeEvent.layout.y);
+            }} 
+            style={[categoriesStickyStyle, { zIndex: 10 }]}
+          >
+            <Animated.View style={categoriesWrapperStyle}>
+              <Animated.View style={[StyleSheet.absoluteFill, categoriesGlassStyle]} pointerEvents="none">
+                {supportsLiquidGlass && (
+                  <GlassView glassEffectStyle="regular" colorScheme={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                )}
+                {!supportsLiquidGlass && Platform.OS === 'ios' && (
+                  <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                )}
+              </Animated.View>
+              <ExploreCategories 
+                activeTab={activeDirectoryTab} 
+                onTabChange={setActiveDirectoryTab} 
+                style={{ marginBottom: 0, paddingVertical: 12 }}
+              />
+              <ExploreFilters style={{ marginBottom: 12 }} />
+            </Animated.View>
+          </Animated.View>
 
-          {/* Explore Filters */}
-          <ExploreFilters />
-
-          {/* Directory Content */}
+          {/* Index 7: Directory Content */}
           <DirectoryContent activeTab={activeDirectoryTab} />
 
         </Animated.ScrollView>

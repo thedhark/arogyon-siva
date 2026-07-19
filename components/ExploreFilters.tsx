@@ -11,11 +11,11 @@ const FILTERS = [
   { id: 'cashless', label: 'Cashless', icon: CreditCard },
 ];
 
-export default function ExploreFilters() {
+export default function ExploreFilters({ style }: { style?: any }) {
   const { colors, isDark } = useTheme();
 
   return (
-    <Animated.View entering={FadeInDown.delay(200)} style={styles.container}>
+    <Animated.View entering={FadeInDown.delay(200)} style={[styles.container, style]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

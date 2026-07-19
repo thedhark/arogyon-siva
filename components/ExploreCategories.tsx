@@ -20,11 +20,11 @@ export const EXPLORE_CATEGORIES = [
   { id: 'Alternative', label: 'Alternative Med', image: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=200' },
 ];
 
-export default function ExploreCategories({ activeTab, onTabChange }: { activeTab: string, onTabChange: (t: string) => void }) {
+export default function ExploreCategories({ activeTab, onTabChange, style }: { activeTab: string, onTabChange: (t: string) => void, style?: any }) {
   const { colors, isDark } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

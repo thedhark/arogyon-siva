@@ -1,12 +1,12 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 type Entrance = 'fade' | 'up' | 'down';
 
 interface AnimatedScreenProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   /** Entrance animation preset */
   entrance?: Entrance;
   delay?: number;

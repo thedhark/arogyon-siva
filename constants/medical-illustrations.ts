@@ -1,4 +1,4 @@
-export const MEDICAL_ILLUSTRATIONS = {
+export const MEDICAL_ILLUSTRATIONS: Record<string, string> = {
   doctor: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200',
   physiotherapy: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=200',
   labs: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=200',
