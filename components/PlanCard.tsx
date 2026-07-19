@@ -12,7 +12,7 @@ export default function PlanCard({ image, title, duration, tag, colors }: any) {
 
   return (
     <TouchableOpacity activeOpacity={1} style={styles.planCard} onPress={() => router.push('/plan/1' as any)}>
-      <ImageBackground source={{ uri: image }} style={styles.planCardImage} imageStyle={{ borderRadius: 16 }}>
+      <ImageBackground source={{ uri: image }} style={styles.planCardImage} imageStyle={{ borderRadius: 24 }}>
         <LinearGradient colors={colors} style={styles.planCardGradient}>
           <View style={styles.planTag}>
             <Text style={styles.planTagText}>{tag}</Text>
@@ -34,14 +34,9 @@ export default function PlanCard({ image, title, duration, tag, colors }: any) {
 
 const styles = StyleSheet.create({
   planCard: {
-    width: width * 0.28, // Adjusted to show 3 cards + peek of 4th
+    width: width * 0.28,
     height: 180,
-    borderRadius: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    borderRadius: 24, // M3 Fully Rounded
   },
   planCardImage: {
     flex: 1,
@@ -50,7 +45,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     justifyContent: 'space-between',
-    borderRadius: 14,
+    borderRadius: 24,
   },
   planTag: {
     backgroundColor: 'rgba(255,255,255,0.9)',

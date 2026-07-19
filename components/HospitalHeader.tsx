@@ -1,23 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { ArrowLeft, Heart, Share2 } from 'lucide-react-native';
+import { ArrowLeft, Search, Share2 } from 'lucide-react-native';
 
 interface HospitalHeaderProps {
-  isLiked: boolean;
   onBackPress: () => void;
-  onLikePress: () => void;
+  onSearchPress?: () => void;
   onSharePress: () => void;
 }
 
-export default function HospitalHeader({ isLiked, onBackPress, onLikePress, onSharePress }: HospitalHeaderProps) {
+export default function HospitalHeader({ onBackPress, onSearchPress, onSharePress }: HospitalHeaderProps) {
   return (
     <View style={styles.headerAbsolute}>
       <TouchableOpacity onPress={onBackPress} style={styles.iconCircle}>
         <ArrowLeft color="#fff" size={24} />
       </TouchableOpacity>
       <View style={styles.headerRight}>
-        <TouchableOpacity style={styles.iconCircle} onPress={onLikePress}>
-          <Heart color={isLiked ? "#EF4444" : "#fff"} fill={isLiked ? "#EF4444" : "transparent"} size={20} />
+        <TouchableOpacity style={styles.iconCircle} onPress={onSearchPress}>
+          <Search color="#fff" size={20} />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.iconCircle, { marginLeft: 12 }]} onPress={onSharePress}>
           <Share2 color="#fff" size={20} />

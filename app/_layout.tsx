@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/useTheme';
+import { GlassProvider } from '@/contexts/GlassContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,18 +18,20 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="doctor/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="care/service/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
-        <Stack.Screen name="booking/success" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <GlassProvider>
+      <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="doctor/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="care/service/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
+          <Stack.Screen name="booking/success" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </GlassProvider>
   );
 }

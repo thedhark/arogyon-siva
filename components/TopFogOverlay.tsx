@@ -1,20 +1,18 @@
 import React from 'react';
-import { StyleSheet, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, Platform, View } from 'react-native';
+import Constants from 'expo-constants';
 import { useTheme } from '@/hooks/useTheme';
 
-export default function TopFogOverlay() {
+export default function TopFogOverlay({ height }: { height?: number }) {
   const { isDark } = useTheme();
 
   return (
-    <LinearGradient
-      colors={[
-        isDark ? 'rgba(18,18,18,1)' : '#FDFDFD',
-        isDark ? 'rgba(18,18,18,0.85)' : 'rgba(253,253,253,0.85)',
-        isDark ? 'rgba(18,18,18,0)' : 'rgba(253,253,253,0)'
+    <View
+      style={[
+        styles.fog, 
+        height ? { height } : undefined,
+        { backgroundColor: isDark ? '#121212' : '#FDFDFD' }
       ]}
-      locations={[0, 0.6, 1]}
-      style={styles.fog}
       pointerEvents="none"
     />
   );
@@ -26,7 +24,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     top: 0,
-    height: Platform.OS === 'ios' ? 100 : 80,
+    height: Constants.statusBarHeight + 5,
     zIndex: 998,
   },
 });

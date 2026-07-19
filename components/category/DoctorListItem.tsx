@@ -36,8 +36,6 @@ export default function DoctorListItem({
           <Star size={12} color="#F59E0B" fill="#F59E0B" />
           <Text style={styles.ratingText}>{rating}</Text>
           <Text style={styles.reviewsText}>({reviews})</Text>
-          <View style={styles.dot} />
-          <Text style={styles.experienceText}>{experience}</Text>
         </View>
       </View>
       
@@ -113,17 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#6B7280',
   },
-  dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#D1D5DB',
-    marginHorizontal: 4,
-  },
-  experienceText: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
+
   actionSection: {
     alignItems: 'flex-end',
     justifyContent: 'center',

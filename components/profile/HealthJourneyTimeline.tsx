@@ -3,14 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Stethoscope, Activity, RefreshCcw } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
+import { useRouter } from 'expo-router';
+
 export default function HealthJourneyTimeline() {
   const { colors, isDark } = useTheme();
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={[styles.title, { color: colors.text }]}>My Health Journey</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/profile/timeline')}>
           <Text style={styles.viewTimelineText}>View Timeline</Text>
         </TouchableOpacity>
       </View>

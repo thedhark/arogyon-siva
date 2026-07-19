@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 interface Props {
   title: string;
@@ -16,7 +17,14 @@ export default function WidePlanCard({ title, subtitle, duration, image, colors 
   const router = useRouter();
 
   return (
-    <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9} onPress={() => router.push('/plan/1' as any)}>
+    <Pressable 
+      style={({ pressed }) => [
+        styles.cardContainer,
+        pressed && Platform.OS === 'ios' && { transform: [{ scale: 0.98 }], opacity: 0.9 }
+      ]}
+      android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
+      onPress={() => router.push('/plan/1' as any)}
+    >
       <LinearGradient
         colors={colors}
         start={{ x: 0, y: 0 }}
@@ -40,25 +48,31 @@ export default function WidePlanCard({ title, subtitle, duration, image, colors 
         </View>
 
         <View style={styles.btnWrapper}>
-          <View style={styles.btn}>
-            <ChevronRight size={16} color="#000" />
-          </View>
+          {Platform.OS === 'ios' ? (
+            <BlurView intensity={80} tint="light" style={styles.btnGlass}>
+              <ChevronRight size={16} color="#000" />
+            </BlurView>
+          ) : (
+            <View style={styles.btn}>
+              <ChevronRight size={16} color="#000" />
+            </View>
+          )}
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   cardContainer: {
     height: 140,
-    borderRadius: 14,
+    borderRadius: Platform.OS === 'android' ? 24 : 14, // M3 uses larger border radii
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: Platform.OS === 'ios' ? 4 : 8 },
+    shadowOpacity: Platform.OS === 'ios' ? 0.15 : 0.25,
+    shadowRadius: Platform.OS === 'ios' ? 8 : 12,
+    elevation: Platform.OS === 'android' ? 8 : 0,
     overflow: 'hidden',
   },
   cardGradient: {
@@ -117,6 +131,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     zIndex: 3,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  btnGlass: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btn: {
     width: 32,
@@ -125,10 +148,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 2,
   }
 });

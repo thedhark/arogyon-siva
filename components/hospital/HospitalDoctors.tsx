@@ -17,20 +17,11 @@ export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, col
 
   return (
     <View style={styles.tabContent}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB' }]}>
-          <Search color="#9CA3AF" size={20} />
-          <Text style={styles.searchTextPlaceholder}>Search doctors...</Text>
-        </View>
-        <TouchableOpacity style={[styles.filterBtn, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB' }]}>
-          <Filter color="#4B5563" size={20} />
-        </TouchableOpacity>
-      </View>
+
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.specialtiesScroll}>
         <TouchableOpacity style={styles.specItem}>
-          <View style={[styles.specIconBox, styles.specActive]}>
+          <View style={[styles.specIconBox, { backgroundColor: isDark ? '#3B0764' : '#F3E8FF', borderColor: isDark ? '#4C1D95' : '#E9D5FF' }]}>
             <Search color="#7C3AED" size={24} />
           </View>
           <Text style={[styles.specName, { color: '#7C3AED', fontWeight: '700' }]}>All</Text>
@@ -56,7 +47,7 @@ export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, col
       </ScrollView>
 
       <View style={styles.topDoctorsHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>Top Doctors</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>Top Experts</Text>
         <TouchableOpacity style={[styles.sortBtn, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB' }]}>
           <ArrowUpDown size={14} color="#6B7280" />
           <Text style={[styles.sortText, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>Sort</Text>
@@ -85,31 +76,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 20,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    height: 48,
-    borderRadius: 12,
-  },
-  searchTextPlaceholder: {
-    marginLeft: 8,
-    color: '#9CA3AF',
-    fontSize: 15,
-  },
-  filterBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   specialtiesScroll: {
     gap: 16,
     paddingBottom: 24,
@@ -121,15 +88,11 @@ const styles = StyleSheet.create({
   specIconBox: {
     width: 64,
     height: 64,
-    borderRadius: 16,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
     borderWidth: 1,
-  },
-  specActive: {
-    backgroundColor: '#F3E8FF',
-    borderColor: '#E9D5FF',
   },
   specName: {
     fontSize: 12,
@@ -160,6 +123,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   doctorList: {
-    gap: 16,
+    gap: 8,
   },
 });

@@ -29,7 +29,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>My Profile</Text>
         </View>
-        <TouchableOpacity style={styles.settingsBtn}>
+        <TouchableOpacity style={styles.settingsBtn} onPress={() => router.push('/profile/settings')}>
           <Settings size={26} color={colors.text} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>

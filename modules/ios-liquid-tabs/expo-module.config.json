@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["IosLiquidTabsModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.iosliquidtabs.IosLiquidTabsModule"]
+  }
+}

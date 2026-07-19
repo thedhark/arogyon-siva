@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Platform, TouchableOpacity } from 'react-native';
-import { Search } from 'lucide-react-native';
+import { View, Text, StyleSheet, Animated, Platform, Pressable } from 'react-native';
+import { Search, Mic } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
+import { BlurView } from 'expo-blur';
 
 const searchTerms = [
   "Search doctor",
@@ -78,80 +79,100 @@ export default function PremiumSearchBar() {
     };
   }, []);
 
+  const innerContent = (
+    <View style={styles.contentContainer}>
+      <Search size={18} color={isDark ? '#AAAAAA' : '#666666'} style={styles.icon} />
+      <View style={styles.textContainer}>
+        <Animated.View 
+          style={{
+            opacity: opacity,
+            transform: [{ translateY: translateY }]
+          }}
+        >
+          <Text 
+            style={[
+              styles.animatedText, 
+              { color: isDark ? '#AAAAAA' : '#888888' }
+            ]}
+          >
+            {searchTerms[currentIndex]}...
+          </Text>
+        </Animated.View>
+      </View>
+      <View style={styles.divider} />
+      <Mic size={20} color="#EF4444" style={styles.micIcon} />
+    </View>
+  );
+
   return (
     <View style={styles.outerWrapper}>
-      <TouchableOpacity 
-        style={[styles.container, isDark ? styles.softGlassDark : styles.softGlassLight]}
-        activeOpacity={0.8}
+      <Pressable 
+        style={({ pressed }) => [
+          styles.container, 
+          Platform.OS === 'android' && { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+          pressed && Platform.OS === 'ios' && { opacity: 0.8, transform: [{ scale: 0.99 }] }
+        ]}
+        android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
         onPress={() => router.push('/search')}
       >
-        <Search size={18} color={isDark ? '#AAAAAA' : '#666666'} style={styles.icon} />
-        
-        <View style={styles.textContainer}>
-          <Animated.View 
-            style={{
-              opacity: opacity,
-              transform: [{ translateY: translateY }]
-            }}
-          >
-            <Text 
-              style={[
-                styles.animatedText, 
-                { color: isDark ? '#AAAAAA' : '#888888' }
-              ]}
-            >
-              {searchTerms[currentIndex]}...
-            </Text>
-          </Animated.View>
-        </View>
-      </TouchableOpacity>
+        {Platform.OS === 'ios' ? (
+          <BlurView intensity={isDark ? 50 : 80} tint={isDark ? "dark" : "light"} style={styles.glassView}>
+            {innerContent}
+          </BlurView>
+        ) : innerContent}
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   outerWrapper: {
-    marginBottom: 24,
+    marginBottom: 8,
   },
   container: {
+    height: 48, // Slightly taller M3 pill
+    borderRadius: 24, // Perfect fully rounded pill
+    borderWidth: Platform.OS === 'android' ? 1 : 0, // Let BlurView handle background on iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  glassView: {
+    flex: 1,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    borderRadius: 24,
+  },
+  contentContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 44, // Decreased height
-    borderRadius: 22, // Matching radius
-    paddingHorizontal: 16,
+    flex: 1,
+    paddingHorizontal: Platform.OS === 'android' ? 16 : 0,
   },
   icon: {
     marginRight: 10,
   },
   textContainer: {
     flex: 1,
-    height: 20,
+    height: 24,
     justifyContent: 'center',
     overflow: 'hidden',
   },
   animatedText: {
     fontSize: 14,
     fontWeight: '500',
-    position: 'absolute',
   },
-  softGlassLight: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#E5E4E2',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+  divider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 12,
   },
-  softGlassDark: {
-    backgroundColor: '#1e1e1e',
-    borderWidth: 1,
-    borderColor: '#E5E4E2',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
+  micIcon: {
+    padding: 4,
   },
+  softGlassDark: {}
 });

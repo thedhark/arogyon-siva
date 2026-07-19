@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { ShieldCheck, Search, Car, FileText } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { ShieldCheck, Search, Car, FileText, HeartPulse } from 'lucide-react-native';
 
 interface HospitalFeaturesProps {
   isDark: boolean;
@@ -8,7 +8,11 @@ interface HospitalFeaturesProps {
 
 export default function HospitalFeatures({ isDark }: HospitalFeaturesProps) {
   return (
-    <View style={styles.featuresGrid}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuresGrid}>
+      <View style={[styles.featureBox, { borderColor: isDark ? '#333' : '#F3F4F6', backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
+        <HeartPulse size={24} color="#EF4444" />
+        <Text style={[styles.featureText, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>24x7{'\n'}Emergency</Text>
+      </View>
       <View style={[styles.featureBox, { borderColor: isDark ? '#333' : '#F3F4F6', backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
         <ShieldCheck size={24} color="#10B981" />
         <Text style={[styles.featureText, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>Cashless{'\n'}Insurance</Text>
@@ -25,19 +29,18 @@ export default function HospitalFeatures({ isDark }: HospitalFeaturesProps) {
         <FileText size={24} color="#D97706" />
         <Text style={[styles.featureText, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>Govt.{'\n'}Services</Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   featuresGrid: {
-    flexDirection: 'row',
     paddingHorizontal: 12,
     gap: 12,
     marginBottom: 24,
   },
   featureBox: {
-    flex: 1,
+    width: 80,
     borderWidth: 1,
     borderRadius: 16,
     padding: 12,

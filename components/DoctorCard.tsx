@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CheckCircle2, Heart, Star, Flame, Zap, ThumbsUp, Briefcase, User } from 'lucide-react-native';
+import { Heart, Star, Flame, Zap, ThumbsUp, User } from 'lucide-react-native';
 
 interface DoctorCardProps {
   doc: any;
@@ -15,7 +15,13 @@ interface DoctorCardProps {
 export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLikePress }: DoctorCardProps) {
   return (
     <TouchableOpacity 
-      style={[styles.docCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F3F4F6' }]}
+      style={[
+        styles.docCard, 
+        { 
+          backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
+          shadowColor: isDark ? '#000' : '#8B5CF6', // Subtle purple shadow for premium light mode
+        }
+      ]}
       onPress={onPress}
     >
       {/* Top Info Section */}
@@ -31,7 +37,6 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
           <View style={styles.docHeaderRow}>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
               <Text style={[styles.docName, { color: colors.text }]} numberOfLines={1}>{doc.name}</Text>
-              <CheckCircle2 size={16} color="#3B82F6" fill="#E0E7FF" style={{ marginLeft: 4 }} />
             </View>
             <TouchableOpacity onPress={onLikePress} style={{ paddingLeft: 8 }}>
               <Heart size={20} color={isLiked ? "#EF4444" : "#6B7280"} fill={isLiked ? "#EF4444" : "transparent"} />
@@ -68,12 +73,6 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
             )}
           </View>
           
-          <View style={styles.docPillRow}>
-            <View style={styles.infoPill}>
-              <Briefcase size={12} color="#6B7280" />
-              <Text style={styles.infoPillText}>{doc.experience}</Text>
-            </View>
-          </View>
         </View>
       </View>
 
@@ -106,16 +105,12 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
 
 const styles = StyleSheet.create({
   docCard: {
-    borderRadius: 16,
+    borderRadius: 24,
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
   },
   docCardTop: {
     flexDirection: 'row',
@@ -200,26 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginLeft: 4,
   },
-  docPillRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  infoPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-  },
-  infoPillText: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginLeft: 4,
-    fontWeight: '500',
-  },
+
   dashedDivider: {
     height: 1,
     width: '100%',
@@ -230,7 +206,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: 'transparent', // Let it blend with surfaceElevated
   },
   feeCol: {
     // Auto width
@@ -254,13 +230,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   bookGradientBtn: {
-    borderRadius: 20,
+    borderRadius: 24, // Fully rounded pill
     marginLeft: 12,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   bookBtnInner: {
     paddingHorizontal: 20,

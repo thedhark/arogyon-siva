@@ -4,9 +4,9 @@ import { Play } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 export default function WellnessCard({ image, title, desc, bgColor }: any) {
-  const { isDark } = useTheme();
+  const { isDark, colors } = useTheme();
   return (
-    <TouchableOpacity activeOpacity={1} style={[styles.wellnessCard, { backgroundColor: isDark ? '#2A2A2A' : bgColor }]}>
+    <TouchableOpacity activeOpacity={1} style={[styles.wellnessCard, { backgroundColor: isDark ? colors.surfaceElevated : bgColor }]}>
       <View style={styles.wellnessContent}>
         <Text style={styles.wellnessTitle} numberOfLines={1}>{title}</Text>
         <Text style={styles.wellnessDesc} numberOfLines={2}>{desc}</Text>
@@ -23,15 +23,11 @@ const styles = StyleSheet.create({
   wellnessCard: {
     width: 260,
     height: 120,
-    borderRadius: 16,
+    borderRadius: 24, // M3 fully rounded
     flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.02)',
+    overflow: 'hidden', // Ensure image clips
   },
   wellnessContent: {
     flex: 1,
@@ -66,7 +62,5 @@ const styles = StyleSheet.create({
   wellnessImage: {
     width: 110,
     height: '100%',
-    borderTopRightRadius: 16,
-    borderBottomRightRadius: 16,
   },
 });

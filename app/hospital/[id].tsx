@@ -82,9 +82,8 @@ export default function HospitalProfile() {
   const { colors, isDark } = useTheme();
   
   const [activeTab, setActiveTab] = useState('Overview');
-  const [isLiked, setIsLiked] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: number]: boolean}>({});
-  const tabs = ['Overview', 'Doctors', 'Services', 'Insurance', 'Reviews'];
+  const tabs = ['Overview', 'Experts', 'Packages'];
 
   const toggleDocLike = (docId: number) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
@@ -103,9 +102,8 @@ export default function HospitalProfile() {
             style={styles.coverGradient}
           />
           <HospitalHeader 
-            isLiked={isLiked}
             onBackPress={() => router.back()}
-            onLikePress={() => setIsLiked(!isLiked)}
+            onSearchPress={() => {}}
             onSharePress={() => {}}
           />
           <View style={styles.imageCountBadge}>
@@ -134,16 +132,9 @@ export default function HospitalProfile() {
               </View>
             </View>
           </View>
-          
-          <View style={[styles.emergencyBadge, { backgroundColor: isDark ? '#3B0764' : '#F3E8FF' }]}>
-            <HeartPulse size={14} color="#A855F7" />
-            <Text style={[styles.emergencyText, { color: isDark ? '#D8B4FE' : '#7C3AED' }]}>{HOSPITAL_DATA.emergency}</Text>
-          </View>
 
-          <HospitalFeatures isDark={isDark} />
-          <PromoBanner isDark={isDark} />
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
+          <View style={styles.tabsContainer}>
             {tabs.map((tab) => (
               <TouchableOpacity 
                 key={tab} 
@@ -153,12 +144,12 @@ export default function HospitalProfile() {
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive, { color: activeTab === tab ? '#7C3AED' : (isDark ? '#9CA3AF' : '#6B7280') }]}>{tab}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
           <View style={[styles.tabDivider, { backgroundColor: isDark ? '#333' : '#F3F4F6' }]} />
         </View>
 
-        {activeTab === 'Overview' && <HospitalOverview colors={colors} />}
-        {activeTab === 'Doctors' && (
+        {activeTab === 'Overview' && <HospitalOverview colors={colors} isDark={isDark} />}
+        {activeTab === 'Experts' && (
           <HospitalDoctors 
             doctors={DOCTORS} 
             likedDocs={likedDocs} 
@@ -167,22 +158,17 @@ export default function HospitalProfile() {
             isDark={isDark} 
           />
         )}
-        {activeTab === 'Services' && <HospitalServices isDark={isDark} colors={colors} />}
+        {/* Packages Tab Placeholder */}
+        {activeTab === 'Packages' && (
+          <View style={{ padding: 24, alignItems: 'center' }}>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Health Packages Coming Soon</Text>
+          </View>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <View style={[styles.bottomBar, { backgroundColor: isDark ? '#121212' : '#FFFFFF', borderTopColor: isDark ? '#333' : '#F3F4F6' }]}>
-        <View style={styles.bottomFeeCol}>
-          <Text style={[styles.bottomFee, { color: colors.text }]}>₹{HOSPITAL_DATA.fee}</Text>
-          <Text style={styles.bottomFeeLabel}>Consultation fee</Text>
-          <Text style={styles.bottomFeeSub}>(From)</Text>
-        </View>
-        <TouchableOpacity style={styles.bookButtonMain} onPress={() => setActiveTab('Doctors')}>
-          <Calendar size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-          <Text style={styles.bookButtonMainText}>Book Appointment</Text>
-        </TouchableOpacity>
-      </View>
+
     </View>
   );
 }
@@ -299,11 +285,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 6,
   },
-  tabsScroll: {
+  tabsContainer: {
+    flexDirection: 'row',
     paddingHorizontal: 12,
-    gap: 24,
   },
   tabItem: {
+    flex: 1,
+    alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
@@ -312,7 +300,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#7C3AED',
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   tabTextActive: {
@@ -323,42 +311,5 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: -1,
   },
-  bottomBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
-  },
-  bottomFeeCol: {
-    flex: 1,
-  },
-  bottomFeeLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  bottomFee: {
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 2,
-  },
-  bottomFeeSub: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
-  bookButtonMain: {
-    backgroundColor: '#7C3AED',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bookButtonMainText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
-  }
+
 });

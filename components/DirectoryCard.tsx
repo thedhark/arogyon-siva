@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { Star, MapPin, Navigation, ShieldCheck, Calendar, Stethoscope } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Star, MapPin, Navigation, ShieldCheck, Calendar, Stethoscope, Heart, Activity, Baby } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
@@ -15,24 +16,22 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
   return (
     <TouchableOpacity 
       activeOpacity={1} 
-      style={[styles.premiumHospitalCard, { backgroundColor: isDark ? '#1A1A1A' : '#ffffff' }]}
+      style={[styles.premiumHospitalCard, { backgroundColor: '#1A1A1A' }]}
       onPress={() => router.push('/hospital/1')}
     >
       {/* Top Image Section */}
       <View style={styles.phcImageWrapper}>
-        <Image source={image} style={styles.phcImage} contentFit="cover" />
-        
-        {/* Wavy bottom overlay */}
-        <View style={styles.phcWaveContainer}>
-          <Svg height="30" width="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <Path fill={isDark ? '#1A1A1A' : '#ffffff'} d="M0,50 Q30,50 50,80 T100,60 L100,105 L0,105 Z" />
-          </Svg>
-        </View>
+        <Image source={typeof image === 'string' ? { uri: image } : image} style={styles.phcImage} contentFit="cover" />
+
+        <LinearGradient
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
+            style={styles.phcImageGradient}
+        />
 
         {/* Rating Badge */}
         <View style={styles.phcRatingBadge}>
           <View style={styles.phcRatingRow}>
-            <Star size={14} color="#FF9800" fill="#FF9800" />
+            <Star size={12} color="#FF9800" fill="#FF9800" />
             <Text style={styles.phcRatingText}>{rating}</Text>
           </View>
           <Text style={styles.phcReviewsText}>({reviews} reviews)</Text>
@@ -41,32 +40,30 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
 
       {/* Content Section */}
       <View style={styles.phcContent}>
-        {/* Logo and Tag Row */}
-        <View style={styles.phcLogoRow}>
-          <View style={[styles.phcLogoBox, { backgroundColor: isDark ? '#2A2A2A' : '#ffffff' }]}>
-            <Image source={logo} style={styles.phcLogo} contentFit="contain" />
-          </View>
-          <View style={styles.phcTypeTag}>
-            <Text style={styles.phcTypeTagText}>{typeTag}</Text>
-          </View>
-        </View>
 
-        <Text style={[styles.phcTitle, { color: isDark ? '#fff' : '#1A237E' }]}>{title}</Text>
+        {/* Title Row */}
+        <View style={styles.phcTitleRow}>
+          {logo && (
+            <Image 
+              source={typeof logo === 'string' ? { uri: logo } : logo} 
+              style={{ width: 20, height: 20, borderRadius: 4, marginRight: 8 }} 
+              contentFit="contain" 
+            />
+          )}
+          <Text style={[styles.phcTitle, { color: isDark ? '#fff' : '#1A237E', marginBottom: 0 }]} numberOfLines={1}>{title}</Text>
+        </View>
 
         {/* Location Row */}
         <View style={styles.phcLocationRow}>
           <View style={[styles.phcLocationItem, { flex: 1 }]}>
-            <MapPin size={12} color="#666" />
             <Text style={styles.phcLocationText} numberOfLines={1}>{address}</Text>
           </View>
           <View style={styles.phcLocationDivider} />
           <View style={styles.phcLocationItem}>
-            <Navigation size={12} color="#666" />
             <Text style={styles.phcLocationText}>{distance}</Text>
           </View>
           <View style={styles.phcLocationDivider} />
           <View style={styles.phcLocationItem}>
-            <View style={styles.phcOpenDot} />
             <Text style={styles.phcOpenText}>Open 24x7</Text>
           </View>
         </View>
@@ -74,7 +71,7 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
         {/* Info Blocks */}
         <View style={styles.phcInfoRow}>
           <View style={styles.phcInfoBlock}>
-            <View style={[styles.phcInfoIcon, { backgroundColor: '#E8F5E9' }]}>
+            <View style={styles.phcInfoIcon}>
               <Stethoscope size={14} color="#4CAF50" />
             </View>
             <View style={{ flex: 1 }}>
@@ -84,7 +81,7 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
           </View>
           
           <View style={styles.phcInfoBlock}>
-            <View style={[styles.phcInfoIcon, { backgroundColor: '#E3F2FD' }]}>
+            <View style={styles.phcInfoIcon}>
               <Calendar size={14} color="#2196F3" />
             </View>
             <View style={{ flex: 1 }}>
@@ -94,31 +91,30 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
           </View>
           
           <View style={styles.phcInfoBlock}>
-            <View style={[styles.phcInfoIcon, { backgroundColor: '#F3E5F5' }]}>
-              <ShieldCheck size={14} color="#9C27B0" />
+            <View style={styles.phcInfoIcon}>
+              <Heart size={14} color="#9C27B0" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Insurance</Text>
-              <Text style={[styles.phcInfoValue, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>{insurance}</Text>
+              <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Departments</Text>
+              <View style={[styles.phcAvatars, { marginTop: 2 }]}>
+                <View style={[styles.phcAvatarImg, { width: 18, height: 18, borderRadius: 9, marginLeft: 0, backgroundColor: '#FFEbee', alignItems: 'center', justifyContent: 'center', borderWidth: 1 }]}>
+                  <Heart size={10} color="#F44336" />
+                </View>
+                <View style={[styles.phcAvatarImg, { width: 18, height: 18, borderRadius: 9, marginLeft: -6, backgroundColor: '#E3F2FD', alignItems: 'center', justifyContent: 'center', borderWidth: 1 }]}>
+                  <Activity size={10} color="#2196F3" />
+                </View>
+                <View style={[styles.phcAvatarImg, { width: 18, height: 18, borderRadius: 9, marginLeft: -6, backgroundColor: '#E8F5E9', alignItems: 'center', justifyContent: 'center', borderWidth: 1 }]}>
+                  <Baby size={10} color="#4CAF50" />
+                </View>
+                <View style={[styles.phcAvatarImg, styles.phcAvatarCount, { width: 18, height: 18, borderRadius: 9, marginLeft: -6, borderWidth: 1 }]}>
+                  <Text style={[styles.phcAvatarCountText, { fontSize: 7 }]}>+12</Text>
+                </View>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Footer */}
-        <View style={styles.phcFooter}>
-          <View style={styles.phcTrusted}>
-            <ShieldCheck size={14} color="#1A237E" />
-            <Text style={styles.phcTrustedText}>Trusted by {trustedCount} patients</Text>
-          </View>
-          <View style={styles.phcAvatars}>
-            {[1,2,3].map((i) => (
-              <Image key={i} source={`https://i.pravatar.cc/100?img=${i+10}`} style={[styles.phcAvatarImg, { marginLeft: i === 1 ? 0 : -8 }]} />
-            ))}
-            <View style={[styles.phcAvatarImg, styles.phcAvatarCount]}>
-              <Text style={styles.phcAvatarCountText}>+12K+</Text>
-            </View>
-          </View>
-        </View>
+
       </View>
     </TouchableOpacity>
   );
@@ -127,20 +123,19 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
 const styles = StyleSheet.create({
   premiumHospitalCard: {
     width: '100%',
-    borderRadius: 14,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.02)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
   },
   phcImageWrapper: {
-    height: 130,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    height: 180,
+    borderRadius: 16,
     overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#F3F4F6',
   },
   phcImage: {
     width: '100%',
@@ -157,9 +152,9 @@ const styles = StyleSheet.create({
     top: 16,
     right: 16,
     backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -174,40 +169,42 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   phcRatingText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     color: '#333',
   },
   phcReviewsText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#666',
     fontWeight: '500',
   },
   phcContent: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  phcLogoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginTop: -30,
-    marginBottom: 10,
-    gap: 12,
-  },
-  phcLogoBox: {
-    width: 60,
-    height: 60,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 6,
+    marginHorizontal: 4,
+    marginBottom: 4,
+    marginTop: -30,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    paddingTop: 0,
+    zIndex: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 4,
   },
-  phcLogo: {
-    width: '100%',
-    height: '100%',
+  phcTitleRow: {
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  phcImageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
   },
   phcTypeTag: {
     backgroundColor: '#E8EAF6',
@@ -224,12 +221,14 @@ const styles = StyleSheet.create({
   phcTitle: {
     fontSize: 20,
     fontWeight: '900',
-    marginBottom: 10,
+    flex: 1,
   },
   phcLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+    marginBottom: 2,
   },
   phcLocationItem: {
     flexDirection: 'row',
@@ -261,10 +260,8 @@ const styles = StyleSheet.create({
   phcInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 12,
-    marginBottom: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    paddingTop: 0,
+    gap: 8,
   },
   phcInfoBlock: {
     flexDirection: 'row',
