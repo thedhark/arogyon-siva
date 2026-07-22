@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { GlassProvider } from '@/contexts/GlassContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,7 +22,8 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <GlassProvider>
-      <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      <BottomSheetModalProvider>
+        <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="doctor/[id]" options={{ headerShown: false }} />
@@ -30,10 +32,15 @@ export default function RootLayout() {
           <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
           <Stack.Screen name="booking/success" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/[categoryId]" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/provider/[providerId]" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/detail/[packageId]" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/checkout/[packageId]" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
-      </ThemeProvider>
+        </ThemeProvider>
+      </BottomSheetModalProvider>
     </GlassProvider>
     </GestureHandlerRootView>
   );

@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { MapPin as MapIcon } from 'lucide-react-native';
+import { MapPin as MapIcon, Heart, Menu } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { BlurView } from 'expo-blur';
-import { Heart, Menu } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: string; avatarUrl: string }) {
   const router = useRouter();
@@ -25,16 +25,8 @@ export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: st
         </View>
       </View>
 
-      {/* Right side: 'ON' membership pill + Profile */}
+      {/* Right side: Profile avatar */}
       <View style={styles.rightGroup}>
-        <TouchableOpacity style={[styles.glassPillContainer, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)', borderWidth: StyleSheet.hairlineWidth }]}>
-          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-          <View style={[styles.glassPill, { paddingHorizontal: 12 }]}>
-            <Heart size={14} color="#EF4444" fill="#EF4444" />
-            <Text style={[styles.onText, { color: colors.text, marginLeft: 4 }]}>ON</Text>
-          </View>
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.avatarContainer} onPress={() => router.push('/profile')}>
           <View style={[styles.avatarBackdrop, { backgroundColor: isDark ? '#333' : '#E2E8F0' }]} />
           <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -77,10 +69,6 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 15,
     fontWeight: '700',
-  },
-  onText: {
-    fontSize: 14,
-    fontWeight: '800',
   },
   avatarContainer: {
     position: 'relative',

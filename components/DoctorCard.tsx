@@ -19,7 +19,6 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
         styles.docCard, 
         { 
           backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-          shadowColor: isDark ? '#000' : '#8B5CF6', // Subtle purple shadow for premium light mode
         }
       ]}
       onPress={onPress}
@@ -95,7 +94,7 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
         
         <LinearGradient colors={['#14B8A6', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bookGradientBtn}>
           <View style={styles.bookBtnInner}>
-            <Text style={styles.bookBtnText}>Book</Text>
+            <Text style={styles.bookBtnText}>Book Visit</Text>
           </View>
         </LinearGradient>
       </View>
@@ -105,12 +104,15 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
 
 const styles = StyleSheet.create({
   docCard: {
-    borderRadius: 24,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   docCardTop: {
     flexDirection: 'row',

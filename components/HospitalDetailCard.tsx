@@ -6,6 +6,7 @@ import { Heart, Activity, Stethoscope, Calendar, Baby } from 'lucide-react-nativ
 import { useRouter } from 'expo-router';
 
 interface Props {
+  id?: string;
   name?: string;
   image?: string;
   location?: string;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function HospitalDetailCard({
+  id = 'hosp-1',
   name = "Hitas Super Speciality Hospital",
   image = "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=2073&auto=format&fit=crop",
   location = "Banjara Hills, Hyderabad",
@@ -36,7 +38,7 @@ export default function HospitalDetailCard({
     <TouchableOpacity 
       activeOpacity={1} 
       style={styles.outerContainer}
-      onPress={() => router.push('/hospital/1')}
+      onPress={() => router.push(`/hospital/${id}`)}
     >
       <View style={styles.cardContainer}>
         
@@ -56,21 +58,6 @@ export default function HospitalDetailCard({
               <Path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
             </Svg>
           </View>
-          {/* Walk-In Offer Banner (Moved above content but over image) */}
-          <LinearGradient
-            colors={['rgba(11, 60, 158, 0)', 'rgba(11, 60, 158, 0.8)', 'rgba(11, 60, 158, 1)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.walkInBanner}
-          >
-            <View style={styles.walkInContent}>
-              <View style={styles.walkInRow}>
-                <Text style={styles.walkInLabel}>WALK-IN OFFER</Text>
-                <View style={styles.walkInLine} />
-              </View>
-              <Text style={styles.walkInText}>Cashback + 2 more</Text>
-            </View>
-          </LinearGradient>
         </View>
 
         {/* Bottom Content Section */}
@@ -93,34 +80,25 @@ export default function HospitalDetailCard({
               <Text style={styles.subTextLeft} numberOfLines={1}>{location}</Text>
               <Text style={styles.subTextRight}>{distance}</Text>
             </View>
+            <View style={styles.horizontalDivider} />
             <View style={styles.phcInfoRow}>
-              <View style={styles.phcInfoBlock}>
-                <View style={[styles.phcInfoIcon, { backgroundColor: '#E8F5E9' }]}>
-                  <Stethoscope size={14} color="#4CAF50" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Consultation</Text>
-                  <Text style={styles.phcInfoValue} numberOfLines={1} adjustsFontSizeToFit>{fee}</Text>
-                </View>
+              <View style={[styles.phcInfoBlock, { alignItems: 'flex-start' }]}>
+                <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Consultation</Text>
+                <Text style={styles.phcInfoValue} numberOfLines={1} adjustsFontSizeToFit>{fee}</Text>
               </View>
               
-              <View style={styles.phcInfoBlock}>
-                <View style={[styles.phcInfoIcon, { backgroundColor: '#E3F2FD' }]}>
-                  <Calendar size={14} color="#2196F3" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Next Avail</Text>
-                  <Text style={styles.phcInfoValue} numberOfLines={1} adjustsFontSizeToFit>{nextAvailable}</Text>
-                </View>
+              <View style={styles.verticalDivider} />
+              
+              <View style={[styles.phcInfoBlock, { alignItems: 'center' }]}>
+                <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Timings</Text>
+                <Text style={styles.phcInfoValue} numberOfLines={1} adjustsFontSizeToFit>{nextAvailable}</Text>
               </View>
               
-              <View style={styles.phcInfoBlock}>
-                <View style={[styles.phcInfoIcon, { backgroundColor: '#F3E5F5' }]}>
-                  <Heart size={14} color="#9C27B0" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Departments</Text>
-                  <View style={[styles.phcAvatars, { marginTop: 2 }]}>
+              <View style={styles.verticalDivider} />
+              
+              <View style={[styles.phcInfoBlock, { alignItems: 'flex-end' }]}>
+                <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Departments</Text>
+                <View style={[styles.phcAvatars, { marginTop: 2 }]}>
                     <View style={[styles.phcAvatarImg, { width: 18, height: 18, borderRadius: 9, marginLeft: 0, backgroundColor: '#FFEbee' }]}>
                       <Heart size={10} color="#F44336" />
                     </View>
@@ -139,8 +117,6 @@ export default function HospitalDetailCard({
             </View>
           </View>
         </View>
-        
-      </View>
     </TouchableOpacity>
   );
 }
@@ -150,17 +126,23 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   cardContainer: {
     width: '100%',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 32, // M3 fully rounded
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   imageSection: {
     width: '100%',
-    height: 180,
-    borderRadius: 16,
+    height: 240,
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#F3F4F6',
@@ -182,52 +164,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  walkInBanner: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    justifyContent: 'flex-end',
-  },
-  walkInContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  walkInRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  walkInLabel: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-  },
-  walkInLine: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    flex: 1,
-  },
-  walkInText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
   bottomSection: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 32, // Match outer container
-    marginHorizontal: 4,
-    marginBottom: 4,
-    marginTop: -30,
-    paddingTop: 12,
-    paddingBottom: 16,
+    borderRadius: 14,
+    marginHorizontal: 0,
+    marginBottom: 0,
+    marginTop: 0,
+    paddingTop: 18,
+    paddingBottom: 18,
     paddingHorizontal: 16,
     zIndex: 10,
-    // Keep a very slight tonal elevation to separate from image
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.02)'
   },
@@ -259,7 +205,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   infoRowContainer: {
-    gap: 4,
+    gap: 0,
   },
   infoRow: {
     flexDirection: 'row',
@@ -301,14 +247,22 @@ const styles = StyleSheet.create({
   phcInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 0,
-    marginTop: 4,
-    gap: 8,
+    alignItems: 'center',
+    marginTop: 0,
+    gap: 0,
+  },
+  horizontalDivider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    width: '100%',
+    marginVertical: 5,
+  },
+  verticalDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   phcInfoBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     flex: 1,
   },
   phcInfoIcon: {

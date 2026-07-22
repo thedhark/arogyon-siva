@@ -24,13 +24,13 @@ export default function ExploreFilters({ style }: { style?: any }) {
         overScrollMode="never"
       >
         <TouchableOpacity style={[styles.filterPill, { backgroundColor: isDark ? '#1E1E1E' : '#FFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
-          <SlidersHorizontal size={14} color={colors.text} />
+          <SlidersHorizontal size={12} color={colors.text} />
           <Text style={[styles.filterText, { color: colors.text }]}>Filters</Text>
         </TouchableOpacity>
 
         {FILTERS.map(f => (
           <TouchableOpacity key={f.id} style={[styles.filterPill, { backgroundColor: isDark ? '#1E1E1E' : '#FFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
-            <f.icon size={14} color={colors.textMuted} />
+            <f.icon size={12} color={colors.textMuted} />
             <Text style={[styles.filterText, { color: colors.textMuted }]}>{f.label}</Text>
           </TouchableOpacity>
         ))}
@@ -41,28 +41,26 @@ export default function ExploreFilters({ style }: { style?: any }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    // Removed marginBottom so the parent animated view doesn't clip the content
   },
   scrollContent: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     gap: 8,
   },
   filterPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 100, // Perfect pill shape
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderCurve: 'continuous',
   },
   filterText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
+    letterSpacing: 0.1,
   }
 });

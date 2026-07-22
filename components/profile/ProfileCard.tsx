@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
 import { CheckCircle2, TrendingUp } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { useRouter } from 'expo-router';
 
 export default function ProfileCard() {
   const { colors, isDark } = useTheme();
+  const router = useRouter();
 
   return (
     <View style={styles.wrapper}>
@@ -30,7 +32,7 @@ export default function ProfileCard() {
         <View style={styles.infoCol}>
           <View style={styles.nameRow}>
             <Text style={[styles.name, { color: colors.text }]}>Ananya Sharma</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/profile/edit')}>
               <Text style={styles.editBtn}>Edit</Text>
             </TouchableOpacity>
           </View>

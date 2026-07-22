@@ -1,574 +1,987 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Platform, Modal, Animated as RNAnimated, KeyboardAvoidingView, Image } from 'react-native';
-import Animated, { useAnimatedStyle, SharedValue, interpolate, Extrapolation, useSharedValue, withTiming, useAnimatedScrollHandler, useAnimatedReaction, scrollTo, useAnimatedRef } from 'react-native-reanimated';
+import React, { useState, useRef } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  KeyboardAvoidingView,
+  Dimensions,
+  Pressable,
+} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+  SharedValue,
+  withTiming,
+  useSharedValue,
+  Easing,
+  useAnimatedReaction,
+  runOnJS,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { LinearGradient } from 'expo-linear-gradient';
+import {
+  X,
+  ArrowUp,
+  Sparkles,
+  RefreshCw,
+  Search,
+  FileText,
+  ChevronRight,
+  Clock,
+  CheckCircle2,
+  Menu,
+  BookOpen,
+  Calendar,
+  Pill,
+  MessageSquare,
+  Plus,
+  Paperclip,
+} from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
-import { Sparkles, Activity, FileText, Stethoscope, ChevronDown, Search, BookOpen, Clock, Menu, Plus, ChevronLeft } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import Svg, { Defs, LinearGradient, Stop, Mask, Rect, Path, Circle } from 'react-native-svg';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
-import ChatInputBar from './ChatInputBar';
-import { ChatSuggestionCarousel } from './ChatSuggestionCarousel';
+import { ThinkingOrb, OrbState } from '@/components/ui/ThinkingOrb';
 
-function AiAvatar() {
-  return (
-    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 4 }}>
-      <Svg width={24} height={24} viewBox="0 0 44 44">
-        <Defs>
-          <LinearGradient id="o-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#9bf229" />
-            <Stop offset="100%" stopColor="#14ce65" />
-          </LinearGradient>
-          <Mask id="heart-mask">
-            <Rect width="44" height="44" fill="white" />
-            <Path d="M 22 14 C 15 8, 7 13, 9 21 C 11 28, 19 33, 22 37 C 25 33, 33 28, 35 21 C 37 13, 29 8, 22 14 Z" fill="black" />
-          </Mask>
-        </Defs>
-        <Circle cx="22" cy="22" r="22" fill="url(#o-grad)" mask="url(#heart-mask)" />
-      </Svg>
-    </View>
-  );
-}
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const { height, width } = Dimensions.get('window');
-
-interface Props {
+interface GlobalChatOverlayProps {
   chatModeProgress: SharedValue<number>;
   onClose: () => void;
 }
 
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+  timestamp: string;
+}
+
+interface SavedRecord {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  doctor: string;
+}
+
+interface PastSession {
+  id: string;
+  title: string;
+  date: string;
+  snippet: string;
+}
+
+interface ScheduleItem {
+  id: string;
+  title: string;
+  type: string;
+  date: string;
+  time: string;
+}
+
+// ── Mock Data ──────────────────────────────────────────────────────────────────
+const MOCK_PAST_SESSIONS: PastSession[] = [
+  {
+    id: 's1',
+    title: 'Pregnancy Care & Nutrition Advice',
+    date: 'Yesterday, 4:15 PM',
+    snippet: 'Recommended trimesters diet plan & prenatal vitamins',
+  },
+  {
+    id: 's2',
+    title: 'In-Clinic General Physician Booking',
+    date: '18 Jul 2026',
+    snippet: 'Found Apollo Clinic specialists near Indiranagar',
+  },
+  {
+    id: 's3',
+    title: 'Full Body Blood Diagnostic Test Query',
+    date: '14 Jul 2026',
+    snippet: 'Analyzed lipid profile & HbA1c lab test options',
+  },
+];
+
+const MOCK_RECORDS: SavedRecord[] = [
+  {
+    id: 'r1',
+    title: 'Comprehensive Lipid Profile Report',
+    category: 'Lab Report',
+    date: '20 Jul 2026',
+    doctor: 'Apollo Diagnostics',
+  },
+  {
+    id: 'r2',
+    title: 'Ayurvedic Diet & Lifestyle Plan',
+    category: 'Prescription',
+    date: '15 Jul 2026',
+    doctor: 'Dr. Ananya Sharma',
+  },
+  {
+    id: 'r3',
+    title: 'Cardiology ECG Consultation Summary',
+    category: 'Clinical Summary',
+    date: '02 Jun 2026',
+    doctor: 'Dr. Vikram Patel',
+  },
+];
+
+const MOCK_SCHEDULES: ScheduleItem[] = [
+  {
+    id: 'sc1',
+    title: 'General Physician Routine Checkup',
+    type: 'In-Clinic Appointment',
+    date: 'Tomorrow, 23 Jul',
+    time: '10:30 AM',
+  },
+  {
+    id: 'sc2',
+    title: 'At-Home Lipid & Blood Sample Collection',
+    type: 'Lab Test Collection',
+    date: 'Sat, 25 Jul',
+    time: '08:00 AM',
+  },
+];
+
+const QUICK_PROMPTS = [
+  '🩺 How to manage blood pressure naturally?',
+  '🧪 Book Indiranagar Full Body Lab Test',
+  '🥗 View personalized trimester diet plan',
+  '🏥 Find top pediatricians near me',
+];
+
 const generateAiResponse = (query: string): string => {
   const q = query.toLowerCase();
   if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q.includes('help')) {
-    return "Hello! I'm Arogyon AI, your personal health assistant. I can help you find specialists, track health plans, book clinic visits, or explain medical packages. What's on your mind today?";
+    return "Hello! I'm Arogyon AI, your personal clinical guide. How can I assist with your health today?";
   }
   if (q.includes('pain') || q.includes('fever') || q.includes('cough') || q.includes('headache') || q.includes('stomach') || q.includes('hurt')) {
-    return "I'm sorry to hear that you are feeling unwell. For symptoms of discomfort or pain, it's best to consult a clinical expert. Would you like me to guide you to book an In-Clinic Specialist or a General Physician visit at Apollo Hospitals?";
+    return "For symptoms or discomfort, consulting a specialist is best. Would you like me to connect you with an In-Clinic Specialist or GP?";
   }
-  if (q.includes('book') || q.includes('doctor') || q.includes('clinic') || q.includes('appointment') || q.includes('specialist') || q.includes('physician')) {
-    return "I can help you find top-rated specialists for in-clinic visits! You can search for doctors by tapping on the Services row on the home page or browsing through the 'Care' tab. Would you like to check out general physicians or physiotherapists?";
+  if (q.includes('book') || q.includes('doctor') || q.includes('clinic') || q.includes('appointment') || q.includes('specialist')) {
+    return "You can book top-rated specialists directly under the 'Experts' tab or via In-Clinic services on the home screen.";
   }
-  if (q.includes('diet') || q.includes('nutrition') || q.includes('weight') || q.includes('eating') || q.includes('food')) {
-    return "A tailored diet is essential for optimal health! We have custom Ayurvedic Diet & Lifestyle plans managed 1-on-1 by certified nutritionists. You can subscribe to these diet packages under the 'Plans' tab.";
+  if (q.includes('diet') || q.includes('nutrition') || q.includes('food')) {
+    return "We offer 1-on-1 personalized Ayurvedic Diet & Lifestyle plans managed by certified nutritionists in the 'Packages' tab.";
   }
-  if (q.includes('gym') || q.includes('yoga') || q.includes('fitness') || q.includes('exercise') || q.includes('workout')) {
-    return "Physical activity keeps the body strong and minds clear! We partner with top centers to offer premium Gym & Yoga plans. You can view them by going to 'Wellness' from the quick actions or checking the Fitness category.";
+  if (q.includes('lab') || q.includes('test') || q.includes('blood') || q.includes('report')) {
+    return "We provide at-home sample collection for lab diagnostics. You can schedule a test directly from the Home screen.";
   }
-  if (q.includes('lab') || q.includes('test') || q.includes('blood') || q.includes('report') || q.includes('diagnostic')) {
-    return "We offer convenient at-home sample collection for diagnostic lab tests. You can book individual tests or comprehensive health checkups directly from the home page. Let me know if you'd like me to guide you there!";
-  }
-  return "That sounds like an important health query. To give you the safest and most accurate guidance, would you like me to help you navigate to book an in-person clinical consultation with one of our verified specialists?";
+  return "Thank you for reaching out! For precise medical guidance, I recommend booking a quick consultation with our verified doctors.";
 };
 
+const INITIAL_MESSAGES: ChatMessage[] = [
+  {
+    id: '1',
+    sender: 'ai',
+    text: "Hi Ananya! I'm Arogyon AI. How can I support your health and wellness journey today?",
+    timestamp: 'Just now',
+  },
+];
 
-function TypingIndicator() {
-  const { colors, isDark } = useTheme();
-  const [dot1] = useState(new RNAnimated.Value(0.4));
-  const [dot2] = useState(new RNAnimated.Value(0.4));
-  const [dot3] = useState(new RNAnimated.Value(0.4));
+export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalChatOverlayProps) {
+  const { isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const supportsLiquid = isLiquidGlassAvailable();
 
-  useEffect(() => {
-    const animateDot = (val: any, delay: number) => {
-      return RNAnimated.sequence([
-        RNAnimated.delay(delay),
-        RNAnimated.loop(
-          RNAnimated.sequence([
-            RNAnimated.timing(val, { toValue: 1, duration: 400, useNativeDriver: true }),
-            RNAnimated.timing(val, { toValue: 0.4, duration: 400, useNativeDriver: true }),
-          ])
-        ),
-      ]);
-    };
-    const animation = RNAnimated.parallel([
-      animateDot(dot1, 0),
-      animateDot(dot2, 150),
-      animateDot(dot3, 300),
-    ]);
-    animation.start();
-    return () => animation.stop();
-  }, []);
-
-  return (
-    <View style={[
-      styles.messageBubble, 
-      styles.aiBubble, 
-      { 
-        backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', 
-        borderColor: isDark ? '#333' : '#F3F4F6', 
-        flexDirection: 'row', 
-        gap: 6, 
-        alignItems: 'center', 
-        paddingHorizontal: 20, 
-        paddingVertical: 12 
-      }
-    ]}>
-      <RNAnimated.View style={[styles.typingDot, { opacity: dot1 }]} />
-      <RNAnimated.View style={[styles.typingDot, { opacity: dot2 }]} />
-      <RNAnimated.View style={[styles.typingDot, { opacity: dot3 }]} />
-    </View>
-  );
-}
-
-export default function GlobalChatOverlay({ chatModeProgress, onClose }: Props) {
-  const { colors, isDark } = useTheme();
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [inputText, setInputText] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'chats' | 'library' | 'prescriptions' | 'schedules'>('chats');
   const scrollViewRef = useRef<ScrollView>(null);
-  const router = useRouter();
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const sidebarProgress = useSharedValue(0);
-  const chatStartedProgress = useSharedValue(0);
+  const [isPointerActive, setIsPointerActive] = useState(false);
 
-  const carouselContainerStyle = useAnimatedStyle(() => {
-    const scale = interpolate(chatStartedProgress.value, [0, 1], [1, 0.75], Extrapolation.CLAMP);
-    const opacity = interpolate(chatStartedProgress.value, [0, 1], [1, 0], Extrapolation.CLAMP);
-    const translateY = interpolate(chatStartedProgress.value, [0, 1], [0, -200], Extrapolation.CLAMP);
-    return {
-      opacity,
-      transform: [{ translateY }, { scale }],
-      pointerEvents: chatStartedProgress.value > 0.5 ? 'none' : 'auto',
-    };
-  });
+  // Floating Input Bar Scroll Auto-Hide Animation
+  const inputTranslateY = useSharedValue(0);
+  const lastScrollY = useRef(0);
 
-  const chatMessagesContainerStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(chatStartedProgress.value, [0, 1], [0, 1], Extrapolation.CLAMP);
-    const translateY = interpolate(chatStartedProgress.value, [0, 1], [120, 0], Extrapolation.CLAMP);
+  const handleScroll = (event: any) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const diff = currentY - lastScrollY.current;
+
+    if (currentY > 30 && diff > 8) {
+      // Scrolling down: hide floating input capsule smoothly
+      inputTranslateY.value = withTiming(100, { duration: 220, easing: Easing.out(Easing.quad) });
+    } else if (diff < -5 || currentY <= 15) {
+      // Scrolling up or at top: show floating input capsule smoothly
+      inputTranslateY.value = withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) });
+    }
+    lastScrollY.current = currentY;
+  };
+
+  const floatingInputStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: inputTranslateY.value }],
+    opacity: interpolate(inputTranslateY.value, [0, 80], [1, 0], Extrapolation.CLAMP),
+  }));
+
+  useAnimatedReaction(
+    () => chatModeProgress.value > 0.05,
+    (active, prev) => {
+      if (active !== prev) {
+        runOnJS(setIsPointerActive)(active);
+      }
+    },
+    [chatModeProgress]
+  );
+
+  // Animated full-screen page transitions
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(chatModeProgress.value, [0, 1], [0, 0.65], Extrapolation.CLAMP),
+  }));
+
+  const pageStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(chatModeProgress.value, [0, 1], [SCREEN_HEIGHT, 0], Extrapolation.CLAMP);
+    const opacity = interpolate(chatModeProgress.value, [0, 0.15, 1], [0, 0.6, 1], Extrapolation.CLAMP);
+
     return {
       opacity,
       transform: [{ translateY }],
-      pointerEvents: chatStartedProgress.value < 0.2 ? 'none' : 'auto',
     };
   });
 
-  useEffect(() => {
-    if (messages.length === 0) {
-      chatStartedProgress.value = withTiming(0, { duration: 300 });
-    } else {
-      chatStartedProgress.value = withTiming(1, { duration: 400 });
-    }
-  }, [messages]);
+  const handleSend = (textToSend?: string) => {
+    const text = (textToSend || inputText).trim();
+    if (!text || isThinking) return;
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
 
-  const handleSendMessage = (text: string) => {
-    if (!text.trim()) return;
-    const userMsg = { id: Date.now().toString(), text: text.trim(), sender: 'user' };
-    setMessages(prev => [...prev, userMsg]);
-    setIsTyping(true);
+    setMessages((prev) => [...prev, userMsg]);
+    setInputText('');
+    setIsThinking(true);
 
-    setTimeout(() => {
-      const reply = generateAiResponse(text);
-      setMessages(prev => [...prev, { id: Date.now().toString(), text: reply, sender: 'ai' }]);
-      setIsTyping(false);
-    }, 1200);
-  };
-
-  useEffect(() => {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  }, [messages, isTyping]);
 
-  const handleMenuToggle = () => {
-    if (isSidebarOpen) {
-      sidebarProgress.value = withTiming(0, { duration: 300 });
-      setTimeout(() => setIsSidebarOpen(false), 300);
-    } else {
-      setIsSidebarOpen(true);
-      sidebarProgress.value = withTiming(1, { duration: 300 });
-    }
+    setTimeout(() => {
+      const replyText = generateAiResponse(text);
+      const aiMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: replyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, aiMsg]);
+      setIsThinking(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }, 900);
   };
 
-  const handleNewChat = () => {
-    setMessages([]);
-    handleMenuToggle();
+  const handleAttachment = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const attachmentMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: '📄 Uploading prescription PDF / health records...',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, attachmentMsg]);
+    setIsThinking(true);
+
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    setTimeout(() => {
+      const aiReply: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: '✅ Prescription & Report attached! I have scanned your diagnostics and medications. How would you like me to assist with this document?',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, aiReply]);
+      setIsThinking(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }, 1100);
   };
 
-  const containerStyle = useAnimatedStyle(() => {
-    return {
-      opacity: chatModeProgress.value,
-      pointerEvents: chatModeProgress.value > 0.5 ? 'auto' : 'none',
-    };
-  });
+  const handleReset = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setMessages(INITIAL_MESSAGES);
+    setIsThinking(false);
+  };
 
-  const contentStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateY: interpolate(chatModeProgress.value, [0, 1], [100, 0], Extrapolation.CLAMP) },
-        { scale: interpolate(chatModeProgress.value, [0, 1], [0.95, 1], Extrapolation.CLAMP) }
-      ],
-      opacity: interpolate(chatModeProgress.value, [0.2, 1], [0, 1], Extrapolation.CLAMP),
-    };
-  });
+  const toggleSidebar = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setShowSidebar(!showSidebar);
+  };
 
-  const suggestionsStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateY: interpolate(chatModeProgress.value, [0, 1], [150, 0], Extrapolation.CLAMP) }
-      ],
-      opacity: interpolate(chatModeProgress.value, [0.4, 1], [0, 1], Extrapolation.CLAMP),
-    };
-  });
+  const loadSession = (session: PastSession) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowSidebar(false);
+    setMessages([
+      {
+        id: '1',
+        sender: 'ai',
+        text: `Loaded session: "${session.title}"`,
+        timestamp: session.date,
+      },
+      {
+        id: '2',
+        sender: 'ai',
+        text: `Summary: ${session.snippet}`,
+        timestamp: session.date,
+      },
+    ]);
+  };
 
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: sidebarProgress.value,
-  }));
-
-  const sidebarStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(sidebarProgress.value, [0, 1], [-width, 0], Extrapolation.CLAMP) }]
-  }));
-
-  const handleSuggestionPress = (text: string) => {
-    handleSendMessage(text);
+  const loadRecord = (rec: SavedRecord) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowSidebar(false);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        sender: 'ai',
+        text: `📄 Referenced File: ${rec.title} (${rec.category}) from ${rec.doctor} (${rec.date}). How would you like me to assist with this report?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
   };
 
   return (
-    <>
-      <Animated.View style={[styles.container, containerStyle]}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]} />
+    <Animated.View
+      style={[StyleSheet.absoluteFill, styles.overlayWrapper]}
+      pointerEvents={isPointerActive ? 'auto' : 'none'}
+    >
+      {/* Dimmed Backdrop */}
+      <Pressable onPress={onClose} style={StyleSheet.absoluteFill}>
+        <Animated.View style={[styles.backdrop, backdropStyle]} />
+      </Pressable>
+
+      {/* Full Screen Ultra-Minimal AI Page */}
+      <Animated.View
+        style={[
+          styles.fullScreenPage,
+          isDark ? styles.pageDark : styles.pageLight,
+          pageStyle,
+        ]}
+      >
+        {supportsLiquid ? (
+          <GlassView
+            glassEffectStyle="regular"
+            style={StyleSheet.absoluteFill}
+          />
+        ) : Platform.OS === 'ios' ? (
+          <BlurView
+            intensity={95}
+            tint={isDark ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFill}
+          />
+        ) : null}
+
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flexContainer}
         >
-          <Animated.View style={[styles.content, contentStyle]}>
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={handleMenuToggle} style={styles.menuBtn}>
-                <Menu size={24} color={colors.text} />
-              </TouchableOpacity>
-              <View style={[styles.headerTitleRow, { alignItems: 'center' }]}>
-                <Text style={{ fontSize: 26, fontWeight: '900', letterSpacing: 2, marginRight: -2, textShadowColor: 'rgba(16,185,129,0.3)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 }}>
-                  <Text style={{ color: '#009f68' }}>A</Text>
-                  <Text style={{ color: '#059669' }}>R</Text>
-                  <Text style={{ color: '#10B981' }}>O</Text>
-                  <Text style={{ color: '#14ce65' }}>G</Text>
-                  <Text style={{ color: '#9bf229' }}>Y</Text>
+          {/* Header Layout: Left (Sidebar Toggle), Middle (Orb + Title), Right (Cancel) */}
+          <View
+            style={[
+              styles.header,
+              {
+                paddingTop: Math.max(insets.top + 6, 18),
+              },
+            ]}
+          >
+            {/* Left Side: Sidebar Toggle Menu Button */}
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={toggleSidebar}
+              style={[
+                styles.iconBtn,
+                showSidebar && styles.activeIconBtn,
+                { backgroundColor: showSidebar ? '#14ce65' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' },
+              ]}
+            >
+              <Menu size={20} color={showSidebar ? '#ffffff' : isDark ? '#ffffff' : '#0f172a'} />
+            </TouchableOpacity>
+
+            {/* Middle: Live Thinking Orb + Arogyon AI Title */}
+            <View style={styles.headerCenterGroup}>
+              <ThinkingOrb state={isThinking ? 'composing' : 'listening'} size={36} />
+              <View style={{ alignItems: 'center' }}>
+                <Text style={[styles.headerTitle, { color: isDark ? '#ffffff' : '#0f172a' }]}>
+                  Arogyon AI
                 </Text>
-                <Svg width={50} height={24} viewBox="0 0 92 44">
-                  <Defs>
-                    <LinearGradient id="o-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <Stop offset="0%" stopColor="#9bf229" />
-                      <Stop offset="100%" stopColor="#14ce65" />
-                    </LinearGradient>
-                    <Mask id="heart-mask">
-                      <Rect width="92" height="44" fill="white" />
-                      <Path d="M 22 14 C 15 8, 7 13, 9 21 C 11 28, 19 33, 22 37 C 25 33, 33 28, 35 21 C 37 13, 29 8, 22 14 Z" fill="black" />
-                    </Mask>
-                    <LinearGradient id="n-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <Stop offset="0%" stopColor="#1ad561" />
-                      <Stop offset="100%" stopColor="#009f68" />
-                    </LinearGradient>
-                  </Defs>
-                  <Circle cx="22" cy="22" r="22" fill="url(#o-grad)" mask="url(#heart-mask)" />
-                  <Path 
-                    d="M 56 38.5 V 18.5 A 13 13 0 0 1 82 18.5 V 38.5" 
-                    fill="none" 
-                    stroke="url(#n-grad)" 
-                    strokeWidth="11" 
-                    strokeLinecap="round" 
-                  />
-                </Svg>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                  <ChevronDown size={28} color={colors.text} />
-                </TouchableOpacity>
+                <Text style={[styles.headerSub, { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(15,23,42,0.5)' }]}>
+                  {isThinking ? 'Analyzing query...' : 'Clinical Assistant'}
+                </Text>
               </View>
             </View>
 
-            {/* Chat Area */}
-            {/* Chat Area */}
-            <View style={styles.chatAreaContainer}>
-              {/* Banner and Suggestions snappable carousel */}
-              <Animated.View style={carouselContainerStyle}>
-                <ChatSuggestionCarousel 
-                  chatModeProgress={chatModeProgress} 
-                  onSuggestionPress={handleSuggestionPress} 
-                />
-              </Animated.View>
+            {/* Right Side: Reset & Cancel Close Button */}
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={handleReset}
+                style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+              >
+                <RefreshCw size={16} color={isDark ? '#aaaaaa' : '#666666'} />
+              </TouchableOpacity>
 
-              {/* Chat messages viewport */}
-              <Animated.View style={[styles.chatViewport, chatMessagesContainerStyle]}>
-                <ScrollView 
-                  ref={scrollViewRef} 
-                  style={styles.chatArea} 
-                  contentContainerStyle={styles.chatContent} 
-                  showsVerticalScrollIndicator={false}
-                >
-                  {messages.map((msg, index) => (
-                    <React.Fragment key={msg.id}>
-                      <View style={[styles.messageRow, { justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }]}>
-                        {msg.sender === 'ai' && <AiAvatar />}
-                        {msg.sender === 'user' ? (
-                          <ExpoLinearGradient
-                            colors={['#10B981', '#059669']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={[styles.messageBubble, styles.userBubble]}
-                          >
-                            <Text style={[styles.messageText, styles.userText]}>{msg.text}</Text>
-                          </ExpoLinearGradient>
-                        ) : (
-                          <View style={[styles.messageBubble, styles.aiBubble, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
-                            <Text style={[styles.messageText, { color: colors.text }]}>{msg.text}</Text>
-                          </View>
-                        )}
-                      </View>
-                    </React.Fragment>
-                  ))}
-                  {isTyping && (
-                    <View style={[styles.messageRow, { justifyContent: 'flex-start' }]}>
-                      <AiAvatar />
-                      <TypingIndicator />
-                    </View>
-                  )}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={onClose}
+                style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+              >
+                <X size={20} color={isDark ? '#ffffff' : '#0f172a'} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Main Container Area (Chat or Sidebar Drawer) */}
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            {/* Sliding Sidebar Drawer */}
+            {showSidebar && (
+              <View
+                style={[
+                  styles.sidebarContainer,
+                  {
+                    backgroundColor: isDark ? '#14171a' : '#f8fafc',
+                    borderRightColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                  },
+                ]}
+              >
+                {/* Sidebar Navigation Tabs */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sidebarTabsScroll}>
+                  <TouchableOpacity
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveSidebarTab('chats'); }}
+                    style={[styles.sidebarTabBtn, activeSidebarTab === 'chats' && styles.activeSidebarTabBtn]}
+                  >
+                    <MessageSquare size={14} color={activeSidebarTab === 'chats' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'} />
+                    <Text style={[styles.sidebarTabText, { color: activeSidebarTab === 'chats' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b' }]}>
+                      Chats
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveSidebarTab('library'); }}
+                    style={[styles.sidebarTabBtn, activeSidebarTab === 'library' && styles.activeSidebarTabBtn]}
+                  >
+                    <BookOpen size={14} color={activeSidebarTab === 'library' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'} />
+                    <Text style={[styles.sidebarTabText, { color: activeSidebarTab === 'library' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b' }]}>
+                      Library
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveSidebarTab('prescriptions'); }}
+                    style={[styles.sidebarTabBtn, activeSidebarTab === 'prescriptions' && styles.activeSidebarTabBtn]}
+                  >
+                    <Pill size={14} color={activeSidebarTab === 'prescriptions' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'} />
+                    <Text style={[styles.sidebarTabText, { color: activeSidebarTab === 'prescriptions' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b' }]}>
+                      Rx
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveSidebarTab('schedules'); }}
+                    style={[styles.sidebarTabBtn, activeSidebarTab === 'schedules' && styles.activeSidebarTabBtn]}
+                  >
+                    <Calendar size={14} color={activeSidebarTab === 'schedules' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'} />
+                    <Text style={[styles.sidebarTabText, { color: activeSidebarTab === 'schedules' ? '#ffffff' : isDark ? '#94a3b8' : '#64748b' }]}>
+                      Schedule
+                    </Text>
+                  </TouchableOpacity>
                 </ScrollView>
-              </Animated.View>
-            </View>
 
-            {/* Bottom Fog/Smoke Gradient (Removed per user request for clean white) */}
+                {/* Sidebar Drawer List Items */}
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 12, gap: 10 }}>
+                  {activeSidebarTab === 'chats' &&
+                    MOCK_PAST_SESSIONS.map((session) => (
+                      <TouchableOpacity
+                        key={session.id}
+                        activeOpacity={0.8}
+                        onPress={() => loadSession(session)}
+                        style={[
+                          styles.sidebarCard,
+                          {
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                          },
+                        ]}
+                      >
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={[styles.sidebarCardTitle, { color: isDark ? '#f1f5f9' : '#0f172a' }]}>
+                            {session.title}
+                          </Text>
+                          <Text style={[styles.sidebarCardSnippet, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                            {session.snippet}
+                          </Text>
+                          <Text style={styles.sidebarCardDate}>{session.date}</Text>
+                        </View>
+                        <ChevronRight size={16} color="#14ce65" />
+                      </TouchableOpacity>
+                    ))}
 
-            {/* Chat Input Bar */}
-            <View style={{ zIndex: 2 }}>
-              <ChatInputBar onSendMessage={handleSendMessage} />
+                  {(activeSidebarTab === 'library' || activeSidebarTab === 'prescriptions') &&
+                    MOCK_RECORDS.map((rec) => (
+                      <TouchableOpacity
+                        key={rec.id}
+                        activeOpacity={0.8}
+                        onPress={() => loadRecord(rec)}
+                        style={[
+                          styles.sidebarCard,
+                          {
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                          },
+                        ]}
+                      >
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <CheckCircle2 size={13} color="#14ce65" />
+                            <Text style={[styles.sidebarCardTitle, { color: isDark ? '#f1f5f9' : '#0f172a' }]}>
+                              {rec.title}
+                            </Text>
+                          </View>
+                          <Text style={[styles.sidebarCardSnippet, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                            {rec.category} • {rec.doctor}
+                          </Text>
+                          <Text style={styles.sidebarCardDate}>{rec.date}</Text>
+                        </View>
+                        <ChevronRight size={16} color="#14ce65" />
+                      </TouchableOpacity>
+                    ))}
+
+                  {activeSidebarTab === 'schedules' &&
+                    MOCK_SCHEDULES.map((sch) => (
+                      <View
+                        key={sch.id}
+                        style={[
+                          styles.sidebarCard,
+                          {
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                          },
+                        ]}
+                      >
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={[styles.sidebarCardTitle, { color: isDark ? '#f1f5f9' : '#0f172a' }]}>
+                            {sch.title}
+                          </Text>
+                          <Text style={[styles.sidebarCardSnippet, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                            {sch.type}
+                          </Text>
+                          <Text style={styles.sidebarCardDate}>
+                            {sch.date} at {sch.time}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Main Chat Scroll View */}
+            <ScrollView
+              ref={scrollViewRef}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.scrollArea}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+            >
+              {messages.map((msg) => {
+                const isUser = msg.sender === 'user';
+                return (
+                  <View
+                    key={msg.id}
+                    style={[
+                      styles.msgRow,
+                      isUser ? styles.msgRowUser : styles.msgRowAi,
+                    ]}
+                  >
+                    {!isUser && (
+                      <View style={styles.aiAvatar}>
+                        <Sparkles size={14} color="#14ce65" />
+                      </View>
+                    )}
+
+                    <View
+                      style={[
+                        styles.msgBubble,
+                        isUser
+                          ? styles.userBubble
+                          : [
+                              styles.aiBubble,
+                              {
+                                backgroundColor: isDark
+                                  ? 'rgba(255,255,255,0.07)'
+                                  : 'rgba(240,245,242,0.9)',
+                                borderColor: isDark
+                                  ? 'rgba(255,255,255,0.1)'
+                                  : 'rgba(20,206,101,0.2)',
+                              },
+                            ],
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.msgText,
+                          { color: isUser ? '#ffffff' : isDark ? '#f1f5f9' : '#0f172a' },
+                        ]}
+                      >
+                        {msg.text}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+
+              {/* AI Thinking Indicator bubble */}
+              {isThinking && (
+                <View style={[styles.msgRow, styles.msgRowAi]}>
+                  <View style={styles.aiAvatar}>
+                    <Sparkles size={14} color="#14ce65" />
+                  </View>
+                  <View
+                    style={[
+                      styles.msgBubble,
+                      styles.aiBubble,
+                      {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(240,245,242,0.9)',
+                        borderColor: 'rgba(20,206,101,0.3)',
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.msgText, { color: '#14ce65', fontStyle: 'italic', fontSize: 13.5 }]}>
+                      Analyzing health query...
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Ultra Minimal Quick Prompt Pills */}
+              {messages.length === 1 && !isThinking && (
+                <View style={styles.quickPromptsContainer}>
+                  {QUICK_PROMPTS.map((promptText, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      activeOpacity={0.8}
+                      onPress={() => handleSend(promptText.replace(/^[^\w\s]+/, '').trim())}
+                      style={[
+                        styles.promptPill,
+                        {
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(20,206,101,0.06)',
+                          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(20,206,101,0.2)',
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.promptPillText, { color: isDark ? '#e2e8f0' : '#0f172a' }]}>
+                        {promptText}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+
+          {/* Floating Pure Capsule Input (Zero Background Wrapper / Zero Container) */}
+          <Animated.View
+            style={[
+              styles.floatingInputWrapper,
+              { paddingBottom: Math.max(insets.bottom, 12) },
+              floatingInputStyle,
+            ]}
+          >
+            <View
+              style={[
+                styles.floatingCapsule,
+                {
+                  backgroundColor: isDark ? '#1e2227' : '#ffffff',
+                  borderColor: isDark ? 'rgba(255,255,255,0.14)' : 'rgba(20,206,101,0.25)',
+                },
+              ]}
+            >
+              {/* Plus Attachment Button for Uploading Docs, Images & Prescriptions */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={handleAttachment}
+                style={styles.capsulePlusBtn}
+              >
+                <Plus size={18} color="#14ce65" />
+              </TouchableOpacity>
+
+              {/* Pure Search & Chat Input */}
+              <TextInput
+                style={[
+                  styles.capsuleInput,
+                  {
+                    color: isDark ? '#ffffff' : '#0f172a',
+                  },
+                ]}
+                placeholder='Ask Arogyon AI or attach health records...'
+                placeholderTextColor={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.45)'}
+                value={inputText}
+                onChangeText={setInputText}
+                onSubmitEditing={() => handleSend()}
+                returnKeyType="send"
+              />
+
+              {/* Send Button */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => handleSend()}
+                style={[
+                  styles.sendCapsuleBtn,
+                  { opacity: inputText.trim() ? 1 : 0.45 },
+                ]}
+              >
+                <ArrowUp size={16} color="#ffffff" />
+              </TouchableOpacity>
             </View>
           </Animated.View>
         </KeyboardAvoidingView>
       </Animated.View>
-
-      {/* Full Screen Sidebar using Modal */}
-      <Modal visible={isSidebarOpen} transparent animationType="none" onRequestClose={handleMenuToggle}>
-        <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={handleMenuToggle} activeOpacity={1} />
-        </Animated.View>
-
-        <Animated.View style={[styles.sidebarPanel, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }, sidebarStyle]}>
-          <View style={styles.sidebarHeader}>
-            {/* Empty view for flex-between spacing if needed, or left-aligned close */}
-            <TouchableOpacity onPress={handleMenuToggle} style={styles.sidebarClose}>
-              <ChevronLeft size={28} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          
-          <TouchableOpacity activeOpacity={0.8} onPress={handleNewChat} style={styles.newChatBtnWrapper}>
-            <ExpoLinearGradient
-              colors={['#9bf229', '#009f68']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.newChatGradient}
-            >
-              <View style={[styles.newChatInner, { backgroundColor: isDark ? '#1e1e1e' : '#ffffff' }]}>
-                <Plus size={20} color="#10B981" />
-                <Text style={[styles.newChatText, { color: colors.text }]}>New Chat</Text>
-              </View>
-            </ExpoLinearGradient>
-          </TouchableOpacity>
-
-          <ScrollView style={styles.sidebarScroll} showsVerticalScrollIndicator={false}>
-            <Text style={[styles.sidebarSectionTitle, { color: colors.textMuted }]}>Medical Records</Text>
-            <TouchableOpacity style={styles.sidebarItemRow}>
-              <FileText size={18} color={colors.textMuted} />
-              <Text style={[styles.sidebarItemText, { color: colors.text }]}>My Prescriptions</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.sidebarItemRow}>
-              <Activity size={18} color={colors.textMuted} />
-              <Text style={[styles.sidebarItemText, { color: colors.text }]}>Lab Reports</Text>
-            </TouchableOpacity>
-            
-            <Text style={[styles.sidebarSectionTitle, { color: colors.textMuted, marginTop: 24 }]}>History</Text>
-            <TouchableOpacity style={styles.sidebarItemRow}>
-              <Clock size={18} color={colors.textMuted} />
-              <Text style={[styles.sidebarItemText, { color: colors.text }]}>Orthopedic Search</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </Animated.View>
-      </Modal>
-    </>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: -150, // extend behind the tab bar
-    left: 0, // counteract wrapper padding
-    right: 0,
-    height: height + 150, // Full screen height
-    zIndex: 900, // Below the morphing logo, but above everything else
+  overlayWrapper: {
+    zIndex: 9999,
   },
-  content: {
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000000',
+  },
+  fullScreenPage: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 80 : 60,
-    paddingBottom: 160, // space for tab bar morph offset
-    paddingHorizontal: 12,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
   },
-  chatFogBackground: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 160,
-    zIndex: 1,
+  pageDark: {
+    backgroundColor: '#0b0f12',
+  },
+  pageLight: {
+    backgroundColor: '#f6f9f7',
+  },
+  flexContainer: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
   },
-  menuBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -8, // slight adjustment to align well
-  },
-  headerTitleRow: {
+  headerCenterGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
-  closeBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(156, 163, 175, 0.2)',
-  },
-  widgetsBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(156, 163, 175, 0.2)',
-  },
-  chatAreaContainer: {
-    flex: 1,
-    position: 'relative',
-    marginTop: 10,
-  },
-
-  chatViewport: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 5,
-  },
-  chatArea: {
-    flex: 1,
-  },
-  chatContent: {
-    paddingBottom: 20,
-  },
-  messageRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    alignItems: 'flex-start',
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 16,
-  },
-  userBubble: {
-    alignSelf: 'flex-end',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 6,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  aiBubble: {
-    alignSelf: 'flex-start',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
-    borderBottomLeftRadius: 6,
-    borderWidth: 1,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 24,
-  },
-  userText: {
-    color: '#FFFFFF',
+  headerSub: {
+    fontSize: 11,
     fontWeight: '500',
   },
-
-  backdrop: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  sidebarPanel: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingHorizontal: 20,
-  },
-  sidebarHeader: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  sidebarClose: {
-    width: 40,
-    height: 40,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    marginLeft: -8,
-  },
-  newChatBtnWrapper: {
-    marginBottom: 32,
-  },
-  newChatGradient: {
-    padding: 2,
-    borderRadius: 20,
-  },
-  newChatInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 18,
     gap: 8,
   },
-  newChatText: {
-    fontWeight: '700',
-    fontSize: 16,
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sidebarScroll: {
-    flex: 1,
+  activeIconBtn: {
+    backgroundColor: '#14ce65',
   },
-  sidebarSectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
+  sidebarContainer: {
+    width: SCREEN_WIDTH * 0.76,
+    borderRightWidth: 1,
   },
-  sidebarItemRow: {
+  sidebarTabsScroll: {
+    maxHeight: 46,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  sidebarTabBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    gap: 12,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    marginRight: 6,
   },
-  sidebarItemText: {
-    fontSize: 16,
+  activeSidebarTabBtn: {
+    backgroundColor: '#14ce65',
+  },
+  sidebarTabText: {
+    fontSize: 12,
     fontWeight: '600',
   },
-  typingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-  }
+  sidebarCard: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sidebarCardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  sidebarCardSnippet: {
+    fontSize: 11.5,
+    fontWeight: '400',
+  },
+  sidebarCardDate: {
+    fontSize: 10,
+    color: '#14ce65',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+    gap: 16,
+  },
+  msgRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  msgRowUser: {
+    justifyContent: 'flex-end',
+  },
+  msgRowAi: {
+    justifyContent: 'flex-start',
+  },
+  aiAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(20,206,101,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  msgBubble: {
+    maxWidth: SCREEN_WIDTH * 0.78,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  userBubble: {
+    backgroundColor: '#14ce65',
+    borderBottomRightRadius: 4,
+  },
+  aiBubble: {
+    borderTopLeftRadius: 4,
+    borderWidth: 1,
+  },
+  msgText: {
+    fontSize: 14.5,
+    lineHeight: 21,
+    fontWeight: '400',
+  },
+  quickPromptsContainer: {
+    marginTop: 18,
+    gap: 10,
+  },
+  promptPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  promptPillText: {
+    fontSize: 13.5,
+    fontWeight: '500',
+  },
+  floatingInputWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    zIndex: 2,
+    backgroundColor: 'transparent',
+  },
+  floatingCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 1.5,
+    paddingHorizontal: 14,
+
+    ...Platform.select({
+      ios: {
+        shadowColor: '#14ce65',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  capsulePlusBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(20,206,101,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  capsuleInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  sendCapsuleBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#14ce65',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
 });

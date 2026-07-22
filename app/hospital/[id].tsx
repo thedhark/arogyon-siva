@@ -4,90 +4,42 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { ShieldCheck, Star, MapPin, HeartPulse, Calendar } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useBookingStore } from '@/hooks/useBookingStore';
 
 import HospitalHeader from '@/components/HospitalHeader';
-import HospitalFeatures from '@/components/HospitalFeatures';
-import PromoBanner from '@/components/PromoBanner';
-import HospitalServices from '@/components/HospitalServices';
 import HospitalOverview from '@/components/hospital/HospitalOverview';
 import HospitalDoctors from '@/components/hospital/HospitalDoctors';
-
-// Mock Data
-const HOSPITAL_DATA = {
-  name: 'Max Super Speciality Hospital',
-  image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800',
-  rating: '4.6',
-  ratingsCount: '12.5K',
-  type: 'Multi Speciality Hospital',
-  distance: '3.1 km',
-  location: 'Saket, New Delhi',
-  emergency: '24x7 Emergency',
-  fee: '800'
-};
-
-const DOCTORS = [
-  {
-    id: 1,
-    name: 'Dr. Rohan Malhotra',
-    speciality: 'Senior Cardiologist',
-    degrees: 'MBBS, MD, DM (Cardiology)',
-    rating: '4.8',
-    reviews: '1.2K',
-    experience: '10+ Yrs Exp.',
-    hospital: 'Apollo Hospitals',
-    location: 'Saket, New Delhi',
-    price: '800',
-    nextAvailable: 'Today, 11:30 AM',
-    tagText: 'Highly Booked',
-    tagType: 'fire',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200'
-  },
-  {
-    id: 2,
-    name: 'Dr. Neha Kapoor',
-    speciality: 'Consultant Neurologist',
-    degrees: 'MBBS, MD, DM (Neurology)',
-    rating: '4.7',
-    reviews: '950',
-    experience: '8+ Yrs Exp.',
-    hospital: 'Apollo Hospitals',
-    location: 'Saket, New Delhi',
-    price: '700',
-    nextAvailable: 'Today, 12:00 PM',
-    tagText: 'Fast Booking',
-    tagType: 'zap',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=200'
-  },
-  {
-    id: 3,
-    name: 'Dr. Aditya Verma',
-    speciality: 'Orthopedic Surgeon',
-    degrees: 'MBBS, MS (Ortho)',
-    rating: '4.6',
-    reviews: '870',
-    experience: '12+ Yrs Exp.',
-    hospital: 'Apollo Hospitals',
-    location: 'Saket, New Delhi',
-    price: '750',
-    nextAvailable: 'Today, 02:30 PM',
-    tagText: '95% Recommend',
-    tagType: 'thumb',
-    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=200'
-  }
-];
+import HospitalPackages from '@/components/hospital/HospitalPackages';
 
 export default function HospitalProfile() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { colors, isDark } = useTheme();
   
-  const [activeTab, setActiveTab] = useState('Overview');
-  const [likedDocs, setLikedDocs] = useState<{[key: number]: boolean}>({});
-  const tabs = ['Overview', 'Experts', 'Packages'];
+  const getHospital = useBookingStore(state => state.getHospital);
+  const getHospitalDoctors = useBookingStore(state => state.getHospitalDoctors);
+  
+  const hospitalData = getHospital(id as string);
+  const doctors = getHospitalDoctors(id as string);
 
-  const toggleDocLike = (docId: number) => {
+  const [activeTab, setActiveTab] = useState('Overview');
+  const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
+  const tabs = ['Overview', 'Doctors', 'Packages'];
+
+  const toggleDocLike = (docId: any) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
   };
+
+  if (!hospitalData) {
+    return (
+      <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF', justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.text }}>Hospital not found.</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+          <Text style={{ color: colors.accent }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
@@ -96,7 +48,7 @@ export default function HospitalProfile() {
       
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         <View style={styles.coverWrapper}>
-          <Image source={{ uri: HOSPITAL_DATA.image }} style={styles.coverImage} />
+          <Image source={{ uri: hospitalData.image }} style={styles.coverImage} />
           <LinearGradient
             colors={['rgba(0,0,0,0.6)', 'transparent']}
             style={styles.coverGradient}
@@ -118,17 +70,16 @@ export default function HospitalProfile() {
             </View>
             <View style={styles.mainInfoText}>
               <View style={styles.titleRow}>
-                <Text style={[styles.hospitalName, { color: colors.text }]}>{HOSPITAL_DATA.name}</Text>
-                <ShieldCheck size={20} color="#7C3AED" fill="#E0E7FF" style={{marginTop: 4}} />
+                <Text style={[styles.hospitalName, { color: colors.text }]}>{hospitalData.name}</Text>
               </View>
               <View style={styles.subInfoRow}>
                 <Star size={12} color="#10B981" fill="#10B981" />
-                <Text style={styles.ratingText}>{HOSPITAL_DATA.rating} ({HOSPITAL_DATA.ratingsCount})</Text>
-                <Text style={styles.typeText}> •  {HOSPITAL_DATA.type}</Text>
+                <Text style={styles.ratingText}>{hospitalData.rating} ({hospitalData.ratingsCount})</Text>
+                <Text style={styles.typeText}> •  {hospitalData.type}</Text>
               </View>
               <View style={styles.locationRow}>
                 <MapPin size={12} color="#9CA3AF" />
-                <Text style={styles.locationText}>{HOSPITAL_DATA.distance} • {HOSPITAL_DATA.location}</Text>
+                <Text style={styles.locationText}>{hospitalData.distance} • {hospitalData.location}</Text>
               </View>
             </View>
           </View>
@@ -149,20 +100,23 @@ export default function HospitalProfile() {
         </View>
 
         {activeTab === 'Overview' && <HospitalOverview colors={colors} isDark={isDark} />}
-        {activeTab === 'Experts' && (
+
+        {activeTab === 'Doctors' && (
           <HospitalDoctors 
-            doctors={DOCTORS} 
-            likedDocs={likedDocs} 
+            doctors={doctors} 
+            likedDocs={likedDocs as any} 
             toggleDocLike={toggleDocLike} 
             colors={colors} 
             isDark={isDark} 
           />
         )}
-        {/* Packages Tab Placeholder */}
+
         {activeTab === 'Packages' && (
-          <View style={{ padding: 24, alignItems: 'center' }}>
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Health Packages Coming Soon</Text>
-          </View>
+          <HospitalPackages 
+            colors={colors} 
+            isDark={isDark} 
+            hospitalName={hospitalData.name} 
+          />
         )}
 
         <View style={{ height: 100 }} />

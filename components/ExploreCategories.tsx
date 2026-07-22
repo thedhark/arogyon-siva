@@ -6,18 +6,18 @@ import { Siren, ArrowRight } from 'lucide-react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
 export const EXPLORE_CATEGORIES = [
-  { id: 'Emergency', label: 'Emergency', image: 'https://images.unsplash.com/photo-1587559070757-f72a388edbba?q=80&w=200' }, // Red cross/emergency style image
   { id: 'Hospitals', label: 'Hospitals', image: MEDICAL_ILLUSTRATIONS.hospital },
   { id: 'Labs', label: 'Labs', image: MEDICAL_ILLUSTRATIONS.labs },
-  { id: 'Pharmacy', label: 'Pharmacy', image: 'https://images.unsplash.com/photo-1587854692152-cbe668df9731?q=80&w=200' },
+  { id: 'Eye Care', label: 'Eye Care', image: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=200' },
+  { id: 'Dental Care', label: 'Dental Care', image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=200' },
+  { id: 'Skin & Hair', label: 'Skin & Hair', image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=200' },
   { id: 'Ayurveda', label: 'Ayurveda', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=200' },
   { id: 'Women Care', label: 'Women Care', image: MEDICAL_ILLUSTRATIONS.pregnancy },
   { id: 'Mental Health', label: 'Mental Health', image: MEDICAL_ILLUSTRATIONS.rehab },
   { id: 'Physiotherapy', label: 'Physiotherapy', image: MEDICAL_ILLUSTRATIONS.physiotherapy },
   { id: 'Nutrition', label: 'Nutrition', image: MEDICAL_ILLUSTRATIONS.weightLoss },
-  { id: 'Checkups', label: 'Checkups', image: MEDICAL_ILLUSTRATIONS.scans },
-  { id: 'Sleep', label: 'Sleep Clinics', image: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=200' },
-  { id: 'Alternative', label: 'Alternative Med', image: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=200' },
+  { id: 'Sleep', label: 'Sleep', image: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=200' },
+  { id: 'Rehabs', label: 'Rehabs', image: MEDICAL_ILLUSTRATIONS.rehab },
 ];
 
 export default function ExploreCategories({ activeTab, onTabChange, style }: { activeTab: string, onTabChange: (t: string) => void, style?: any }) {
@@ -43,18 +43,16 @@ export default function ExploreCategories({ activeTab, onTabChange, style }: { a
               <View style={[
                 styles.imageContainer, 
                 activeTab === cat.id && styles.activeImageContainer,
-                { backgroundColor: isDark ? '#1E1E1E' : '#FFF' },
-                cat.id === 'Emergency' && { borderRadius: 12 }
+                { backgroundColor: isDark ? '#1E1E1E' : '#FFF' }
               ]}>
                 <Image 
                   source={{ uri: cat.image }} 
-                  style={[
-                    styles.categoryImage,
-                    cat.id === 'Emergency' && { borderRadius: 10 }
-                  ]} 
+                  style={styles.categoryImage} 
                 />
               </View>
-              <Text style={[
+              <Text 
+                numberOfLines={1}
+                style={[
                 styles.categoryLabel, 
                 { color: colors.text },
                 activeTab === cat.id && styles.activeLabel
@@ -74,8 +72,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   scrollContent: {
-    paddingHorizontal: 12,
-    gap: 8,
+    paddingHorizontal: 16,
+    gap: 16,
     alignItems: 'center',
   },
   emergencyCard: {
@@ -128,12 +126,12 @@ const styles = StyleSheet.create({
   categoryItem: {
     alignItems: 'center',
     gap: 8,
-    width: 72,
+    width: 76,
   },
   imageContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     padding: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -148,7 +146,7 @@ const styles = StyleSheet.create({
   categoryImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 28,
+    borderRadius: 18,
   },
   categoryLabel: {
     fontSize: 12,

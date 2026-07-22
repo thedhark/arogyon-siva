@@ -1,53 +1,87 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Search, Filter, HeartPulse, Bone, Brain, ArrowUpDown } from 'lucide-react-native';
+import { Search, HeartPulse, Bone, Brain, Stethoscope, ArrowUpDown, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import DoctorCard from '@/components/DoctorCard';
+import { useBookingStore } from '@/hooks/useBookingStore';
 
 interface Props {
   doctors: any[];
-  likedDocs: {[key: number]: boolean};
-  toggleDocLike: (id: number) => void;
+  likedDocs: {[key: string]: boolean};
+  toggleDocLike: (id: string) => void;
   colors: any;
   isDark: boolean;
 }
 
+const SPECIALTIES = [
+  { id: 'All', name: 'All', icon: Search, color: '#7C3AED' },
+  { id: 'Cardiologist', name: 'Cardiologist', icon: HeartPulse, color: '#EF4444' },
+  { id: 'Orthopedic', name: 'Orthopedic', icon: Bone, color: '#D97706' },
+  { id: 'Neurologist', name: 'Neurologist', icon: Brain, color: '#10B981' },
+  { id: 'Gynaecologist', name: 'Gynaecologist', icon: Stethoscope, color: '#EC4899' },
+];
+
 export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, colors, isDark }: Props) {
   const router = useRouter();
+  const [selectedSpec, setSelectedSpec] = useState('All');
+  const allStoreDoctors = useBookingStore(state => Object.values(state.doctors));
+
+  const listToRender = (doctors && doctors.length > 0) ? doctors : allStoreDoctors;
+
+  const filteredDoctors = selectedSpec === 'All'
+    ? listToRender
+    : listToRender.filter(d => 
+        (d.speciality || '').toLowerCase().includes(selectedSpec.toLowerCase())
+      );
 
   return (
     <View style={styles.tabContent}>
-
-
+      {/* Specialty Filter Scroll */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.specialtiesScroll}>
-        <TouchableOpacity style={styles.specItem}>
-          <View style={[styles.specIconBox, { backgroundColor: isDark ? '#3B0764' : '#F3E8FF', borderColor: isDark ? '#4C1D95' : '#E9D5FF' }]}>
-            <Search color="#7C3AED" size={24} />
-          </View>
-          <Text style={[styles.specName, { color: '#7C3AED', fontWeight: '700' }]}>All</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.specItem}>
-          <View style={[styles.specIconBox, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
-            <HeartPulse color="#EF4444" size={24} />
-          </View>
-          <Text style={[styles.specName, { color: colors.text }]}>Cardiologist</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.specItem}>
-          <View style={[styles.specIconBox, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
-            <Bone color="#D97706" size={24} />
-          </View>
-          <Text style={[styles.specName, { color: colors.text }]}>Orthopedic</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.specItem}>
-          <View style={[styles.specIconBox, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
-            <Brain color="#10B981" size={24} />
-          </View>
-          <Text style={[styles.specName, { color: colors.text }]}>Neurologist</Text>
-        </TouchableOpacity>
+        {SPECIALTIES.map((spec) => {
+          const isActive = selectedSpec === spec.name;
+          const IconComp = spec.icon;
+          return (
+            <TouchableOpacity 
+              key={spec.id} 
+              style={styles.specItem}
+              onPress={() => setSelectedSpec(spec.name)}
+            >
+              <View 
+                style={[
+                  styles.specIconBox, 
+                  { 
+                    backgroundColor: isActive 
+                      ? (isDark ? '#3B0764' : '#F3E8FF') 
+                      : (isDark ? '#1E1E1E' : '#F9FAFB'), 
+                    borderColor: isActive 
+                      ? '#7C3AED' 
+                      : (isDark ? '#333333' : '#F3F4F6') 
+                  }
+                ]}
+              >
+                <IconComp color={isActive ? '#7C3AED' : spec.color} size={22} />
+              </View>
+              <Text 
+                style={[
+                  styles.specName, 
+                  { 
+                    color: isActive ? '#7C3AED' : colors.text, 
+                    fontWeight: isActive ? '700' : '500' 
+                  }
+                ]}
+                numberOfLines={1}
+              >
+                {spec.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
+      {/* Header & Doctor List */}
       <View style={styles.topDoctorsHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>Top Experts</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>Top Super Specialists</Text>
         <TouchableOpacity style={[styles.sortBtn, { backgroundColor: isDark ? '#1E1E1E' : '#F9FAFB' }]}>
           <ArrowUpDown size={14} color="#6B7280" />
           <Text style={[styles.sortText, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>Sort</Text>
@@ -55,7 +89,7 @@ export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, col
       </View>
 
       <View style={styles.doctorList}>
-        {doctors.map((doc) => (
+        {filteredDoctors.map((doc) => (
           <DoctorCard 
             key={doc.id}
             doc={doc}
@@ -74,41 +108,38 @@ export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, col
 const styles = StyleSheet.create({
   tabContent: {
     paddingHorizontal: 12,
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
-
   specialtiesScroll: {
-    gap: 16,
-    paddingBottom: 24,
+    gap: 14,
+    paddingBottom: 20,
   },
   specItem: {
     alignItems: 'center',
-    width: 72,
+    width: 76,
   },
   specIconBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
+    marginBottom: 6,
+    borderWidth: 1.5,
   },
   specName: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
     textAlign: 'center',
   },
   topDoctorsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
-    marginBottom: 12,
   },
   sortBtn: {
     flexDirection: 'row',
@@ -123,6 +154,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   doctorList: {
-    gap: 8,
+    gap: 10,
   },
 });
+

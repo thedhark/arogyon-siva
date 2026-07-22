@@ -4,11 +4,52 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { ArrowLeft, Clock, Calendar, CheckCircle2, ChevronRight, ShieldCheck, MapPin } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { useBookingStore } from '@/hooks/useBookingStore';
 
 export default function CheckoutScreen() {
   const router = useRouter();
-  const { type, doctorId } = useLocalSearchParams();
+  const { type, doctorId, date, time } = useLocalSearchParams();
   const { colors, isDark } = useTheme();
+
+  const getDoctor = useBookingStore(state => state.getDoctor);
+  const getHospital = useBookingStore(state => state.getHospital);
+  const bookAppointment = useBookingStore(state => state.bookAppointment);
+
+  const doctorData = getDoctor(doctorId as string);
+  
+  if (!doctorData) {
+    return (
+      <View style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#F5F7FA', justifyContent: 'center', alignItems: 'center' }]}>
+         <Text style={{ color: colors.text }}>Doctor details not found.</Text>
+         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+            <Text style={{ color: colors.accent }}>Go Back</Text>
+         </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const hospitalData = getHospital(doctorData.hospitalId);
+  const consultationFee = parseInt(doctorData.fee);
+  const platformFee = 20;
+  const taxes = Math.round(consultationFee * 0.05); // 5% tax mock
+  const totalPayable = consultationFee + platformFee + taxes;
+
+  const handleConfirm = () => {
+    const appointmentId = bookAppointment({
+      doctorId: doctorData.id,
+      doctorName: doctorData.name,
+      speciality: doctorData.speciality,
+      hospitalName: hospitalData?.name || doctorData.location,
+      location: doctorData.location,
+      date: (date as string) || 'Today',
+      time: (time as string) || '10:00 AM',
+      fee: totalPayable.toString(),
+      type: (type as string) || 'In-Clinic',
+      image: doctorData.image
+    });
+
+    router.replace({ pathname: '/booking/success', params: { appointmentId } });
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#F5F7FA' }]}>
@@ -29,13 +70,13 @@ export default function CheckoutScreen() {
         {/* Doctor Summary */}
         <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
           <View style={styles.doctorRow}>
-            <Image source={{ uri: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=300' }} style={styles.avatar} />
+            <Image source={{ uri: doctorData.image }} style={styles.avatar} />
             <View style={styles.doctorInfo}>
-              <Text style={[styles.docName, { color: colors.text }]}>Dr. Sneha Iyer</Text>
-              <Text style={styles.docSpecialty}>Gynaecologist • {type} Consultation</Text>
+              <Text style={[styles.docName, { color: colors.text }]}>{doctorData.name}</Text>
+              <Text style={styles.docSpecialty}>{doctorData.speciality} • {type || 'In-Clinic'} Consultation</Text>
               <View style={styles.locationRow}>
                 <MapPin size={12} color="#6B7280" />
-                <Text style={styles.locationText}>Apollo Hospitals</Text>
+                <Text style={styles.locationText}>{hospitalData?.name || doctorData.location}</Text>
               </View>
             </View>
           </View>
@@ -49,7 +90,7 @@ export default function CheckoutScreen() {
               <Calendar size={18} color="#0D9488" />
             </View>
             <View style={styles.scheduleDetails}>
-              <Text style={[styles.scheduleValue, { color: colors.text }]}>Monday, 14 Aug</Text>
+              <Text style={[styles.scheduleValue, { color: colors.text }]}>{date || 'Select Date'}</Text>
             </View>
           </View>
           <View style={styles.divider} />
@@ -58,7 +99,7 @@ export default function CheckoutScreen() {
               <Clock size={18} color="#DB2777" />
             </View>
             <View style={styles.scheduleDetails}>
-              <Text style={[styles.scheduleValue, { color: colors.text }]}>03:00 PM - 03:30 PM</Text>
+              <Text style={[styles.scheduleValue, { color: colors.text }]}>{time || 'Select Time'}</Text>
             </View>
           </View>
         </View>
@@ -78,20 +119,20 @@ export default function CheckoutScreen() {
         <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>Consultation Fee</Text>
-            <Text style={[styles.paymentValue, { color: colors.text }]}>₹800</Text>
+            <Text style={[styles.paymentValue, { color: colors.text }]}>₹{consultationFee}</Text>
           </View>
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>Platform Fee</Text>
-            <Text style={[styles.paymentValue, { color: colors.text }]}>₹20</Text>
+            <Text style={[styles.paymentValue, { color: colors.text }]}>₹{platformFee}</Text>
           </View>
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>Taxes</Text>
-            <Text style={[styles.paymentValue, { color: colors.text }]}>₹40</Text>
+            <Text style={[styles.paymentValue, { color: colors.text }]}>₹{taxes}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.paymentRow}>
             <Text style={[styles.paymentTotalLabel, { color: colors.text }]}>Total Payable</Text>
-            <Text style={[styles.paymentTotalValue, { color: colors.text }]}>₹860</Text>
+            <Text style={[styles.paymentTotalValue, { color: colors.text }]}>₹{totalPayable}</Text>
           </View>
           <View style={styles.secureRow}>
             <ShieldCheck size={14} color="#10B981" />
@@ -105,12 +146,12 @@ export default function CheckoutScreen() {
       <View style={[styles.footerBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderTopColor: isDark ? '#333' : '#E5E7EB' }]}>
         <View style={styles.availabilityCol}>
           <Text style={styles.totalPayableLabel}>Total Payable</Text>
-          <Text style={[styles.consultationFee, { color: colors.text }]}>₹860</Text>
+          <Text style={[styles.consultationFeeLabel, { color: colors.text }]}>₹{totalPayable}</Text>
         </View>
 
         <TouchableOpacity 
           style={styles.bookButton} 
-          onPress={() => router.push('/booking/success')}
+          onPress={handleConfirm}
         >
           <CheckCircle2 size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
           <Text style={styles.videoBookText}>Pay & Confirm</Text>
@@ -291,7 +332,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 2,
   },
-  consultationFee: {
+  consultationFeeLabel: {
     fontSize: 18,
     fontWeight: '800',
   },

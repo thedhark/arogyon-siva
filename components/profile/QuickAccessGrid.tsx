@@ -6,14 +6,14 @@ import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 
 const QUICK_ACTIONS = [
-  { id: '1', title: 'My Orders', route: '/profile/orders', icon: ShoppingBag, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '2', title: 'Prescriptions', route: '/profile/prescriptions', icon: FileText, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '3', title: 'Reports', route: '/profile/reports', icon: ClipboardList, color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' },
-  { id: '4', title: 'Saved', route: '/profile/saved', icon: Heart, color: '#6B7280', bgColor: 'rgba(107, 114, 128, 0.1)' },
-  { id: '5', title: 'Health Records', route: '/profile/records', icon: FileCode2, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '1', title: 'Appointments', route: '/appointments', icon: ShoppingBag, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '2', title: 'Family Members', route: '/profile/family', icon: FileText, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '3', title: 'Health Records', route: '/records', icon: ClipboardList, color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' },
+  { id: '4', title: 'Addresses', route: '/profile/addresses', icon: Heart, color: '#6B7280', bgColor: 'rgba(107, 114, 128, 0.1)' },
+  { id: '5', title: 'Saved', route: '/profile/saved', icon: FileCode2, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
   { id: '6', title: 'Insurance', route: '/profile/insurance', icon: ShieldAlert, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '7', title: 'Payment Methods', route: '/profile/payments', icon: CreditCard, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '8', title: 'Reminders', route: '/profile/reminders', icon: Bell, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '7', title: 'Payments', route: '/profile/payments', icon: CreditCard, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '8', title: 'Reminders', route: '/notifications', icon: Bell, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
 ];
 
 export default function QuickAccessGrid() {

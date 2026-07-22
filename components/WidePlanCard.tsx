@@ -13,7 +13,7 @@ interface Props {
   colors: [string, string, ...string[]];
 }
 
-export default function WidePlanCard({ title, subtitle, duration, image, colors }: Props) {
+export default function WidePlanCard({ title, subtitle, image, colors }: Props) {
   const router = useRouter();
 
   return (
@@ -23,7 +23,11 @@ export default function WidePlanCard({ title, subtitle, duration, image, colors 
         pressed && Platform.OS === 'ios' && { transform: [{ scale: 0.98 }], opacity: 0.9 }
       ]}
       android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-      onPress={() => router.push('/plan/1' as any)}
+      onPress={() => {
+        // Extract the first word or main category from the title, e.g., 'Pregnancy', 'Knee'
+        const categoryName = title.split(' ')[0].toLowerCase();
+        router.push(`/packages/category/${encodeURIComponent(categoryName)}` as any);
+      }}
     >
       <LinearGradient
         colors={colors}
@@ -34,7 +38,7 @@ export default function WidePlanCard({ title, subtitle, duration, image, colors 
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
           <Text style={styles.subtitle} numberOfLines={2}>{subtitle}</Text>
-          <Text style={styles.duration}>{duration}</Text>
+
         </View>
         
         <View style={styles.imageContainer}>
@@ -69,10 +73,10 @@ const styles = StyleSheet.create({
     borderRadius: Platform.OS === 'android' ? 24 : 14, // M3 uses larger border radii
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: Platform.OS === 'ios' ? 4 : 8 },
-    shadowOpacity: Platform.OS === 'ios' ? 0.15 : 0.25,
-    shadowRadius: Platform.OS === 'ios' ? 8 : 12,
-    elevation: Platform.OS === 'android' ? 8 : 0,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
     overflow: 'hidden',
   },
   cardGradient: {

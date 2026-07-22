@@ -5,21 +5,24 @@ import HospitalDetailCard from '@/components/HospitalDetailCard';
 import { HOSPITALS_DATA, REHABS_DATA } from '@/constants/directory-data';
 
 export default function DirectoryContent({ activeTab }: { activeTab: string }) {
+  const displayData = activeTab === 'Rehabs' ? REHABS_DATA : HOSPITALS_DATA;
+
   return (
-    // Force metro reload
     <View style={styles.container}>
-      {activeTab === 'Hospitals' && (
-        <>
-          {HOSPITALS_DATA.map((hospital, index) => (
-            <HospitalDetailCard key={index} {...hospital} />
-          ))}
-        </>
-      )}
-      
-      {activeTab === 'Rehabs' && (
+      {activeTab === 'Rehabs' ? (
         <>
           {REHABS_DATA.map((rehab, index) => (
             <DirectoryCard key={index} {...rehab} />
+          ))}
+        </>
+      ) : (
+        <>
+          {displayData.map((hospital, index) => (
+            <HospitalDetailCard 
+              key={index} 
+              {...hospital} 
+              speciality={activeTab !== 'Hospitals' ? `${activeTab} Super Speciality Clinic` : hospital.speciality}
+            />
           ))}
         </>
       )}

@@ -9,9 +9,8 @@ import CategoryHeader from '@/components/category/CategoryHeader';
 import CategoryTabs from '@/components/category/CategoryTabs';
 import RecommendationCard from '@/components/category/RecommendationCard';
 import DoctorListItem from '@/components/category/DoctorListItem';
-import HospitalListItem from '@/components/category/HospitalListItem';
 
-const TABS = ['Recommended', 'Doctors', 'Hospitals', 'Packages'];
+const TABS = ['Recommended', 'Doctors', 'Packages'];
 
 const MOCK_DATA = {
   recommended: [
@@ -173,28 +172,7 @@ export default function CategoryScreen() {
     </View>
   );
 
-  const renderHospitals = () => (
-    <View style={styles.tabContent}>
-      <View style={styles.sectionHeader}>
-        <View>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Top Hospitals</Text>
-          <Text style={styles.sectionSubtitle}>50+ hospitals found</Text>
-        </View>
-      </View>
-      
-      <View style={styles.listContainer}>
-        {MOCK_DATA.hospitals.map((hospital) => (
-          <HospitalListItem 
-            key={hospital.id}
-            {...hospital}
-            onPress={() => {}}
-            colors={colors}
-            isDark={isDark}
-          />
-        ))}
-      </View>
-    </View>
-  );
+
 
   const renderPlaceholder = (title: string) => (
     <View style={styles.placeholderContainer}>
@@ -234,7 +212,7 @@ export default function CategoryScreen() {
       
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {activeTab === 'Recommended' && renderRecommended()}
-        {activeTab === 'Hospitals' && renderHospitals()}
+
         {activeTab === 'Doctors' && renderPlaceholder('Doctors List')}
         {activeTab === 'Packages' && renderPlaceholder('Care Packages')}
       </ScrollView>

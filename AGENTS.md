@@ -1,3 +1,2 @@
-# Expo HAS CHANGED
-
-Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+are u idiot its 54 sdk expo we using
+'

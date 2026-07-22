@@ -5,6 +5,7 @@ import { Search, Mic } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
+import AndroidGlassView from '@/components/AndroidGlassView';
 
 const searchTerms = [
   'Search "General Physician"',
@@ -90,16 +91,17 @@ export default function PremiumSearchBar() {
 
   return (
     <TouchableOpacity 
-      activeOpacity={0.9} 
+      activeOpacity={1} 
       style={styles.outerWrapper}
       onPress={() => router.push('/search')}
     >
       <View style={[styles.container, containerBgStyle]}>
-        {supportsLiquidGlass && (
+        {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
           <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} />
-        )}
-        {!supportsLiquidGlass && Platform.OS === 'ios' && (
-          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} />
+        ) : (
+          Platform.OS === 'ios' && (
+            <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} />
+          )
         )}
 
         <View style={styles.leftSection}>

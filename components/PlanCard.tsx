@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-export default function PlanCard({ image, title, duration, tag, colors }: any) {
+export default function PlanCard({ image, title, tag, colors }: any) {
   const router = useRouter();
 
   return (
@@ -19,8 +19,7 @@ export default function PlanCard({ image, title, duration, tag, colors }: any) {
           </View>
           <View style={styles.planCardContent}>
             <Text style={styles.planCardTitle}>{title}</Text>
-            <View style={styles.planCardFooter}>
-              <Text style={styles.planCardDuration}>{duration}</Text>
+            <View style={[styles.planCardFooter, { justifyContent: 'flex-end' }]}>
               <View style={styles.planCardBtn}>
                 <ChevronRight size={14} color="#1b5e55" />
               </View>
@@ -37,6 +36,12 @@ const styles = StyleSheet.create({
     width: width * 0.28,
     height: 180,
     borderRadius: 24, // M3 Fully Rounded
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    backgroundColor: '#fff',
   },
   planCardImage: {
     flex: 1,

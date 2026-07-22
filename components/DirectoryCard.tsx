@@ -9,15 +9,15 @@ import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-export default function NearbyCard({ image, logo, typeTag, title, subtitle, address, distance, fee, nextAvailable, insurance, trustedCount, rating, reviews }: any) {
+export default function DirectoryCard({ id = 'hosp-2', image, logo, typeTag, title, subtitle, address, distance, fee, nextAvailable, insurance, trustedCount, rating, reviews }: any) {
   const { colors, isDark } = useTheme();
   const router = useRouter();
 
   return (
     <TouchableOpacity 
       activeOpacity={1} 
-      style={[styles.premiumHospitalCard, { backgroundColor: '#1A1A1A' }]}
-      onPress={() => router.push('/hospital/1')}
+      style={styles.premiumHospitalCard}
+      onPress={() => router.push(`/hospital/${id}`)}
     >
       {/* Top Image Section */}
       <View style={styles.phcImageWrapper}>
@@ -70,30 +70,23 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
 
         {/* Info Blocks */}
         <View style={styles.phcInfoRow}>
+          
           <View style={styles.phcInfoBlock}>
-            <View style={styles.phcInfoIcon}>
-              <Stethoscope size={14} color="#4CAF50" />
-            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Consultation</Text>
-              <Text style={[styles.phcInfoValue, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>{fee}</Text>
+              <Text style={[styles.phcInfoValue, { color: isDark ? '#fff' : '#333' }]} numberOfLines={1} adjustsFontSizeToFit>{fee}</Text>
             </View>
           </View>
           
           <View style={styles.phcInfoBlock}>
-            <View style={styles.phcInfoIcon}>
-              <Calendar size={14} color="#2196F3" />
-            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Next Avail</Text>
-              <Text style={[styles.phcInfoValue, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>{nextAvailable}</Text>
+              <Text style={[styles.phcInfoValue, { color: isDark ? '#fff' : '#333' }]} numberOfLines={1} adjustsFontSizeToFit>{nextAvailable}</Text>
             </View>
           </View>
+
           
           <View style={styles.phcInfoBlock}>
-            <View style={styles.phcInfoIcon}>
-              <Heart size={14} color="#9C27B0" />
-            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Departments</Text>
               <View style={[styles.phcAvatars, { marginTop: 2 }]}>
@@ -123,16 +116,20 @@ export default function NearbyCard({ image, logo, typeTag, title, subtitle, addr
 const styles = StyleSheet.create({
   premiumHospitalCard: {
     width: '100%',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    overflow: 'hidden',
   },
   phcImageWrapper: {
-    height: 180,
-    borderRadius: 16,
+    height: 240,
+    borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#F3F4F6',
@@ -157,10 +154,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   phcRatingRow: {
     flexDirection: 'row',
@@ -180,19 +177,16 @@ const styles = StyleSheet.create({
   },
   phcContent: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginHorizontal: 4,
-    marginBottom: 4,
-    marginTop: -30,
+    borderRadius: 8,
+    marginHorizontal: 0,
+    marginBottom: 0,
+    marginTop: 0,
     paddingHorizontal: 12,
     paddingBottom: 12,
-    paddingTop: 0,
+    paddingTop: 8,
     zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.02)',
   },
   phcTitleRow: {
     marginBottom: 8,

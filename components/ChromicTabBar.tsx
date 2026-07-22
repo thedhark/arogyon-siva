@@ -12,13 +12,14 @@ import Animated, {
   Extrapolation,
   runOnJS,
 } from 'react-native-reanimated';
-import { Home, Calendar, Heart, Activity } from 'lucide-react-native';
+import { Home, Calendar, Heart, Activity, Sparkles } from 'lucide-react-native';
 import Svg, { Path, Defs, LinearGradient, Stop, Mask, Rect, Circle, Line, Polyline } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import AndroidGlassView from '@/components/AndroidGlassView';
 import GlobalChatOverlay from './GlobalChatOverlay';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -27,7 +28,7 @@ const TAB_META: Record<string, { label: string }> = {
   index: { label: 'Home' },
   package: { label: 'Packages' },
   care: { label: 'Care' },
-  plans: { label: 'Plan' },
+  experts: { label: 'Experts' },
   today: { label: 'Today' },
 };
 
@@ -62,11 +63,10 @@ function CustomCalendarIcon({ size, color, fill, strokeWidth, isDark }: { size: 
 }
 
 function ActiveHomeIcon({ size, strokeWidth, isDark, color }: { size: number, strokeWidth: number, isDark: boolean, color: string }) {
-  const innerStroke = isDark ? '#1e1e1e' : '#ffffff';
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       <Path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <Path d="M9 22V12h6v10" stroke={innerStroke} />
+      <Path d="M9 22V12h6v10" />
     </Svg>
   );
 }
@@ -97,7 +97,7 @@ function getTabIcon(routeName: string, color: string, isFocused: boolean, isDark
       case 'index': return <ActiveHomeIcon size={size} strokeWidth={stroke} isDark={isDark} color={color} />;
       case 'package': return <CustomCalendarIcon size={size} color={color} fill={color} strokeWidth={stroke} isDark={isDark} />;
       case 'care': return <ActiveHeartIcon size={size} strokeWidth={stroke} color={color} />;
-      case 'plans': return <CustomCalendarIcon size={size} color={color} fill={color} strokeWidth={stroke} isDark={isDark} />;
+      case 'experts': return <Sparkles size={size} color={color} fill={color} strokeWidth={stroke} />;
       case 'today': return <ActiveHeartIcon size={size} strokeWidth={stroke} color={color} />;
       default: return <ActiveHomeIcon size={size} strokeWidth={stroke} isDark={isDark} color={color} />;
     }
@@ -108,7 +108,7 @@ function getTabIcon(routeName: string, color: string, isFocused: boolean, isDark
     case 'index': return <Home size={size} color={color} fill={fill} strokeWidth={stroke} />;
     case 'package': return <CustomCalendarIcon size={size} color={color} fill={fill} strokeWidth={stroke} isDark={isDark} />;
     case 'care': return <Heart size={size} color={color} fill={fill} strokeWidth={stroke} />;
-    case 'plans': return <CustomCalendarIcon size={size} color={color} fill={fill} strokeWidth={stroke} isDark={isDark} />;
+    case 'experts': return <Sparkles size={size} color={color} fill={fill} strokeWidth={stroke} />;
     case 'today': return <Heart size={size} color={color} fill={fill} strokeWidth={stroke} />;
     default: return <Home size={size} color={color} fill={fill} strokeWidth={stroke} />;
   }
@@ -121,14 +121,14 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
 
   return (
     <Animated.View style={[styles.logoWrapper, logoStyle]} pointerEvents="none">
-      <Svg width={56} height={28} viewBox="0 0 88 44">
+      <Svg width={45} height={21} viewBox="0 0 94 44">
         <Defs>
           <LinearGradient id="o-grad" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor="#9bf229" />
             <Stop offset="100%" stopColor="#14ce65" />
           </LinearGradient>
           <Mask id="heart-mask">
-            <Rect width="88" height="44" fill="white" />
+            <Rect width="94" height="44" fill="white" />
             <Path d="M 22 14 C 15 8, 7 13, 9 21 C 11 28, 19 33, 22 37 C 25 33, 33 28, 35 21 C 37 13, 29 8, 22 14 Z" fill="black" />
           </Mask>
           <LinearGradient id="n-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -138,10 +138,10 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
         </Defs>
         <Circle cx="22" cy="22" r="22" fill="url(#o-grad)" mask="url(#heart-mask)" />
         <Path 
-          d="M 56 38.5 V 15.5 A 10 10 0 0 1 76 15.5 V 38.5" 
+          d="M 52 39.5 V 22 A 17.5 17.5 0 0 1 87 22 V 39.5" 
           fill="none" 
           stroke="url(#n-grad)" 
-          strokeWidth="11" 
+          strokeWidth="9" 
           strokeLinecap="round" 
         />
       </Svg>
@@ -151,9 +151,8 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
 
 function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDragging }: any) {
   const { isDark } = useTheme();
-  // Active icon will be pure white if we use a vibrant indicator, or keep contrasting logic
-  const activeIconColor = isDark ? '#ffffff' : '#000000';
-  const inactiveColor = isDark ? '#ffffff' : '#000000';
+  const activeIconColor = '#14ce65';
+  const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.45)';
 
   const pressScale = useSharedValue(1);
   const focusProgress = useSharedValue(isFocused ? 1 : 0);
@@ -238,7 +237,9 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
 
   const handleLogoPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (chatModeProgress.value === 0) {
+    if (chatModeProgress.value > 0.5) {
+      chatModeProgress.value = withTiming(0, { duration: 250 });
+    } else {
       chatModeProgress.value = withTiming(1, { duration: 300 });
     }
   }, []);
@@ -296,7 +297,7 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
     // The navContainer has paddingLeft: 6 and paddingRight: 12 (total 18)
     const availableWidth = containerWidth.value - 18;
     const tabW = availableWidth / visibleRoutes.length;
-    const INDICATOR_WIDTH = 56; // Width of the pill behind the icon
+    const INDICATOR_WIDTH = 65; // Width of the green capsule outline pill behind active tab
 
     const leadCenter = leadPosition.value * tabW + (tabW / 2);
     const trailCenter = trailPosition.value * tabW + (tabW / 2);
@@ -414,7 +415,6 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
       transform: [
         { scale: interpolate(chatModeProgress.value, [0, 0.2], [1, 0.8], Extrapolation.CLAMP) }
       ],
-      pointerEvents: chatModeProgress.value > 0.1 ? 'none' : 'auto',
     };
   });
 
@@ -436,21 +436,15 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
           style={[styles.navContainer, containerBgStyle, navContainerStyle]} 
           onLayout={(e) => { containerWidth.value = e.nativeEvent.layout.width; }}
         >
-          {supportsLiquidGlass && (
-            <GlassView glassEffectStyle="regular" isInteractive={false} style={[StyleSheet.absoluteFill, { borderRadius: 34, overflow: 'hidden' }]} />
-          )}
-          {!supportsLiquidGlass && Platform.OS === 'ios' && (
-            <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 34, overflow: 'hidden' }]} />
+          {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" isInteractive={false} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+          ) : (
+            Platform.OS === 'ios' && (
+              <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+            )
           )}
 
-          <Animated.View style={[styles.indicatorWrapper, indicatorStyle]}>
-               <View style={[styles.indicator, isDark && styles.indicatorDark]}>
-                 {supportsLiquidGlass ? (
-                   <GlassView glassEffectStyle="regular" tintColor={isDark ? '#333333' : '#ffffff'} isInteractive={false} style={[StyleSheet.absoluteFill, { borderRadius: 28, overflow: 'hidden' }]} />
-                 ) : null}
-               </View>
-            </Animated.View>
-          )}
+
 
           {visibleRoutes.map((route: any, index: number) => {
             const isFocused = state.index === state.routes.indexOf(route);
@@ -490,11 +484,12 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
             logoContainerStyle
           ]}
         >
-          {supportsLiquidGlass && (
-            <GlassView glassEffectStyle="regular" tintColor={isDark ? '#333333' : '#ffffff'} isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 34, overflow: 'hidden' }]} />
-          )}
-          {!supportsLiquidGlass && Platform.OS === 'ios' && (
-            <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 34, overflow: 'hidden' }]} />
+          {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" tintColor={isDark ? '#333333' : '#ffffff'} isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+          ) : (
+            Platform.OS === 'ios' && (
+              <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+            )
           )}
           {/* Default Logo */}
           <PremiumLogo progress={chatModeProgress} />
@@ -555,15 +550,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: Platform.OS === 'ios' ? 34 + 68 : 24 + 68,
+    height: Platform.OS === 'ios' ? 34 + 62 : 24 + 62,
     zIndex: 998,
   },
   navContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 68,
-    borderRadius: 34,
+    height: 62,
+    borderRadius: 31,
     borderCurve: 'continuous',
     paddingLeft: 6,
     paddingRight: 12,
@@ -574,9 +569,9 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   logoContainer: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
@@ -635,31 +630,9 @@ const styles = StyleSheet.create({
   indicatorWrapper: {
     position: 'absolute',
     left: 6,
-    top: 10,
-    height: 32,
+    top: 6,
+    height: 50,
     zIndex: 0,
-  },
-  indicator: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 16,
-    borderCurve: 'continuous',
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  indicatorDark: {
-    backgroundColor: '#333333',
   },
   tabButton: {
     flex: 1,
@@ -676,7 +649,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   tabLabel: {
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
