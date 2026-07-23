@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/useTheme';
 import { MEDICAL_ILLUSTRATIONS } from '@/constants/medical-illustrations';
-import { Siren, ArrowRight } from 'lucide-react-native';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import Animated, { 
+  FadeInRight, 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring 
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 export const EXPLORE_CATEGORIES = [
   { id: 'Hospitals', label: 'Hospitals', image: MEDICAL_ILLUSTRATIONS.hospital },
@@ -17,51 +23,100 @@ export const EXPLORE_CATEGORIES = [
   { id: 'Physiotherapy', label: 'Physiotherapy', image: MEDICAL_ILLUSTRATIONS.physiotherapy },
   { id: 'Nutrition', label: 'Nutrition', image: MEDICAL_ILLUSTRATIONS.weightLoss },
   { id: 'Sleep', label: 'Sleep', image: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=200' },
-  { id: 'Rehabs', label: 'Rehabs', image: MEDICAL_ILLUSTRATIONS.rehab },
 ];
+
+const ITEM_WIDTH = 76;
+const GAP = 16;
+const PADDING_LEFT = 16;
+const SLIDER_WIDTH = 52;
+const SLIDER_OFFSET = (ITEM_WIDTH - SLIDER_WIDTH) / 2; // 12
 
 export default function ExploreCategories({ activeTab, onTabChange, style }: { activeTab: string, onTabChange: (t: string) => void, style?: any }) {
   const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const activeIndex = Math.max(0, EXPLORE_CATEGORIES.findIndex(cat => cat.id === activeTab));
+  
+  const sliderPosition = useSharedValue(PADDING_LEFT + activeIndex * (ITEM_WIDTH + GAP) + SLIDER_OFFSET);
+
+  useEffect(() => {
+    const targetX = PADDING_LEFT + activeIndex * (ITEM_WIDTH + GAP) + SLIDER_OFFSET;
+    sliderPosition.value = withSpring(targetX, {
+      damping: 18,
+      stiffness: 220,
+      mass: 0.6,
+    });
+  }, [activeIndex]);
+
+  const handlePress = (id: string, index: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onTabChange(id);
+    
+    // Auto scroll into view
+    const scrollTarget = Math.max(0, index * (ITEM_WIDTH + GAP) - 100);
+    scrollViewRef.current?.scrollTo({ x: scrollTarget, animated: true });
+  };
+
+  const animatedSliderStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: sliderPosition.value }],
+    };
+  });
 
   return (
     <View style={[styles.container, style]}>
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         bounces={false}
         overScrollMode="never"
       >
-        {/* CATEGORY CIRCLES */}
-        {EXPLORE_CATEGORIES.map((cat, index) => (
-          <Animated.View key={cat.id} entering={FadeInRight.delay(index * 100)}>
-            <TouchableOpacity 
-              style={styles.categoryItem}
-              onPress={() => onTabChange(cat.id)}
-              activeOpacity={0.7}
-            >
-              <View style={[
-                styles.imageContainer, 
-                activeTab === cat.id && styles.activeImageContainer,
-                { backgroundColor: isDark ? '#1E1E1E' : '#FFF' }
-              ]}>
-                <Image 
-                  source={{ uri: cat.image }} 
-                  style={styles.categoryImage} 
-                />
-              </View>
-              <Text 
-                numberOfLines={1}
-                style={[
-                styles.categoryLabel, 
-                { color: colors.text },
-                activeTab === cat.id && styles.activeLabel
-              ]}>
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
+        {/* Premium Animated Green Gradient Slider */}
+        <Animated.View style={[styles.sliderTrack, animatedSliderStyle]}>
+          <LinearGradient
+            colors={['#34D399', '#10B981', '#059669']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientBar}
+          />
+        </Animated.View>
+
+        {EXPLORE_CATEGORIES.map((cat, index) => {
+          const isActive = activeTab === cat.id;
+          return (
+            <Animated.View key={cat.id} entering={FadeInRight.delay(index * 40)}>
+              <TouchableOpacity 
+                style={styles.categoryItem}
+                onPress={() => handlePress(cat.id, index)}
+                activeOpacity={0.75}
+              >
+                <View style={[
+                  styles.imageContainer, 
+                  isActive && styles.activeImageContainer,
+                  { backgroundColor: isDark ? '#252528' : '#F3F4F6' }
+                ]}>
+                  <Image 
+                    source={{ uri: cat.image }} 
+                    style={styles.categoryImage} 
+                    resizeMode="cover"
+                  />
+                </View>
+                <Text 
+                  numberOfLines={1}
+                  style={[
+                    styles.categoryLabel, 
+                    { color: isActive ? '#10B981' : (isDark ? '#9CA3AF' : '#6B7280') },
+                    isActive && styles.activeLabel
+                  ]}
+                >
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -69,70 +124,41 @@ export default function ExploreCategories({ activeTab, onTabChange, style }: { a
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   scrollContent: {
     paddingHorizontal: 16,
     gap: 16,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    position: 'relative',
+    paddingBottom: 10,
   },
-  emergencyCard: {
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
-    borderRadius: 20,
-    padding: 16,
-    alignItems: 'center',
-    width: 140,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+  sliderTrack: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    zIndex: 10,
+  },
+  gradientBar: {
+    width: SLIDER_WIDTH,
+    height: 4,
+    borderRadius: 2,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
     elevation: 4,
-  },
-  sirenContainer: {
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: 24,
-    marginBottom: 12,
-  },
-  emergencyTitle: {
-    color: '#DC2626',
-    fontWeight: '800',
-    fontSize: 13,
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  emergencySubtitle: {
-    color: '#6B7280',
-    fontSize: 11,
-    marginBottom: 12,
-  },
-  exploreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  exploreText: {
-    color: '#DC2626',
-    fontWeight: '600',
-    fontSize: 12,
   },
   categoryItem: {
     alignItems: 'center',
-    gap: 8,
-    width: 76,
+    gap: 6,
+    width: ITEM_WIDTH,
   },
   imageContainer: {
     width: 64,
     height: 64,
     borderRadius: 20,
-    padding: 2,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -140,13 +166,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   activeImageContainer: {
-    borderWidth: 2,
-    borderColor: '#10B981',
+    transform: [{ scale: 1.05 }],
   },
   categoryImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 18,
+    borderRadius: 20,
   },
   categoryLabel: {
     fontSize: 12,
@@ -154,7 +179,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeLabel: {
-    color: '#10B981',
     fontWeight: '800',
   }
 });

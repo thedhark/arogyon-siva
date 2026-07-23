@@ -29,13 +29,18 @@ export default function DirectoryCard({ id = 'hosp-2', image, logo, typeTag, tit
         />
 
         {/* Rating Badge */}
-        <View style={styles.phcRatingBadge}>
+        <LinearGradient
+          colors={['#9BF229', '#14CE65']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.phcRatingBadge}
+        >
           <View style={styles.phcRatingRow}>
-            <Star size={12} color="#FF9800" fill="#FF9800" />
+            <Star size={12} color="#052E16" fill="#052E16" />
             <Text style={styles.phcRatingText}>{rating}</Text>
           </View>
           <Text style={styles.phcReviewsText}>({reviews} reviews)</Text>
-        </View>
+        </LinearGradient>
       </View>
 
       {/* Content Section */}
@@ -128,7 +133,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   phcImageWrapper: {
-    height: 240,
+    height: 190,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
@@ -146,34 +151,33 @@ const styles = StyleSheet.create({
   },
   phcRatingBadge: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: '#fff',
+    top: 12,
+    right: 12,
     paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   phcRatingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   phcRatingText: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#333',
+    fontWeight: '900',
+    color: '#052E16',
   },
   phcReviewsText: {
     fontSize: 9,
-    color: '#666',
-    fontWeight: '500',
+    color: '#052E16',
+    fontWeight: '700',
   },
   phcContent: {
     backgroundColor: '#FFFFFF',
@@ -182,14 +186,14 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     marginTop: 0,
     paddingHorizontal: 12,
-    paddingBottom: 12,
-    paddingTop: 8,
+    paddingBottom: 6,
+    paddingTop: 4,
     zIndex: 10,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.02)',
   },
   phcTitleRow: {
-    marginBottom: 8,
+    marginBottom: 4,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -213,7 +217,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   phcTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     flex: 1,
   },
@@ -221,8 +225,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 4,
-    marginBottom: 2,
+    paddingVertical: 2,
+    marginBottom: 1,
   },
   phcLocationItem: {
     flexDirection: 'row',

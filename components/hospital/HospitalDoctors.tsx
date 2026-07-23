@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Search, HeartPulse, Bone, Brain, Stethoscope, ArrowUpDown, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -24,8 +24,9 @@ const SPECIALTIES = [
 export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, colors, isDark }: Props) {
   const router = useRouter();
   const [selectedSpec, setSelectedSpec] = useState('All');
-  const allStoreDoctors = useBookingStore(state => Object.values(state.doctors));
+  const storeDoctors = useBookingStore(state => state.doctors);
 
+  const allStoreDoctors = useMemo(() => Object.values(storeDoctors || {}), [storeDoctors]);
   const listToRender = (doctors && doctors.length > 0) ? doctors : allStoreDoctors;
 
   const filteredDoctors = selectedSpec === 'All'

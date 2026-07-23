@@ -1,11 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { SITUATION_ILLUSTRATIONS } from '@/constants/medical-theme-assets';
 
-const SPECIALITIES = [
+type CategoryItem = {
+  id: number;
+  name: string;
+  image: string | ImageSourcePropType;
+};
+
+const SPECIALITIES: CategoryItem[] = [
   { id: 1, name: 'General Physician', image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=200' },
   { id: 2, name: 'Cardiology', image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=200' },
   { id: 3, name: 'Ophthalmology', image: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=200' },
@@ -26,28 +33,31 @@ const SPECIALITIES = [
   { id: 24, name: 'Nephrology', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=200' },
 ];
 
-const SITUATIONS = [
-  { id: 11, name: 'Accident', image: 'https://images.unsplash.com/photo-1587559070757-f72a388edbba?q=80&w=200' },
-  { id: 12, name: 'Fever', image: 'https://images.unsplash.com/photo-1584362917165-526a968579e8?q=80&w=200' },
-  { id: 13, name: 'Poisoning', image: 'https://images.unsplash.com/photo-1584744982491-665216d95f8b?q=80&w=200' },
-  { id: 14, name: 'Chest Pain', image: 'https://images.unsplash.com/photo-1505575967455-40e256f73376?q=80&w=200' },
-  { id: 15, name: 'Breathing', image: 'https://images.unsplash.com/photo-1584061803517-5e8c1e6c98dc?q=80&w=200' },
-  { id: 16, name: 'Stomach Ache', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=200' },
-  { id: 25, name: 'Fracture', image: 'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?q=80&w=200' },
-  { id: 26, name: 'Migraine', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=200' },
-  { id: 27, name: 'Skin Burn', image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=200' },
-  { id: 28, name: 'Allergy', image: 'https://images.unsplash.com/photo-1584362917165-526a968579e8?q=80&w=200' },
-  { id: 29, name: 'BP Crisis', image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=200' },
-  { id: 30, name: 'Animal Bite', image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=200' },
-  { id: 31, name: 'Pimple & Acne', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=200' },
-  { id: 32, name: 'Hair Loss', image: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?q=80&w=200' },
-  { id: 33, name: 'Sexual Health', image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=200' },
-  { id: 34, name: 'Period Pain', image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?q=80&w=200' },
-  { id: 35, name: 'Weight Care', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=200' },
-  { id: 36, name: 'Stress & Anxiety', image: 'https://images.unsplash.com/photo-1499209974431-9dac3cea0047?q=80&w=200' },
-  { id: 37, name: 'Acidity & Gas', image: 'https://images.unsplash.com/photo-1584362917165-526a968579e8?q=80&w=200' },
-  { id: 38, name: 'Toothache', image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=200' },
+const SITUATIONS: CategoryItem[] = [
+  { id: 11, name: 'Accident', image: SITUATION_ILLUSTRATIONS.accident },
+  { id: 12, name: 'Fever', image: SITUATION_ILLUSTRATIONS.fever },
+  { id: 13, name: 'Poisoning', image: SITUATION_ILLUSTRATIONS.poisoning },
+  { id: 14, name: 'Chest Pain', image: SITUATION_ILLUSTRATIONS.chestPain },
+  { id: 15, name: 'Breathing', image: SITUATION_ILLUSTRATIONS.breathing },
+  { id: 16, name: 'Stomach Ache', image: SITUATION_ILLUSTRATIONS.stomachAche },
+  { id: 25, name: 'Fracture', image: SITUATION_ILLUSTRATIONS.fracture },
+  { id: 26, name: 'Migraine', image: SITUATION_ILLUSTRATIONS.migraine },
+  { id: 27, name: 'Skin Burn', image: SITUATION_ILLUSTRATIONS.skinBurn },
+  { id: 28, name: 'Allergy', image: SITUATION_ILLUSTRATIONS.allergy },
+  { id: 29, name: 'BP Crisis', image: SITUATION_ILLUSTRATIONS.bpCrisis },
+  { id: 30, name: 'Animal Bite', image: SITUATION_ILLUSTRATIONS.animalBite },
+  { id: 31, name: 'Pimple & Acne', image: SITUATION_ILLUSTRATIONS.pimpleAcne },
+  { id: 32, name: 'Hair Loss', image: SITUATION_ILLUSTRATIONS.hairLoss },
+  { id: 33, name: 'Sexual Health', image: SITUATION_ILLUSTRATIONS.sexualHealth },
+  { id: 34, name: 'Period Pain', image: SITUATION_ILLUSTRATIONS.periodPain },
+  { id: 35, name: 'Weight Care', image: SITUATION_ILLUSTRATIONS.weightCare },
+  { id: 36, name: 'Stress & Anxiety', image: SITUATION_ILLUSTRATIONS.stressAnxiety },
+  { id: 37, name: 'Acidity & Gas', image: SITUATION_ILLUSTRATIONS.acidityGas },
+  { id: 38, name: 'Toothache', image: SITUATION_ILLUSTRATIONS.toothache },
 ];
+
+const getImageSource = (image: CategoryItem['image']) =>
+  typeof image === 'string' ? { uri: image } : image;
 
 export default function CategoryGrid() {
   const { colors, isDark } = useTheme();
@@ -88,11 +98,6 @@ export default function CategoryGrid() {
   };
 
   const animatedCapsuleStyle = useAnimatedStyle(() => {
-    // leftEdge and rightEdge are normalized 0-1 values.
-    // At index 0: leftEdge=0, rightEdge=0 -> left=2, right=(containerWidth/2)+2
-    // At index 1: leftEdge=1, rightEdge=1 -> left=(containerWidth/2)+2, right=2
-    
-    // To prevent NaN before layout, default to a reasonable fallback
     const width = containerWidth || 300; 
     
     return {
@@ -153,8 +158,8 @@ export default function CategoryGrid() {
                   activeOpacity={0.7}
                   onPress={() => router.push(`/category/${cat.id}` as any)}
                 >
-                  <View style={styles.imageWrapper}>
-                    <Image source={{ uri: cat.image }} style={styles.categoryImage} />
+                  <View style={[styles.imageWrapper, { backgroundColor: isDark ? '#252528' : '#F3F4F6' }]}>
+                    <Image source={getImageSource(cat.image)} style={styles.categoryImage} resizeMode="cover" />
                   </View>
                   <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={2}>
                     {cat.name}
@@ -171,7 +176,7 @@ export default function CategoryGrid() {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 32,
+    marginBottom: 12,
   },
   header: {
     paddingHorizontal: 12,
@@ -203,20 +208,17 @@ const styles = StyleSheet.create({
     height: 84,
     marginBottom: 8,
     borderRadius: 24,
-    backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
     elevation: 2,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    overflow: 'hidden',
   },
   categoryImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
-    borderRadius: 23,
+    borderRadius: 24,
   },
   categoryName: {
     fontSize: 11,

@@ -1,31 +1,18 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
-import DirectoryCard from '@/components/DirectoryCard';
+import { View, StyleSheet } from 'react-native';
 import HospitalDetailCard from '@/components/HospitalDetailCard';
-import { HOSPITALS_DATA, REHABS_DATA } from '@/constants/directory-data';
+import { HOSPITALS_DATA } from '@/constants/directory-data';
 
 export default function DirectoryContent({ activeTab }: { activeTab: string }) {
-  const displayData = activeTab === 'Rehabs' ? REHABS_DATA : HOSPITALS_DATA;
-
   return (
     <View style={styles.container}>
-      {activeTab === 'Rehabs' ? (
-        <>
-          {REHABS_DATA.map((rehab, index) => (
-            <DirectoryCard key={index} {...rehab} />
-          ))}
-        </>
-      ) : (
-        <>
-          {displayData.map((hospital, index) => (
-            <HospitalDetailCard 
-              key={index} 
-              {...hospital} 
-              speciality={activeTab !== 'Hospitals' ? `${activeTab} Super Speciality Clinic` : hospital.speciality}
-            />
-          ))}
-        </>
-      )}
+      {HOSPITALS_DATA.map((hospital, index) => (
+        <HospitalDetailCard 
+          key={index} 
+          {...hospital} 
+          speciality={activeTab !== 'Hospitals' ? `${activeTab} Super Speciality Clinic` : hospital.speciality}
+        />
+      ))}
     </View>
   );
 }

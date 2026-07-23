@@ -46,10 +46,15 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
           <Text style={styles.docDegrees}>{doc.degrees}</Text>
           
           <View style={styles.docStatsRow}>
-            <View style={styles.ratingBadge}>
-              <Star size={12} color="#F59E0B" fill="#F59E0B" />
-              <Text style={styles.docRating}>{doc.rating}</Text>
-            </View>
+            <LinearGradient
+              colors={['#9BF229', '#14CE65']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }]}
+            >
+              <Star size={11} color="#052E16" fill="#052E16" />
+              <Text style={[styles.docRating, { color: '#052E16' }]}>{doc.rating}</Text>
+            </LinearGradient>
             <Text style={styles.docReviews}>({doc.reviews} reviews)</Text>
             
             {doc.tagType === 'fire' && (

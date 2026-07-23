@@ -7,7 +7,6 @@ import HerniaCareCard from './HerniaCareCard';
 import SkinCareCard from './SkinCareCard';
 import DentalCareCard from './DentalCareCard';
 import OrthoCareCard from './OrthoCareCard';
-import RehabCareCard from './RehabCareCard';
 import PediatricCareCard from './PediatricCareCard';
 import SpineCareCard from './SpineCareCard';
 import GastroCareCard from './GastroCareCard';
@@ -29,7 +28,6 @@ export {
   SkinCareCard,
   DentalCareCard,
   OrthoCareCard,
-  RehabCareCard,
   PediatricCareCard,
   SpineCareCard,
   GastroCareCard,
@@ -52,7 +50,6 @@ export const ALL_CATEGORY_CARDS = [
   { id: 'skin', name: 'Skin & Dermatology Care Plan', component: SkinCareCard, keywords: ['skin', 'derma', 'acne', 'glow'] },
   { id: 'dental', name: 'Dental & Smile Care Plan', component: DentalCareCard, keywords: ['dental', 'teeth', 'smile', 'tooth'] },
   { id: 'ortho', name: 'Orthopedic & Joint Care Plan', component: OrthoCareCard, keywords: ['ortho', 'bone', 'joint', 'fracture'] },
-  { id: 'rehab', name: 'Rehab & Physiotherapy Plan', component: RehabCareCard, keywords: ['rehab', 'physio', 'physiotherapy', 'recovery'] },
   { id: 'pediatrics', name: 'Pediatric & Child Care Plan', component: PediatricCareCard, keywords: ['pediatric', 'child', 'kids', 'baby', 'vaccine'] },
   { id: 'spine', name: 'Spine & Back Care Plan', component: SpineCareCard, keywords: ['spine', 'back', 'disc', 'neck'] },
   { id: 'gastro', name: 'Gastro & Digestive Health Plan', component: GastroCareCard, keywords: ['gastro', 'stomach', 'gut', 'digestive', 'liver'] },

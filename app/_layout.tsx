@@ -26,6 +26,7 @@ export default function RootLayout() {
         <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="location" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="doctor/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="care/service/[id]" options={{ headerShown: false }} />

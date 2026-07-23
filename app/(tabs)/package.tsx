@@ -4,6 +4,9 @@ import Animated, { FadeInDown, useSharedValue, useAnimatedScrollHandler } from '
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { Search, X, Sparkles } from 'lucide-react-native';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
+import AndroidGlassView from '@/components/AndroidGlassView';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import HomeHeader from '@/components/HomeHeader';
 
@@ -17,7 +20,6 @@ import {
   SkinCareCard,
   DentalCareCard,
   OrthoCareCard,
-  RehabCareCard,
   PediatricCareCard,
   SpineCareCard,
   GastroCareCard,
@@ -32,10 +34,11 @@ import {
 } from '@/components/packages/cards';
 
 export default function PlansScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const scrollY = useSharedValue(0);
+  const supportsLiquidGlass = isLiquidGlassAvailable();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -56,6 +59,9 @@ export default function PlansScreen() {
     });
   }, [searchQuery]);
 
+  const textColor = isDark ? '#F3F4F6' : '#111827';
+  const mutedColor = isDark ? '#9CA3AF' : '#6B7280';
+
   return (
     <AnimatedScreen entrance="up">
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -69,20 +75,42 @@ export default function PlansScreen() {
         >
           <HomeHeader currentCity="Bangalore" avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" />
 
-          {/* Dynamic Search Bar */}
+          {/* Dynamic Glassmorphic Search Bar */}
           <Animated.View entering={FadeInDown.delay(150)} style={styles.searchContainer}>
-            <View style={styles.searchInner}>
-              <Search size={18} color="#666" style={styles.searchIcon} />
+            <View 
+              style={[
+                styles.searchInner,
+                {
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.08)',
+                  backgroundColor: supportsLiquidGlass 
+                    ? 'transparent' 
+                    : (Platform.OS === 'ios' 
+                        ? 'transparent' 
+                        : (isDark ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)')),
+                }
+              ]}
+            >
+              {Platform.OS === 'android' ? (
+                <AndroidGlassView style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]} />
+              ) : supportsLiquidGlass ? (
+                <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]} />
+              ) : (
+                Platform.OS === 'ios' && (
+                  <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]} />
+                )
+              )}
+
+              <Search size={18} color={mutedColor} style={styles.searchIcon} />
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { color: textColor }]}
                 placeholder='Search categories ("Pregnancy", "Dental", "Heart")...'
-                placeholderTextColor="#888"
+                placeholderTextColor={mutedColor}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
-                  <X size={16} color="#666" />
+                  <X size={16} color={mutedColor} />
                 </TouchableOpacity>
               )}
             </View>
@@ -129,12 +157,12 @@ const styles = StyleSheet.create({
   searchInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
     borderRadius: 16,
+    borderCurve: 'continuous',
     paddingHorizontal: 14,
     height: 48,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
   },
   searchIcon: {
     marginRight: 10,

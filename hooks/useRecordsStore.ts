@@ -7,6 +7,9 @@ export interface MedicalRecord {
   category: 'Prescription' | 'Lab Report' | 'Invoice' | 'Other';
   fileUri: string;
   fileName: string;
+  extractedText?: string;
+  summary?: string;
+  tags?: string[];
 }
 
 export interface Order {
@@ -46,7 +49,10 @@ export const useRecordsStore = create<RecordsState>((set) => ({
       date: '12 May 2024',
       category: 'Lab Report',
       fileUri: '',
-      fileName: 'blood_test_may.pdf'
+      fileName: 'blood_test_may.pdf',
+      extractedText: 'METROPOLIS HEALTHCARE LAB REPORT\nPatient Name: Rahul Verma  Age: 32  Gender: Male\nDate: 12-05-2024\n\nCOMPLETE BLOOD COUNT (CBC):\nHemoglobin: 14.2 g/dL (Normal: 13.0 - 17.0)\nWBC Count: 6,800 /uL (Normal: 4,000 - 11,000)\nPlatelet Count: 250,000 /uL (Normal: 150,000 - 450,000)\nRBC Count: 4.8 mill/uL\nFastings Blood Glucose: 95 mg/dL\n\nDoctor Remarks: All vital CBC metrics are within healthy reference ranges.',
+      summary: 'CBC Report: Hemoglobin 14.2 g/dL, WBC 6,800/uL, Glucose 95 mg/dL. All metrics normal.',
+      tags: ['CBC', 'Hemoglobin', 'Glucose', 'Normal']
     },
     {
       id: '2',
@@ -54,7 +60,10 @@ export const useRecordsStore = create<RecordsState>((set) => ({
       date: '05 Apr 2024',
       category: 'Prescription',
       fileUri: '',
-      fileName: 'prescription_sharma.jpg'
+      fileName: 'prescription_sharma.jpg',
+      extractedText: 'APOLLO CLINIC - CONSULTATION PRESCRIPTION\nDoctor: Dr. Anand Sharma (MD, Cardiology)\nReg No: MCI-982341\nDate: 05-04-2024\n\nRx:\n1. Tab Telmisartan 40mg - 1 tablet once daily (Morning after breakfast)\n2. Tab Atorvastatin 10mg - 1 tablet night after dinner\n3. Tab Aspirin 75mg - 1 tablet after lunch\n\nAdvice:\n- Low salt diet (< 3g per day)\n- Daily 30 min morning walk\n- Re-check Blood Pressure in 4 weeks.',
+      summary: 'Cardiology Rx by Dr. Anand Sharma. Prescribed Telmisartan 40mg, Atorvastatin 10mg, Aspirin 75mg.',
+      tags: ['Cardiology', 'Telmisartan', 'Atorvastatin', 'Dr. Sharma']
     }
   ],
   orders: [

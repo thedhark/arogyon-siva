@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { FileText, Plus, Search, Folder, File, ArrowDownToLine, MoreVertical } from 'lucide-react-native';
+import { FileText, Plus, Search, Folder, File } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useRecordsStore } from '@/hooks/useRecordsStore';
+import { useRecordsStore, MedicalRecord } from '@/hooks/useRecordsStore';
+import RecordItemCard from '@/components/records/RecordItemCard';
+import DocumentReaderModal from '@/components/records/DocumentReaderModal';
 
 const CATEGORIES = [
   { id: '1', name: 'Prescriptions', icon: FileText, color: '#3B82F6' },
@@ -16,13 +18,20 @@ const CATEGORIES = [
 export default function RecordsScreen() {
   const { colors, isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeModalRecord, setActiveModalRecord] = useState<MedicalRecord | null>(null);
   
   const records = useRecordsStore((state) => state.records);
 
-  const filteredRecords = records.filter(r => 
-    r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    r.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredRecords = records.filter(r => {
+    const q = searchQuery.toLowerCase();
+    return (
+      r.title.toLowerCase().includes(q) || 
+      r.category.toLowerCase().includes(q) ||
+      (r.summary && r.summary.toLowerCase().includes(q)) ||
+      (r.extractedText && r.extractedText.toLowerCase().includes(q)) ||
+      (r.tags && r.tags.some(t => t.toLowerCase().includes(q)))
+    );
+  });
 
   return (
     <AnimatedScreen entrance="fade">
@@ -49,7 +58,7 @@ export default function RecordsScreen() {
             <Search size={20} color={colors.textSecondary} style={styles.searchIcon} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search records..."
+              placeholder="Search reports, medicines, lab metrics..."
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -94,43 +103,29 @@ export default function RecordsScreen() {
           <View style={styles.filesList}>
             {filteredRecords.length === 0 ? (
               <Text style={{ textAlign: 'center', color: colors.textMuted, marginTop: 20 }}>
-                No records found.
+                No matching medical records or text found.
               </Text>
             ) : (
               filteredRecords.map((file, index) => (
                 <Animated.View key={file.id} entering={FadeInDown.delay(400 + index * 50)}>
-                  <View style={[
-                    styles.fileItem, 
-                    { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }
-                  ]}>
-                    <View style={[styles.fileIcon, { backgroundColor: isDark ? '#333' : '#F5F5F5' }]}>
-                      {file.type?.includes('image') ? (
-                        <FileText size={24} color={colors.accent} />
-                      ) : (
-                        <File size={24} color={colors.accent} />
-                      )}
-                    </View>
-                    <View style={styles.fileDetails}>
-                      <Text style={[styles.fileName, { color: colors.text }]} numberOfLines={1}>{file.title}</Text>
-                      <Text style={[styles.fileMeta, { color: colors.textSecondary }]}>
-                        {file.date} • {file.category}
-                      </Text>
-                    </View>
-                    <View style={styles.fileActions}>
-                      <Pressable style={styles.actionIcon}>
-                        <ArrowDownToLine size={20} color={colors.textSecondary} />
-                      </Pressable>
-                      <Pressable style={styles.actionIcon}>
-                        <MoreVertical size={20} color={colors.textSecondary} />
-                      </Pressable>
-                    </View>
-                  </View>
+                  <RecordItemCard
+                    file={file}
+                    onPress={() => setActiveModalRecord(file)}
+                  />
                 </Animated.View>
               ))
             )}
           </View>
 
         </ScrollView>
+
+        {/* OCR Reader Document Details Modal Component */}
+        <DocumentReaderModal
+          record={activeModalRecord}
+          visible={!!activeModalRecord}
+          onClose={() => setActiveModalRecord(null)}
+        />
+
       </View>
     </AnimatedScreen>
   );
@@ -237,38 +232,4 @@ const styles = StyleSheet.create({
   filesList: {
     gap: 12,
   },
-  fileItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  fileIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  fileDetails: {
-    flex: 1,
-    marginRight: 12,
-  },
-  fileName: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  fileMeta: {
-    fontSize: 12,
-  },
-  fileActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionIcon: {
-    padding: 8,
-  }
 });

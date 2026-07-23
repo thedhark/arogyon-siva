@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Platform } from 'react-native';
-import { Image } from 'expo-image';
-import { Star, ShieldCheck, Clock, CircleParking, Stethoscope, Bed, Heart, Check, CreditCard, ArrowRight, Sparkles, ChevronRight } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import ProviderPackageCard from '@/components/packages/ProviderPackageCard';
 
 interface Props {
   colors: any;
   isDark: boolean;
   hospitalName?: string;
+  selectedCategory?: string;
+  onSelectCategory?: (catId: string) => void;
 }
 
 interface HealthPackage {
@@ -21,53 +22,53 @@ interface HealthPackage {
   discount: string;
   image: string;
   inclusions: string[];
-  badge?: string;
+  badge?: { text: string; icon: string; color: string; bgColor: string };
 }
 
-const PACKAGE_CATEGORIES = [
-  { id: 'all', name: 'All Packages' },
-  { id: 'pregnancy', name: 'Pregnancy & Maternity' },
-  { id: 'cardiac', name: 'Cardiac Care' },
-  { id: 'diabetes', name: 'Diabetes & Metabolism' },
-  { id: 'knee', name: 'Knee & Joint Recovery' },
-  { id: 'gastro', name: 'Gastro & Digestive' },
-  { id: 'hernia', name: 'Hernia Repair' },
-  { id: 'rehab', name: 'Rehab & Physio' },
+export const PACKAGE_CATEGORIES = [
+  { id: 'all', name: 'All Packages', count: 7 },
+  { id: 'pregnancy', name: 'Pregnancy & Maternity', count: 2 },
+  { id: 'cardiac', name: 'Cardiac Care', count: 1 },
+  { id: 'diabetes', name: 'Diabetes & Metabolism', count: 1 },
+  { id: 'knee', name: 'Knee & Joint Recovery', count: 1 },
+  { id: 'gastro', name: 'Gastro & Digestive', count: 1 },
+  { id: 'hernia', name: 'Hernia Repair', count: 1 },
+  { id: 'rehab', name: 'Rehab & Physio', count: 1 },
 ];
 
-const MOCK_PACKAGES: HealthPackage[] = [
+export const MOCK_PACKAGES: HealthPackage[] = [
   {
     id: 'pkg-preg-1',
     category: 'Pregnancy Care',
     categorySlug: 'pregnancy',
     title: 'Complete Maternity Care Package',
-    subtitle: 'Full pregnancy cover, trimesters 1-3, ultrasound scans & normal/C-sec delivery',
+    subtitle: 'Full pregnancy cover, trimesters 1-3, scans & delivery',
     price: '₹45,000',
     originalPrice: '₹60,000',
     discount: '25% OFF',
     image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=600',
-    inclusions: ['Gynaecologist Consults', '2D/3D Scans', 'Labor Room', 'Postnatal Care'],
-    badge: 'Popular'
+    inclusions: ['Gynaecologist Consults', '2D/3D Scans', 'Labor Room Stay', 'Postnatal Care'],
+    badge: { text: 'Popular', icon: 'flame', color: '#EF4444', bgColor: '#FEE2E2' }
   },
   {
     id: 'pkg-preg-2',
     category: 'Pregnancy Care',
     categorySlug: 'pregnancy',
     title: 'Premium Delivery & Luxury Suite Package',
-    subtitle: 'Private luxury room delivery, pediatrician cover, lactation therapy & baby care kit',
+    subtitle: 'Private luxury suite delivery & pediatrician cover',
     price: '₹75,000',
     originalPrice: '₹95,000',
     discount: '21% OFF',
     image: 'https://images.unsplash.com/photo-1531983412531-1f49a365ffed?q=80&w=600',
     inclusions: ['Luxury Private Suite', 'Pediatrician On-Call', 'Gdm Screening', 'Baby Gift Hamper'],
-    badge: 'Premium'
+    badge: { text: 'Premium', icon: 'sparkles', color: '#7C3AED', bgColor: '#F3E8FF' }
   },
   {
     id: 'pkg-cardiac-1',
     category: 'Cardiac Care',
     categorySlug: 'cardiac',
     title: 'Comprehensive Heart Checkup & Echo',
-    subtitle: 'ECG, TMT, 2D Echo, Lipid profile, Cardiac consult & Risk Assessment',
+    subtitle: 'ECG, TMT, 2D Echo, Lipid profile & Cardiac consult',
     price: '₹4,999',
     originalPrice: '₹8,500',
     discount: '41% OFF',
@@ -79,20 +80,20 @@ const MOCK_PACKAGES: HealthPackage[] = [
     category: 'Knee & Joint Recovery',
     categorySlug: 'knee',
     title: '3D Robot-Assisted Knee Surgery Package',
-    subtitle: 'Robotic total knee replacement, implant, 4-day room stay & 10 physio sessions',
+    subtitle: 'Robotic knee replacement, implant & 10 physio sessions',
     price: '₹1,85,000',
     originalPrice: '₹2,20,000',
     discount: '16% OFF',
     image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=600',
-    inclusions: ['Robotic Surgery', 'US FDA Implant', '4 Days Private Room', '10 Physio Sessions'],
-    badge: 'Advanced'
+    inclusions: ['Robotic Surgery', 'US FDA Implant', '4 Days Room Stay', '10 Physio Sessions'],
+    badge: { text: 'Advanced', icon: 'diamond', color: '#3B82F6', bgColor: '#DBEAFE' }
   },
   {
     id: 'pkg-diab-1',
     category: 'Diabetes & Metabolism',
     categorySlug: 'diabetes',
     title: 'Annual Diabetes Reversal & Management',
-    subtitle: 'HbA1c quarterly tests, endocrinologist visits, continuous glucose monitor & diet',
+    subtitle: 'HbA1c quarterly tests & continuous glucose monitor',
     price: '₹12,499',
     originalPrice: '₹16,000',
     discount: '22% OFF',
@@ -104,41 +105,43 @@ const MOCK_PACKAGES: HealthPackage[] = [
     category: 'Gastro & Digestive',
     categorySlug: 'gastro',
     title: 'Advanced Endoscopy & Gut Wellness',
-    subtitle: 'Upper GI endoscopy, liver function test, H. pylori scan & gastroenterology consult',
+    subtitle: 'Upper GI endoscopy, LFT & gastroenterology consult',
     price: '₹8,999',
     originalPrice: '₹12,000',
     discount: '25% OFF',
     image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=600',
-    inclusions: ['Painless Endoscopy', 'LFT & Ultrasound', 'Gut Specialist Consult', 'Biopsy Included'],
+    inclusions: ['Painless Endoscopy', 'LFT & Ultrasound', 'Gut Specialist Consult'],
   },
   {
     id: 'pkg-hernia-1',
     category: 'Hernia Repair',
     categorySlug: 'hernia',
     title: 'Laparoscopic 3D Mesh Hernia Surgery',
-    subtitle: 'Keyhole minimally invasive hernia repair, 3D mesh implant & 1-day day care stay',
+    subtitle: 'Keyhole hernia repair, 3D mesh implant & 1-day stay',
     price: '₹55,000',
     originalPrice: '₹70,000',
     discount: '21% OFF',
     image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?q=80&w=600',
-    inclusions: ['3D Mesh Implant', 'Keyhole Laparoscopic', 'Daycare Room Stay', 'Followup Visits'],
+    inclusions: ['3D Mesh Implant', 'Keyhole Laparoscopic', 'Daycare Stay', 'Followup Visits'],
   },
 ];
 
-export default function HospitalPackages({ colors, isDark, hospitalName }: Props) {
+export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory }: Props) {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [internalCategory, setInternalCategory] = useState('all');
 
-  const filteredPackages = selectedCategory === 'all'
-    ? MOCK_PACKAGES
-    : MOCK_PACKAGES.filter(p => p.categorySlug === selectedCategory);
+  const activeCategory = externalCategory !== undefined ? externalCategory : internalCategory;
 
-  const handleCardPress = (pkg: HealthPackage) => {
-    router.push({
-      pathname: '/packages/category/[id]',
-      params: { id: pkg.categorySlug },
-    } as any);
+  const handleCategoryPress = (catId: string) => {
+    setInternalCategory(catId);
+    if (onSelectCategory) {
+      onSelectCategory(catId);
+    }
   };
+
+  const filteredPackages = activeCategory === 'all'
+    ? MOCK_PACKAGES
+    : MOCK_PACKAGES.filter(p => p.categorySlug === activeCategory);
 
   return (
     <View style={styles.container}>
@@ -156,7 +159,7 @@ export default function HospitalPackages({ colors, isDark, hospitalName }: Props
         contentContainerStyle={styles.categoryPillsScroll}
       >
         {PACKAGE_CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat.id;
+          const isActive = activeCategory === cat.id;
           return (
             <TouchableOpacity
               key={cat.id}
@@ -171,7 +174,7 @@ export default function HospitalPackages({ colors, isDark, hospitalName }: Props
                     : isDark ? '#333333' : '#E5E7EB',
                 }
               ]}
-              onPress={() => setSelectedCategory(cat.id)}
+              onPress={() => handleCategoryPress(cat.id)}
             >
               <Text
                 style={[
@@ -186,77 +189,25 @@ export default function HospitalPackages({ colors, isDark, hospitalName }: Props
         })}
       </ScrollView>
 
-      {/* Top to Bottom Scroll List of Package Cards */}
+      {/* Top to Bottom Scroll List of Reusable Provider Package Cards */}
       <View style={styles.packageList}>
-        {filteredPackages.map((pkg) => (
-          <Pressable
+        {filteredPackages.map((pkg, idx) => (
+          <ProviderPackageCard
             key={pkg.id}
-            style={({ pressed }) => [
-              styles.cardContainer,
-              {
-                backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-                borderColor: isDark ? '#2C2C2E' : '#E5E7EB',
-              },
-              pressed && Platform.OS === 'ios' && { transform: [{ scale: 0.98 }], opacity: 0.95 }
-            ]}
-            android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
-            onPress={() => handleCardPress(pkg)}
-          >
-            {/* Top Banner Row */}
-            <View style={styles.cardHeaderRow}>
-              <Image source={{ uri: pkg.image }} style={styles.cardImage} contentFit="cover" />
-              <View style={styles.cardInfoCol}>
-                <View style={styles.badgeRow}>
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>{pkg.discount}</Text>
-                  </View>
-                  {pkg.badge && (
-                    <View style={[styles.tagBadge, { backgroundColor: isDark ? '#3B0764' : '#F3E8FF' }]}>
-                      <Sparkles size={10} color="#7C3AED" />
-                      <Text style={[styles.tagText, { color: '#7C3AED' }]}>{pkg.badge}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[styles.packageTitle, { color: colors.text }]} numberOfLines={2}>
-                  {pkg.title}
-                </Text>
-                <Text style={[styles.packageSubtitle, { color: isDark ? '#9CA3AF' : '#6B7280' }]} numberOfLines={2}>
-                  {pkg.subtitle}
-                </Text>
-              </View>
-            </View>
-
-            {/* Inclusions Row */}
-            <View style={[styles.inclusionsBox, { backgroundColor: isDark ? '#2A2A2D' : '#F9FAFB' }]}>
-              {pkg.inclusions.map((item, idx) => (
-                <View key={idx} style={styles.inclusionItem}>
-                  <Check size={12} color="#10B981" />
-                  <Text style={[styles.inclusionText, { color: isDark ? '#D1D5DB' : '#374151' }]} numberOfLines={1}>
-                    {item}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Price Footer */}
-            <View style={styles.cardFooter}>
-              <View style={styles.priceCol}>
-                <Text style={styles.startsFromText}>Package Price</Text>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceVal}>{pkg.price}</Text>
-                  <Text style={styles.origPriceVal}>{pkg.originalPrice}</Text>
-                </View>
-              </View>
-
-              <TouchableOpacity 
-                style={styles.bookBtn} 
-                onPress={() => handleCardPress(pkg)}
-              >
-                <Text style={styles.bookBtnText}>Explore Catalog</Text>
-                <ChevronRight size={14} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          </Pressable>
+            id={pkg.id}
+            providerId="1"
+            title={pkg.title}
+            duration={pkg.subtitle}
+            startingPrice={pkg.price}
+            hospitalName={hospitalName}
+            hospitalLogo={pkg.image}
+            location="Bangalore"
+            distance="2.5 km"
+            badge={pkg.badge}
+            inclusions={pkg.inclusions}
+            image={pkg.image}
+            index={idx}
+          />
         ))}
       </View>
     </View>

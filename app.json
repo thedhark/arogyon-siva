@@ -41,6 +41,10 @@
       "typedRoutes": true,
       "reactCompiler": false
     },
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
     "extra": {
       "router": {},
       "eas": {

@@ -306,39 +306,6 @@ export const GYMS_DATA = [
   }
 ];
 
-export const REHABS_DATA = [
-  {
-    title: "Hope Rehab Clinic",
-    subtitle: "Expert care for complete recovery.",
-    image: MEDICAL_ILLUSTRATIONS.rehab,
-    logo: "https://cdn-icons-png.flaticon.com/512/2966/2966327.png",
-    typeTag: "Rehabilitation Center",
-    address: "HSR Layout",
-    distance: "2.5 km away",
-    fee: "₹1200 onwards",
-    nextAvailable: "8 AM - 10 PM",
-    insurance: "10+ Providers",
-    trustedCount: "2,500+",
-    rating: "4.8",
-    reviews: "950",
-  },
-  {
-    title: "Nightingale Care",
-    subtitle: "Post-surgery recovery and care.",
-    image: MEDICAL_ILLUSTRATIONS.homeCare,
-    logo: "https://cdn-icons-png.flaticon.com/512/2966/2966327.png",
-    typeTag: "Recovery Center",
-    address: "BTM Layout",
-    distance: "3.2 km away",
-    fee: "₹1500 onwards",
-    nextAvailable: "9 AM - 9 PM",
-    insurance: "15+ Providers",
-    trustedCount: "4,100+",
-    rating: "4.7",
-    reviews: "1.1K",
-  }
-];
-
 export const CLINICS_DATA = [
   {
     title: "Arogyon Family Clinic",

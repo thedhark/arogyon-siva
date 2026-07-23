@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from '
 import Svg, { Path, Defs, LinearGradient, Stop, Mask, Rect, Circle, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 
-export const DIRECTORY_TABS = ['Hospitals', 'Rehabs'];
+export const DIRECTORY_TABS = ['Hospitals'];
 
 interface Props {
   activeTab: string;
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeTab: {
-    backgroundColor: '#1b5e55',
+    backgroundColor: '#111827',
   },
   tabText: {
     fontSize: 14,

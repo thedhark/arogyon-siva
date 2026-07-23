@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import React, { useState, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Modal, Pressable, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { ShieldCheck, Star, MapPin, HeartPulse, Calendar } from 'lucide-react-native';
+import { ShieldCheck, Star, MapPin, HeartPulse, Calendar, Menu, X, ChevronRight, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
@@ -11,23 +11,58 @@ import HospitalOverview from '@/components/hospital/HospitalOverview';
 import HospitalDoctors from '@/components/hospital/HospitalDoctors';
 import HospitalPackages from '@/components/hospital/HospitalPackages';
 
+const MENU_SECTIONS = [
+  { id: 'overview', tab: 'Overview', categorySlug: 'all', title: 'Hospital Overview & Facilities', count: 10 },
+  { id: 'doctors', tab: 'Doctors', categorySlug: 'all', title: 'Top Specialist Doctors', count: 18 },
+  { id: 'all_packages', tab: 'Packages', categorySlug: 'all', title: 'All Health Packages', count: 7 },
+  { id: 'pregnancy', tab: 'Packages', categorySlug: 'pregnancy', title: 'Pregnancy & Maternity', count: 2 },
+  { id: 'cardiac', tab: 'Packages', categorySlug: 'cardiac', title: 'Cardiac Care', count: 1 },
+  { id: 'knee', tab: 'Packages', categorySlug: 'knee', title: 'Knee & Joint Recovery', count: 1 },
+  { id: 'diabetes', tab: 'Packages', categorySlug: 'diabetes', title: 'Diabetes & Metabolism', count: 1 },
+  { id: 'gastro', tab: 'Packages', categorySlug: 'gastro', title: 'Gastro & Digestive', count: 1 },
+];
+
 export default function HospitalProfile() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
   
-  const getHospital = useBookingStore(state => state.getHospital);
-  const getHospitalDoctors = useBookingStore(state => state.getHospitalDoctors);
+  const storeHospitals = useBookingStore(state => state.hospitals);
+  const storeDoctors = useBookingStore(state => state.doctors);
   
-  const hospitalData = getHospital(id as string);
-  const doctors = getHospitalDoctors(id as string);
+  const hospitalData = useMemo(() => storeHospitals[id as string], [storeHospitals, id]);
+  const doctors = useMemo(() => {
+    return Object.values(storeDoctors || {}).filter(doc => doc.hospitalId === (id as string));
+  }, [storeDoctors, id]);
 
   const [activeTab, setActiveTab] = useState('Overview');
+  const [selectedPackageCategory, setSelectedPackageCategory] = useState('all');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
   const tabs = ['Overview', 'Doctors', 'Packages'];
 
   const toggleDocLike = (docId: any) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === 'Packages') {
+      setSelectedPackageCategory('all');
+    }
+    scrollViewRef.current?.scrollTo({ y: 220, animated: true });
+  };
+
+  const handleSelectMenuSection = (item: typeof MENU_SECTIONS[0]) => {
+    setActiveTab(item.tab);
+    if (item.tab === 'Packages') {
+      setSelectedPackageCategory(item.categorySlug);
+    }
+    setIsMenuOpen(false);
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 220, animated: true });
+    }, 100);
   };
 
   if (!hospitalData) {
@@ -46,7 +81,12 @@ export default function HospitalProfile() {
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="light-content" />
       
-      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef}
+        bounces={true} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         <View style={styles.coverWrapper}>
           <Image source={{ uri: hospitalData.image }} style={styles.coverImage} />
           <LinearGradient
@@ -84,13 +124,12 @@ export default function HospitalProfile() {
             </View>
           </View>
 
-
           <View style={styles.tabsContainer}>
             {tabs.map((tab) => (
               <TouchableOpacity 
                 key={tab} 
                 style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
-                onPress={() => setActiveTab(tab)}
+                onPress={() => handleTabChange(tab)}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive, { color: activeTab === tab ? '#7C3AED' : (isDark ? '#9CA3AF' : '#6B7280') }]}>{tab}</Text>
               </TouchableOpacity>
@@ -115,14 +154,93 @@ export default function HospitalProfile() {
           <HospitalPackages 
             colors={colors} 
             isDark={isDark} 
-            hospitalName={hospitalData.name} 
+            hospitalName={hospitalData.name}
+            selectedCategory={selectedPackageCategory}
+            onSelectCategory={(catId) => setSelectedPackageCategory(catId)}
           />
         )}
-
-        <View style={{ height: 100 }} />
       </ScrollView>
 
+      {/* Floating Menu Button at Bottom Right (Zomato/Swiggy Style) */}
+      <TouchableOpacity 
+        style={styles.floatingMenuBtn}
+        activeOpacity={0.9}
+        onPress={() => setIsMenuOpen(!isMenuOpen)}
+      >
+        {isMenuOpen ? (
+          <>
+            <X size={18} color="#FFFFFF" />
+            <Text style={styles.floatingMenuText}>Close</Text>
+          </>
+        ) : (
+          <>
+            <Menu size={18} color="#FFFFFF" />
+            <Text style={styles.floatingMenuText}>Menu</Text>
+          </>
+        )}
+      </TouchableOpacity>
 
+      {/* Zomato/Swiggy Section Menu Modal Overlay */}
+      <Modal
+        visible={isMenuOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsMenuOpen(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setIsMenuOpen(false)}
+        >
+          <Pressable 
+            style={[
+              styles.modalCard,
+              { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }
+            ]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Menu Categories</Text>
+              <TouchableOpacity onPress={() => setIsMenuOpen(false)}>
+                <X size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+              {MENU_SECTIONS.map((sec) => {
+                const isActive = activeTab === sec.tab && (sec.tab !== 'Packages' || selectedPackageCategory === sec.categorySlug);
+                return (
+                  <TouchableOpacity
+                    key={sec.id}
+                    style={[
+                      styles.menuItemRow,
+                      isActive && { backgroundColor: isDark ? '#2A1F3D' : '#F3E8FF' }
+                    ]}
+                    onPress={() => handleSelectMenuSection(sec)}
+                  >
+                    <Text
+                      style={[
+                        styles.menuItemTitle,
+                        { color: isActive ? '#E11D48' : colors.text, fontWeight: isActive ? '800' : '600' }
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {sec.title}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.menuItemCount,
+                        { color: isActive ? '#E11D48' : (isDark ? '#9CA3AF' : '#6B7280'), fontWeight: isActive ? '800' : '600' }
+                      ]}
+                    >
+                      {sec.count}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -224,21 +342,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 4,
   },
-  emergencyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  emergencyText: {
-    fontWeight: '700',
-    fontSize: 13,
-    marginLeft: 6,
-  },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 12,
@@ -265,5 +368,76 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: -1,
   },
-
+  floatingMenuBtn: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    backgroundColor: '#1E1E2D',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 25,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 100,
+  },
+  floatingMenuText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  menuItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginVertical: 2,
+  },
+  menuItemTitle: {
+    fontSize: 14,
+    flex: 1,
+    marginRight: 10,
+  },
+  menuItemCount: {
+    fontSize: 14,
+  },
 });
+

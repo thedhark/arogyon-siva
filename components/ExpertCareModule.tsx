@@ -1,23 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Activity,
-  ArrowRight,
-  Baby,
-  Building2,
-  ClipboardCheck,
-  Crown,
-  Flower2,
-  Headphones,
-  HeartPulse,
-  Leaf,
-  Plane,
-  ShieldCheck,
-  Stethoscope,
-  Syringe,
-} from 'lucide-react-native';
+import { ArrowRight, Crown } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 type IconComponent = React.ComponentType<{
@@ -32,7 +16,6 @@ type FeatureCard = {
   titleSecondary: string;
   accent: string;
   image: number;
-  items: { label: string; icon: IconComponent }[];
 };
 
 type CompactCard = {
@@ -57,12 +40,6 @@ const FEATURE_CARDS: FeatureCard[] = [
     titleSecondary: 'PATIENT CARE',
     accent: '#155EEF',
     image: require('../assets/images/expert-module/international-patient-care.png'),
-    items: [
-      { label: 'Visa Support', icon: ClipboardCheck },
-      { label: 'Travel Assistance', icon: Plane },
-      { label: 'Language Support', icon: Headphones },
-      { label: 'Hospital Coordination', icon: Building2 },
-    ],
   },
   {
     id: 'surgery',
@@ -70,12 +47,6 @@ const FEATURE_CARDS: FeatureCard[] = [
     titleSecondary: 'SURGERY',
     accent: '#155EEF',
     image: require('../assets/images/expert-module/planned-surgery.png'),
-    items: [
-      { label: 'Consultation', icon: Stethoscope },
-      { label: 'Surgery Planning', icon: Syringe },
-      { label: 'Trusted Hospitals', icon: ShieldCheck },
-      { label: 'Recovery Support', icon: HeartPulse },
-    ],
   },
   {
     id: 'women',
@@ -83,12 +54,6 @@ const FEATURE_CARDS: FeatureCard[] = [
     titleSecondary: 'HEALTH',
     accent: '#F43F7F',
     image: require('../assets/images/expert-module/womens-health.png'),
-    items: [
-      { label: 'Gynaecologists', icon: Stethoscope },
-      { label: 'Maternity Care', icon: Baby },
-      { label: 'PCOS & Wellness', icon: Flower2 },
-      { label: 'Hormone Check', icon: Syringe },
-    ],
   },
   {
     id: 'preventive',
@@ -96,12 +61,6 @@ const FEATURE_CARDS: FeatureCard[] = [
     titleSecondary: 'CARE',
     accent: '#2F9E44',
     image: require('../assets/images/expert-module/preventive-care.png'),
-    items: [
-      { label: 'Full Body Check', icon: ClipboardCheck },
-      { label: 'Lab Screening', icon: Activity },
-      { label: 'Doctor Review', icon: Stethoscope },
-      { label: 'Health Score', icon: HeartPulse },
-    ],
   },
 ];
 
@@ -133,7 +92,7 @@ export default function ExpertCareModule({ colors, isDark, onSpecialityPress }: 
     }
 
     if (id === 'preventive') {
-      router.push({ pathname: '/packages/category/[categoryId]', params: { categoryId: 'fitness' } });
+      router.push({ pathname: '/packages/category/[id]', params: { id: 'fitness' } });
       return;
     }
 
@@ -161,7 +120,12 @@ export default function ExpertCareModule({ colors, isDark, onSpecialityPress }: 
               },
             ]}
           >
-            <Image source={card.image} style={styles.featureImage} contentFit="cover" transition={200} />
+            <Image 
+              source={card.image} 
+              style={styles.featureImage} 
+              contentFit="cover" 
+              transition={200} 
+            />
 
             <View style={styles.featureContent}>
               <View style={styles.featureCopy}>
@@ -170,19 +134,17 @@ export default function ExpertCareModule({ colors, isDark, onSpecialityPress }: 
                 <View style={[styles.accentLine, { backgroundColor: card.accent }]} />
               </View>
 
-              <View style={styles.featureBenefits}>
-                {card.items.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <View key={item.label} style={styles.benefitCell}>
-                      {index > 0 && <View style={styles.benefitDivider} />}
-                      <View style={[styles.benefitIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.7)' }]}>
-                        <Icon size={22} color={card.accent} strokeWidth={2.2} />
-                      </View>
-                      <Text style={[styles.benefitLabel, { color: isDark ? '#D7DAE3' : '#21314D' }]}>{item.label}</Text>
-                    </View>
-                  );
-                })}
+              <View 
+                style={[
+                  styles.roundAction, 
+                  { 
+                    borderColor: card.accent, 
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.75)',
+                    marginTop: 'auto'
+                  }
+                ]}
+              >
+                <ArrowRight size={22} color={card.accent} strokeWidth={2.4} />
               </View>
             </View>
           </TouchableOpacity>
@@ -250,10 +212,10 @@ const styles = StyleSheet.create({
     borderColor: '#F3F4F6',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   featureCardWide: {
     flex: 1,
@@ -265,16 +227,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     padding: 22,
-    gap: 18,
   },
   featureCopy: {
-    width: '65%',
-    minWidth: 180,
-    gap: 10,
+    width: '68%',
+    minWidth: 170,
+    gap: 6,
   },
   titlePrimary: {
-    fontSize: 27,
-    lineHeight: 31,
+    fontSize: 26,
+    lineHeight: 30,
     fontWeight: '900',
     letterSpacing: -0.3,
   },
@@ -291,43 +252,6 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     marginTop: 4,
   },
-
-  featureBenefits: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    minHeight: 86,
-    paddingTop: 4,
-  },
-  benefitCell: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 8,
-  },
-  benefitDivider: {
-    position: 'absolute',
-    left: 0,
-    bottom: 3,
-    width: StyleSheet.hairlineWidth,
-    height: 58,
-    backgroundColor: 'rgba(100, 116, 139, 0.18)',
-  },
-  benefitIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.74)',
-    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
-  },
-  benefitLabel: {
-    minHeight: 34,
-    textAlign: 'center',
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '700',
-  },
   compactGrid: {
     gap: 12,
   },
@@ -335,17 +259,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   compactCard: {
-    minHeight: 208,
+    minHeight: 180,
     borderRadius: 16,
     borderCurve: 'continuous',
     borderWidth: 1,
     borderColor: '#F3F4F6',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   compactCardWide: {
     flex: 1,
@@ -391,13 +315,12 @@ const styles = StyleSheet.create({
     borderRadius: 99,
   },
   roundAction: {
-    marginTop: 'auto',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.56)',
+    backgroundColor: 'rgba(255,255,255,0.65)',
   },
 });

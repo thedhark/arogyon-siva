@@ -45,13 +45,13 @@ export default function RecommendedPlans() {
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 32,
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,

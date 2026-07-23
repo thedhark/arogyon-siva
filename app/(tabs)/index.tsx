@@ -209,8 +209,8 @@ export default function HomeScreen() {
           overScrollMode="never"
         >
           
-          {/* Index 0: Header & Search Bar (Not sticky, scrolls out naturally) */}
-          <View style={{ marginBottom: 16, paddingHorizontal: 12 }}>
+          {/* Index 0: Header & Search Bar */}
+          <View style={{ marginBottom: 12, paddingHorizontal: 12 }}>
             <View style={{ marginBottom: 4 }}>
               <HomeHeader currentCity={currentCity} avatarUrl={AVATAR_URL} />
             </View>
@@ -233,7 +233,7 @@ export default function HomeScreen() {
           </Animated.View>
 
           {/* Index 3: Category Grid (Specialties) */}
-          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 12, marginBottom: 16 }}>
+          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 12, marginBottom: 12 }}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
             </View>
@@ -294,18 +294,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 120,
+    paddingTop: Platform.OS === 'ios' ? 50 : 32,
+    paddingBottom: 100,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 16,
     paddingHorizontal: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 18,
