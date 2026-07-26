@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Plus, MoreHorizontal, CalendarPlus, FileText } from 'lucide-react-native';
+import { ChevronLeft, Plus, CalendarPlus, FileText, Trash2, Heart, Phone, Activity } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -13,14 +13,18 @@ export default function FamilyScreen() {
   const { colors, isDark } = useTheme();
   const bottomSheetRef = useRef<ActionBottomSheetRef>(null);
   const familyMembers = useProfileStore(state => state.familyMembers);
-  const addFamilyMember = useProfileStore(state => state.addFamilyMember);
+  const removeFamilyMember = useProfileStore(state => state.removeFamilyMember);
 
-  // Pre-seed some dummy data if empty just for demo
-  useEffect(() => {
-    if (familyMembers.length === 0) {
-      addFamilyMember({ name: 'Ravi Sharma', relation: 'Father', dob: '1965-01-01', gender: 'Male' });
-    }
-  }, []);
+  const handleDelete = (id: string, name: string) => {
+    Alert.alert(
+      'Remove Family Member',
+      `Are you sure you want to remove ${name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: () => removeFamilyMember(id) },
+      ]
+    );
+  };
 
   return (
     <AnimatedScreen entrance="fade">
@@ -32,47 +36,63 @@ export default function FamilyScreen() {
             <ChevronLeft size={28} color={colors.text} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Family Members</Text>
-          <Pressable style={styles.addButton} onPress={() => bottomSheetRef.current?.present()}>
-            <Plus size={24} color={colors.accent} />
-          </Pressable>
+          <View style={{ width: 44 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Manage family profiles to easily book appointments and lab tests for them.
+              Manage family profiles to easily upload medical records and book appointments for them.
             </Text>
           </Animated.View>
 
           <View style={styles.list}>
             {familyMembers.map((member, index) => {
-              const age = 2024 - parseInt(member.dob.split('-')[0]);
+              const displayAge = member.age || (member.dob ? 2024 - parseInt(member.dob.split('-')[0], 10) : 35);
               return (
                 <Animated.View key={member.id} entering={FadeInDown.delay(200 + index * 100)}>
                   <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
                     <View style={styles.cardHeader}>
-                      <Image source={{ uri: `https://i.pravatar.cc/150?u=${member.id}` }} style={styles.avatar} />
+                      <Image source={{ uri: member.avatar || `https://i.pravatar.cc/150?u=${member.id}` }} style={styles.avatar} />
                       
                       <View style={styles.info}>
                         <Text style={[styles.name, { color: colors.text }]}>{member.name}</Text>
                         <Text style={[styles.relation, { color: colors.textSecondary }]}>
-                          {member.relation} • {age} yrs
+                          {member.relation} • {displayAge} Yrs {member.gender ? `• ${member.gender}` : ''}
                         </Text>
+                        {member.bloodGroup && (
+                          <View style={styles.bloodTag}>
+                            <Heart size={12} color="#EF4444" style={{ marginRight: 4 }} />
+                            <Text style={styles.bloodTagText}>Blood: {member.bloodGroup}</Text>
+                          </View>
+                        )}
                       </View>
                       
-                      <Pressable style={styles.optionsButton}>
-                        <MoreHorizontal size={24} color={colors.textSecondary} />
-                      </Pressable>
+                      <TouchableOpacity 
+                        style={styles.optionsButton}
+                        onPress={() => handleDelete(member.id, member.name)}
+                      >
+                        <Trash2 size={20} color="#EF4444" />
+                      </TouchableOpacity>
                     </View>
+
+                    {member.medicalHistory && (
+                      <View style={[styles.historyRow, { backgroundColor: isDark ? '#2A2A2A' : '#FAFAFA' }]}>
+                        <Activity size={14} color={colors.accent} style={{ marginRight: 6 }} />
+                        <Text style={[styles.historyText, { color: colors.textSecondary }]}>
+                          Condition: {member.medicalHistory}
+                        </Text>
+                      </View>
+                    )}
                     
                     <View style={styles.cardActions}>
                       <TouchableOpacity 
                         style={[styles.actionBtn, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                        onPress={() => router.push('/records')}
+                        onPress={() => router.push(`/records?memberId=${member.id}` as any)}
                       >
                         <FileText size={16} color={colors.text} />
-                        <Text style={[styles.actionBtnText, { color: colors.text }]}>Records</Text>
+                        <Text style={[styles.actionBtnText, { color: colors.text }]}>Health Records</Text>
                       </TouchableOpacity>
                       
                       <TouchableOpacity 
@@ -97,13 +117,13 @@ export default function FamilyScreen() {
               <View style={[styles.addIconWrap, { backgroundColor: colors.accent + '15' }]}>
                 <Plus size={24} color={colors.accent} />
               </View>
-              <Text style={[styles.addText, { color: colors.accent }]}>Add New Member</Text>
+              <Text style={[styles.addText, { color: colors.accent }]}>Add New Family Member</Text>
             </Pressable>
           </Animated.View>
 
         </ScrollView>
         
-        <ActionBottomSheet ref={bottomSheetRef}>
+        <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
           <FamilyMemberForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
         </ActionBottomSheet>
       </View>
@@ -147,16 +167,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
   },
   list: {
     gap: 16,
     marginBottom: 16,
   },
   card: {
-    padding: 16,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 20,
     borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -167,19 +187,20 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   cardActions: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 12,
   },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 14,
     gap: 6,
   },
   primaryActionBtn: {
@@ -189,33 +210,56 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 16,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    marginRight: 14,
   },
   info: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 2,
   },
   relation: {
-    fontSize: 14,
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  bloodTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  bloodTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#EF4444',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  historyText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   optionsButton: {
-    padding: 8,
+    padding: 6,
   },
   addCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 2,
-    height: 80,
+    height: 72,
   },
   addIconWrap: {
     width: 40,
@@ -227,6 +271,6 @@ const styles = StyleSheet.create({
   },
   addText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   }
 });

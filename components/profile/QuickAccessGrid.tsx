@@ -1,19 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ShoppingBag, FileText, ClipboardList, Heart, FileCode2, ShieldAlert, CreditCard, Bell } from 'lucide-react-native';
+import { Calendar, Users, FileText, MapPin, Bookmark, ShieldCheck, CreditCard, Bell } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 import { useRouter } from 'expo-router';
 
 const QUICK_ACTIONS = [
-  { id: '1', title: 'Appointments', route: '/appointments', icon: ShoppingBag, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '2', title: 'Family Members', route: '/profile/family', icon: FileText, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '3', title: 'Health Records', route: '/records', icon: ClipboardList, color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' },
-  { id: '4', title: 'Addresses', route: '/profile/addresses', icon: Heart, color: '#6B7280', bgColor: 'rgba(107, 114, 128, 0.1)' },
-  { id: '5', title: 'Saved', route: '/profile/saved', icon: FileCode2, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '6', title: 'Insurance', route: '/profile/insurance', icon: ShieldAlert, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '7', title: 'Payments', route: '/profile/payments', icon: CreditCard, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
-  { id: '8', title: 'Reminders', route: '/notifications', icon: Bell, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '1', title: 'Appointments', route: '/appointments', icon: Calendar, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '2', title: 'Family Members', route: '/profile/family', icon: Users, color: '#3B82F6', bgColor: 'rgba(59, 130, 246, 0.1)' },
+  { id: '3', title: 'Health Records', route: '/profile/records', icon: FileText, color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' },
+  { id: '4', title: 'Addresses', route: '/profile/addresses', icon: MapPin, color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)' },
+  { id: '5', title: 'Saved', route: '/profile/saved', icon: Bookmark, color: '#EC4899', bgColor: 'rgba(236, 72, 153, 0.1)' },
+  { id: '6', title: 'Insurance', route: '/profile/insurance', icon: ShieldCheck, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '7', title: 'Payments', route: '/profile/payments', icon: CreditCard, color: '#6366F1', bgColor: 'rgba(99, 102, 241, 0.1)' },
+  { id: '8', title: 'Reminders', route: '/profile/reminders', icon: Bell, color: '#06B6D4', bgColor: 'rgba(6, 182, 212, 0.1)' },
 ];
 
 export default function QuickAccessGrid() {

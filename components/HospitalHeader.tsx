@@ -1,25 +1,39 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { ArrowLeft, Search, Share2 } from 'lucide-react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { ChevronLeft, Share2, PhoneCall, Info } from 'lucide-react-native';
 
 interface HospitalHeaderProps {
   onBackPress: () => void;
-  onSearchPress?: () => void;
-  onSharePress: () => void;
+  onSharePress?: () => void;
+  onCallPress?: () => void;
+  onInfoPress?: () => void;
 }
 
-export default function HospitalHeader({ onBackPress, onSearchPress, onSharePress }: HospitalHeaderProps) {
+export default function HospitalHeader({
+  onBackPress,
+  onSharePress,
+  onCallPress,
+  onInfoPress,
+}: HospitalHeaderProps) {
   return (
     <View style={styles.headerAbsolute}>
-      <TouchableOpacity onPress={onBackPress} style={styles.iconCircle}>
-        <ArrowLeft color="#fff" size={24} />
+      {/* Back Button */}
+      <TouchableOpacity onPress={onBackPress} style={styles.whiteCircleBtn} activeOpacity={0.8}>
+        <ChevronLeft color="#0F172A" size={22} />
       </TouchableOpacity>
-      <View style={styles.headerRight}>
-        <TouchableOpacity style={styles.iconCircle} onPress={onSearchPress}>
-          <Search color="#fff" size={20} />
+
+      {/* Floating Action Pill Bar */}
+      <View style={styles.actionPillBar}>
+        <TouchableOpacity style={styles.actionBtn} onPress={onSharePress} activeOpacity={0.7}>
+          <Share2 color="#1E293B" size={20} />
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.iconCircle, { marginLeft: 12 }]} onPress={onSharePress}>
-          <Share2 color="#fff" size={20} />
+
+        <TouchableOpacity style={styles.actionBtn} onPress={onCallPress} activeOpacity={0.7}>
+          <PhoneCall color="#1E293B" size={20} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionBtn} onPress={onInfoPress} activeOpacity={0.7}>
+          <Info color="#1E293B" size={20} />
         </TouchableOpacity>
       </View>
     </View>
@@ -29,23 +43,43 @@ export default function HospitalHeader({ onBackPress, onSearchPress, onSharePres
 const styles = StyleSheet.create({
   headerAbsolute: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 30,
+    top: Platform.OS === 'ios' ? 50 : 36,
     left: 16,
     right: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    zIndex: 10,
+    zIndex: 20,
   },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  whiteCircleBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  headerRight: {
+  actionPillBar: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  actionBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

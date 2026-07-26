@@ -18,6 +18,16 @@ import WomensCareCard from './WomensCareCard';
 import UrologyCareCard from './UrologyCareCard';
 import ThyroidCareCard from './ThyroidCareCard';
 
+import PregnancyWideCard from './PregnancyWideCard';
+import SkinWideCard from './SkinWideCard';
+import CardiacWideCard from './CardiacWideCard';
+import KneeWideCard from './KneeWideCard';
+import DiabetesWideCard from './DiabetesWideCard';
+import OrthoWideCard from './OrthoWideCard';
+import SeniorWideCard from './SeniorWideCard';
+import PediatricWideCard from './PediatricWideCard';
+import DentalWideCard from './DentalWideCard';
+
 export {
   PregnancyCareCard,
   KneeCareCard,
@@ -38,6 +48,15 @@ export {
   WomensCareCard,
   UrologyCareCard,
   ThyroidCareCard,
+  PregnancyWideCard,
+  SkinWideCard,
+  CardiacWideCard,
+  KneeWideCard,
+  DiabetesWideCard,
+  OrthoWideCard,
+  SeniorWideCard,
+  PediatricWideCard,
+  DentalWideCard,
 };
 
 export const ALL_CATEGORY_CARDS = [
@@ -58,6 +77,6 @@ export const ALL_CATEGORY_CARDS = [
   { id: 'oncology', name: 'Cancer Screening & Care Plan', component: OncologyCareCard, keywords: ['cancer', 'oncology', 'screening', 'pet scan'] },
   { id: 'senior', name: 'Senior Citizen Health Plan', component: SeniorCareCard, keywords: ['senior', 'elderly', 'geriatric', 'old age'] },
   { id: 'womens', name: "Women's Wellness Plan", component: WomensCareCard, keywords: ['women', 'female', 'pcos', 'hormones'] },
-  { id: 'urology', name: 'Kidney & Urology Care Plan', component: UrologyCareCard, keywords: ['kidney', 'urology', 'stone', 'urine'] },
-  { id: 'thyroid', name: 'Thyroid & Hormonal Care Plan', component: ThyroidCareCard, keywords: ['thyroid', 't3', 't4', 'tsh', 'hormone'] },
+  { id: 'urology', name: 'Kidney & Urology Care Plan', component: UrologyCareCard, keywords: ['urology', 'kidney', 'stone'] },
+  { id: 'thyroid', name: 'Thyroid & Hormonal Care Plan', component: ThyroidCareCard, keywords: ['thyroid', 'hormone', 't3', 't4', 'tsh'] },
 ];

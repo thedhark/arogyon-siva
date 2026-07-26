@@ -2,16 +2,34 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-export default function PlanCard({ image, title, tag, colors }: any) {
+interface PlanCardProps {
+  image: string;
+  title: string;
+  tag: string;
+  colors: [string, string, ...string[]];
+  categorySlug?: string;
+  onPress?: () => void;
+}
+
+export default function PlanCard({ image, title, tag, colors, categorySlug, onPress }: PlanCardProps) {
   const router = useRouter();
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else if (categorySlug) {
+      router.push(`/packages/category/${categorySlug}` as any);
+    } else {
+      router.push('/packages/category/pregnancy' as any);
+    }
+  };
+
   return (
-    <TouchableOpacity activeOpacity={1} style={styles.planCard} onPress={() => router.push('/plan/1' as any)}>
+    <TouchableOpacity activeOpacity={0.85} style={styles.planCard} onPress={handlePress}>
       <ImageBackground source={{ uri: image }} style={styles.planCardImage} imageStyle={{ borderRadius: 24 }}>
         <LinearGradient colors={colors} style={styles.planCardGradient}>
           <View style={styles.planTag}>

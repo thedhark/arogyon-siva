@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfileStore } from '@/hooks/useProfileStore';
-import Animated, { useAnimatedStyle, withTiming, interpolateColor } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ShieldCheck, Stethoscope } from 'lucide-react-native';
+import { ShieldCheck, Stethoscope, DollarSign, UserCheck } from 'lucide-react-native';
 
 interface InsuranceFormProps {
   onSuccess: () => void;
@@ -17,7 +17,8 @@ const getProviderColors = (providerName: string) => {
   if (name.includes('hdfc')) return ['#EF4444', '#1E3A8A'] as const;
   if (name.includes('max')) return ['#F59E0B', '#B45309'] as const;
   if (name.includes('care')) return ['#10B981', '#064E3B'] as const;
-  return ['#4B5563', '#1F2937'] as const; // default gray
+  if (name.includes('niva') || name.includes('bupa')) return ['#8B5CF6', '#4C1D95'] as const;
+  return ['#0F766E', '#115E59'] as const; // default teal
 };
 
 const formatExpiry = (value: string) => {
@@ -31,13 +32,17 @@ const formatExpiry = (value: string) => {
 export default function InsuranceForm({ onSuccess }: InsuranceFormProps) {
   const { colors, isDark } = useTheme();
   const addInsurance = useProfileStore((state) => state.addInsurance);
+  const userProfile = useProfileStore((state) => state.userProfile);
 
   const [provider, setProvider] = useState('');
   const [policyNumber, setPolicyNumber] = useState('');
   const [expiry, setExpiry] = useState('');
+  const [policyHolder, setPolicyHolder] = useState(userProfile.name || 'Ananya Sharma');
+  const [coverageAmount, setCoverageAmount] = useState('₹10,000,000');
+  const [tpaId, setTpaId] = useState('');
 
   // Validation
-  const isExpiryValid = expiry.length === 5; // Basic length check for MM/YY
+  const isExpiryValid = expiry.length === 5;
   
   const handleExpiryChange = (text: string) => {
     setExpiry(formatExpiry(text));
@@ -49,7 +54,10 @@ export default function InsuranceForm({ onSuccess }: InsuranceFormProps) {
     addInsurance({
       provider,
       policyNumber,
-      expiry
+      expiry,
+      policyHolder,
+      coverageAmount,
+      tpaId: tpaId || `TPA-${provider.slice(0,3).toUpperCase()}-102`,
     });
     
     Keyboard.dismiss();
@@ -77,20 +85,20 @@ export default function InsuranceForm({ onSuccess }: InsuranceFormProps) {
                 {provider || 'PROVIDER NAME'}
               </Text>
             </View>
-            <ShieldCheck size={28} color="rgba(255,255,255,0.2)" />
+            <ShieldCheck size={28} color="rgba(255,255,255,0.4)" />
           </View>
           
           <View style={styles.cardBody}>
             <Text style={styles.cardLabel}>POLICY NUMBER</Text>
             <Text style={[styles.policyText, !policyNumber && { opacity: 0.5 }]}>
-              {policyNumber || 'XXXXXXXXXX'}
+              {policyNumber || 'P/XXXXXXXX/XX'}
             </Text>
           </View>
           
           <View style={styles.cardFooter}>
             <View>
-              <Text style={styles.cardLabel}>MEMBER NAME</Text>
-              <Text style={styles.cardValue}>PREMIUM USER</Text>
+              <Text style={styles.cardLabel}>PRIMARY HOLDER</Text>
+              <Text style={styles.cardValue}>{policyHolder.toUpperCase()}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.cardLabel}>VALID THRU</Text>
@@ -103,22 +111,24 @@ export default function InsuranceForm({ onSuccess }: InsuranceFormProps) {
       </Animated.View>
 
       <View style={styles.inputGroup}>
+        {/* Insurance Provider */}
         <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
-          <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>Provider</Text>
+          <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>Insurance Provider</Text>
           <TextInput
             style={[styles.smartInput, { color: colors.text }]}
-            placeholder="e.g. Star Health"
+            placeholder="e.g. Star Health / Apollo Munich / Niva Bupa"
             placeholderTextColor={colors.textMuted}
             value={provider}
             onChangeText={setProvider}
           />
         </View>
 
+        {/* Policy Number */}
         <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
-          <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>Policy Number</Text>
+          <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>Policy / Card Number</Text>
           <TextInput
             style={[styles.smartInput, { color: colors.text }]}
-            placeholder="XXXXXXXXXX"
+            placeholder="P/XXXXXXXX/01"
             placeholderTextColor={colors.textMuted}
             value={policyNumber}
             onChangeText={setPolicyNumber}
@@ -126,19 +136,58 @@ export default function InsuranceForm({ onSuccess }: InsuranceFormProps) {
           />
         </View>
 
-        <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
-          <Text style={[styles.floatingLabel, { color: expiry && !isExpiryValid ? '#EF4444' : colors.textSecondary }]}>
-            Expiry (MM/YY)
-          </Text>
-          <TextInput
-            style={[styles.smartInput, { color: expiry && !isExpiryValid ? '#EF4444' : colors.text }]}
-            placeholder="MM/YY"
-            placeholderTextColor={colors.textMuted}
-            value={expiry}
-            onChangeText={handleExpiryChange}
-            keyboardType="number-pad"
-            maxLength={5}
-          />
+        {/* Policy Holder & Expiry */}
+        <View style={styles.rowTwoCols}>
+          <View style={[styles.inputWrapper, { flex: 1, backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
+            <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>Policy Holder</Text>
+            <TextInput
+              style={[styles.smartInput, { color: colors.text }]}
+              placeholder="Holder Name"
+              placeholderTextColor={colors.textMuted}
+              value={policyHolder}
+              onChangeText={setPolicyHolder}
+            />
+          </View>
+
+          <View style={[styles.inputWrapper, { flex: 1, backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
+            <Text style={[styles.floatingLabel, { color: expiry && !isExpiryValid ? '#EF4444' : colors.textSecondary }]}>
+              Expiry (MM/YY)
+            </Text>
+            <TextInput
+              style={[styles.smartInput, { color: expiry && !isExpiryValid ? '#EF4444' : colors.text }]}
+              placeholder="MM/YY"
+              placeholderTextColor={colors.textMuted}
+              value={expiry}
+              onChangeText={handleExpiryChange}
+              keyboardType="number-pad"
+              maxLength={5}
+            />
+          </View>
+        </View>
+
+        {/* Coverage Amount & TPA ID */}
+        <View style={styles.rowTwoCols}>
+          <View style={[styles.inputWrapper, { flex: 1, backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
+            <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>Coverage Amount</Text>
+            <TextInput
+              style={[styles.smartInput, { color: colors.text }]}
+              placeholder="₹10,000,000"
+              placeholderTextColor={colors.textMuted}
+              value={coverageAmount}
+              onChangeText={setCoverageAmount}
+            />
+          </View>
+
+          <View style={[styles.inputWrapper, { flex: 1, backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
+            <Text style={[styles.floatingLabel, { color: colors.textSecondary }]}>TPA Member ID</Text>
+            <TextInput
+              style={[styles.smartInput, { color: colors.text }]}
+              placeholder="TPA-9981"
+              placeholderTextColor={colors.textMuted}
+              value={tpaId}
+              onChangeText={setTpaId}
+            />
+          </View>
         </View>
       </View>
 
@@ -147,7 +196,7 @@ export default function InsuranceForm({ onSuccess }: InsuranceFormProps) {
         onPress={handleSubmit}
         disabled={!provider || !policyNumber || !isExpiryValid}
       >
-        <Text style={styles.submitText}>Save Policy</Text>
+        <Text style={styles.submitText}>Save & Link Policy</Text>
       </TouchableOpacity>
     </View>
   );
@@ -168,7 +217,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderRadius: 20,
-    padding: 24,
+    padding: 20,
     justifyContent: 'space-between',
   },
   cardHeader: {
@@ -187,7 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardLabel: {
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
@@ -195,10 +244,9 @@ const styles = StyleSheet.create({
   },
   policyText: {
     color: '#FFF',
-    fontSize: 20,
-    letterSpacing: 2,
+    fontSize: 18,
+    letterSpacing: 1.5,
     fontWeight: '700',
-    fontFamily: 'monospace',
   },
   cardFooter: {
     flexDirection: 'row',
@@ -207,37 +255,42 @@ const styles = StyleSheet.create({
   },
   cardValue: {
     color: '#FFF',
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   inputGroup: {
-    gap: 16,
-    marginBottom: 32,
+    gap: 14,
+    marginBottom: 24,
+  },
+  rowTwoCols: {
+    flexDirection: 'row',
+    gap: 12,
   },
   inputWrapper: {
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 4,
-    height: 64,
+    height: 60,
   },
   floatingLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   smartInput: { 
-    height: 36, 
-    fontSize: 16,
+    height: 32, 
+    fontSize: 15,
     fontWeight: '600',
   },
   submitButton: { 
-    height: 60, 
-    borderRadius: 30, 
+    height: 56, 
+    borderRadius: 28, 
     alignItems: 'center', 
     justifyContent: 'center', 
   },
-  submitText: { color: '#FFF', fontSize: 18, fontWeight: '700' }
+  submitText: { color: '#FFF', fontSize: 17, fontWeight: '700' }
 });
+

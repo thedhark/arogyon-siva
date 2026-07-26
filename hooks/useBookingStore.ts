@@ -16,6 +16,7 @@ export interface Doctor {
   image: string;
   fee: string;
   hospitalId: string;
+  services?: { id: string; name: string; price: string }[];
 }
 
 export interface Hospital {
@@ -74,7 +75,12 @@ const initialDoctors: Record<string, Doctor> = {
     about: 'Specialized in sports injuries, post-surgical rehab, back pain, and joint pain management. He helps patients recover better and move stronger.',
     image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=600',
     fee: '699',
-    hospitalId: 'hosp-1'
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Physiotherapy Consultation', price: '₹699' },
+      { id: 's2', name: 'Post-Surgery Rehabilitation', price: '₹999' },
+      { id: 's3', name: 'Sports Injury Therapy', price: '₹1,200' }
+    ]
   },
   'doc-2': {
     id: 'doc-2',
@@ -91,7 +97,12 @@ const initialDoctors: Record<string, Doctor> = {
     about: 'Expert in women\'s health, pregnancy care, and infertility treatments.',
     image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=300',
     fee: '800',
-    hospitalId: 'hosp-1'
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Antenatal Consultation', price: '₹800' },
+      { id: 's2', name: 'Gynecological Checkup', price: '₹1,000' },
+      { id: 's3', name: 'Infertility Counseling', price: '₹1,500' }
+    ]
   },
   'doc-3': {
     id: 'doc-3',
@@ -108,7 +119,12 @@ const initialDoctors: Record<string, Doctor> = {
     about: 'Specialist in skin care, acne treatments, and hair fall therapies.',
     image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=200',
     fee: '750',
-    hospitalId: 'hosp-2'
+    hospitalId: 'hosp-2',
+    services: [
+      { id: 's1', name: 'Derma Consultation', price: '₹750' },
+      { id: 's2', name: 'Acne & Skin Care Therapy', price: '₹1,200' },
+      { id: 's3', name: 'Hair Loss Treatment Session', price: '₹1,800' }
+    ]
   }
 };
 
@@ -159,7 +175,12 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   hospitals: initialHospitals,
   appointments: initialAppointments,
 
-  getDoctor: (id) => get().doctors[id],
+  getDoctor: (id) => {
+    const docs = get().doctors;
+    if (docs[id]) return docs[id];
+    const found = Object.values(docs).find(d => d.id.includes(id) || id.includes(d.id));
+    return found || Object.values(docs)[0];
+  },
   
   getHospital: (id) => get().hospitals[id],
   

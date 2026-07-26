@@ -11,8 +11,11 @@ interface Props {
 }
 
 const DUMMY_COUPONS = [
-  { code: 'HEALTH20', title: 'Flat 20% Off', desc: 'On all pregnancy care packages. Max discount ₹5000.' },
-  { code: 'FIRSTCARE', title: 'Save ₹2000', desc: 'Valid for first time package bookings only.' },
+  { code: 'AROGYON50', title: 'Flat ₹50 Off', desc: 'Valid on doctor consultations and appointments.' },
+  { code: 'HEALTH10', title: '10% Instant Off', desc: 'Get 10% discount on health care services.' },
+  { code: 'WELCOME100', title: 'Flat ₹100 Off', desc: 'Special welcome offer on your appointment booking.' },
+  { code: 'HEALTH20', title: 'Flat 20% Off', desc: 'On all care packages. Max discount ₹5000.' },
+  { code: 'FIRSTCARE', title: 'Save ₹2000', desc: 'Valid for first time package bookings.' },
 ];
 
 export default function CouponOverlay({ visible, onClose, onApply }: Props) {

@@ -2,17 +2,50 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Flame, Zap, ThumbsUp, User } from 'lucide-react-native';
+import { useTheme } from '@/hooks/useTheme';
 
-interface DoctorCardProps {
-  doc: any;
-  isDark: boolean;
-  colors: any;
-  isLiked: boolean;
-  onPress: () => void;
-  onLikePress: () => void;
+export interface DoctorCardData {
+  id?: string;
+  name: string;
+  speciality?: string;
+  title?: string;
+  degrees?: string;
+  location?: string;
+  hospital?: string;
+  rating?: string | number;
+  reviews?: string | number;
+  price?: string | number;
+  fee?: string | number;
+  nextAvailable?: string;
+  image?: string;
+  tagType?: 'fire' | 'zap' | 'thumb' | string;
+  tagText?: string;
+  tag?: string;
 }
 
-export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLikePress }: DoctorCardProps) {
+
+interface DoctorCardProps {
+  doc: DoctorCardData;
+  isDark?: boolean;
+  colors?: any;
+  isLiked?: boolean;
+  onPress: () => void;
+  onLikePress?: () => void;
+}
+
+export default function DoctorCard({ doc, isDark: isDarkProp, colors: colorsProp, isLiked = false, onPress, onLikePress }: DoctorCardProps) {
+  const theme = useTheme();
+  const isDark = isDarkProp ?? theme.isDark;
+  const colors = colorsProp ?? theme.colors;
+
+  const docName = doc?.name || 'Doctor';
+  const docSpeciality = doc?.speciality || 'Specialist';
+  const docDegrees = doc?.degrees || doc?.location || 'In-Clinic';
+  const docRating = doc?.rating || '4.8';
+  const docReviews = doc?.reviews || '100+';
+  const docPrice = doc?.price || doc?.fee || '500';
+  const docNextAvailable = doc?.nextAvailable || 'Today';
+
   return (
     <TouchableOpacity 
       style={[
@@ -27,7 +60,7 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
       <View style={styles.docCardTop}>
         <View style={styles.docLeft}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: doc.image }} style={styles.docAvatar} />
+            <Image source={{ uri: doc?.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200' }} style={styles.docAvatar} />
             <View style={styles.onlineDot} />
           </View>
         </View>
@@ -35,15 +68,15 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
         <View style={styles.docInfo}>
           <View style={styles.docHeaderRow}>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[styles.docName, { color: colors.text }]} numberOfLines={1}>{doc.name}</Text>
+              <Text style={[styles.docName, { color: colors.text }]} numberOfLines={1}>{docName}</Text>
             </View>
             <TouchableOpacity onPress={onLikePress} style={{ paddingLeft: 8 }}>
               <Heart size={20} color={isLiked ? "#EF4444" : "#6B7280"} fill={isLiked ? "#EF4444" : "transparent"} />
             </TouchableOpacity>
           </View>
           
-          <Text style={styles.docSpecialty}>{doc.speciality}</Text>
-          <Text style={styles.docDegrees}>{doc.degrees}</Text>
+          <Text style={styles.docSpecialty}>{docSpeciality}</Text>
+          <Text style={styles.docDegrees}>{docDegrees}</Text>
           
           <View style={styles.docStatsRow}>
             <LinearGradient
@@ -53,26 +86,26 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
               style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }]}
             >
               <Star size={11} color="#052E16" fill="#052E16" />
-              <Text style={[styles.docRating, { color: '#052E16' }]}>{doc.rating}</Text>
+              <Text style={[styles.docRating, { color: '#052E16' }]}>{docRating}</Text>
             </LinearGradient>
-            <Text style={styles.docReviews}>({doc.reviews} reviews)</Text>
+            <Text style={styles.docReviews}>({docReviews} reviews)</Text>
             
-            {doc.tagType === 'fire' && (
+            {doc?.tagType === 'fire' && (
               <View style={[styles.highlightTag, { backgroundColor: '#ECFDF5' }]}>
                 <Flame size={12} color="#10B981" fill="#10B981" />
-                <Text style={[styles.highlightTagText, { color: '#10B981' }]}>{doc.tagText}</Text>
+                <Text style={[styles.highlightTagText, { color: '#10B981' }]}>{doc?.tagText || 'Top Rated'}</Text>
               </View>
             )}
-            {doc.tagType === 'zap' && (
+            {doc?.tagType === 'zap' && (
               <View style={[styles.highlightTag, { backgroundColor: '#EFF6FF' }]}>
                 <Zap size={12} color="#3B82F6" fill="#3B82F6" />
-                <Text style={[styles.highlightTagText, { color: '#3B82F6' }]}>{doc.tagText}</Text>
+                <Text style={[styles.highlightTagText, { color: '#3B82F6' }]}>{doc?.tagText || 'Popular'}</Text>
               </View>
             )}
-            {doc.tagType === 'thumb' && (
+            {doc?.tagType === 'thumb' && (
               <View style={[styles.highlightTag, { backgroundColor: '#FFF7ED' }]}>
                 <ThumbsUp size={12} color="#F97316" fill="#F97316" />
-                <Text style={[styles.highlightTagText, { color: '#F97316' }]}>{doc.tagText}</Text>
+                <Text style={[styles.highlightTagText, { color: '#F97316' }]}>{doc?.tagText || 'Recommended'}</Text>
               </View>
             )}
           </View>
@@ -86,14 +119,14 @@ export default function DoctorCard({ doc, isDark, colors, isLiked, onPress, onLi
       {/* Bottom Action Section */}
       <View style={styles.docCardBottom}>
         <View style={styles.feeCol}>
-          <Text style={[styles.bottomColVal, { color: colors.text }]}>₹{doc.price}</Text>
+          <Text style={[styles.bottomColVal, { color: colors.text }]}>₹{docPrice}</Text>
           <Text style={styles.bottomColLabel}>Consultation Fee</Text>
         </View>
         
         <View style={styles.verticalDivider} />
         
         <View style={styles.availabilityCol}>
-          <Text style={[styles.bottomColVal, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>{doc.nextAvailable}</Text>
+          <Text style={[styles.bottomColVal, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>{docNextAvailable}</Text>
           <Text style={styles.bottomColLabel}>Next Available</Text>
         </View>
         

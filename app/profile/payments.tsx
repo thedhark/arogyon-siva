@@ -8,6 +8,7 @@ import AnimatedScreen from '@/components/AnimatedScreen';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
 import PaymentForm from '@/components/profile/PaymentForm';
+import { formatDisplayDate } from '@/utils';
 
 export default function PaymentsScreen() {
   const router = useRouter();
@@ -141,7 +142,7 @@ export default function PaymentsScreen() {
                 <View style={styles.txInfo}>
                   <Text style={[styles.txTitle, { color: colors.text }]} numberOfLines={1}>{tx.title}</Text>
                   <Text style={[styles.txDate, { color: colors.textSecondary }]}>
-                    {new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {formatDisplayDate(tx.date)}
                   </Text>
                 </View>
                 <View style={styles.txRight}>
@@ -159,7 +160,7 @@ export default function PaymentsScreen() {
 
       </ScrollView>
 
-      <ActionBottomSheet ref={bottomSheetRef}>
+      <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
         <PaymentForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
       </ActionBottomSheet>
     </AnimatedScreen>

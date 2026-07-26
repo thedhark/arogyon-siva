@@ -24,16 +24,27 @@ export default function RootLayout() {
     <GlassProvider>
       <BottomSheetModalProvider>
         <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-        <Stack>
+        <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="location" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
-          <Stack.Screen name="doctor/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="doctor/[id]" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="care/service/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
           <Stack.Screen name="booking/success" options={{ headerShown: false }} />
-          <Stack.Screen name="packages/category/[categoryId]" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/knee" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/senior" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/cardiac" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/dental" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/diabetes" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/fitness" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/ortho" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/pediatrics" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/pregnancy" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/skin" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/weight" options={{ headerShown: false }} />
           <Stack.Screen name="packages/provider/[providerId]" options={{ headerShown: false }} />
           <Stack.Screen name="packages/detail/[packageId]" options={{ headerShown: false }} />
           <Stack.Screen name="packages/checkout/[packageId]" options={{ headerShown: false }} />

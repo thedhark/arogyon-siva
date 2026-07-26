@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MapPin } from 'lucide-react-native';
+import { MapPin, Globe, Clock } from 'lucide-react-native';
 
 interface Props {
   doctorData: any;
@@ -9,28 +9,35 @@ interface Props {
 
 export default function DoctorStats({ doctorData, isDark }: Props) {
   return (
-    <View style={styles.profileCardWrapper}>
-      <View style={[styles.profileCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
-        <View style={[styles.statsRow, { borderTopColor: isDark ? '#333' : '#F3F4F6' }]}>
+    <View style={styles.statsContainer}>
+      <View style={[styles.statsCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
+        <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <MapPin size={16} color="#6B7280" style={{ marginBottom: 4 }} />
-            <Text style={styles.statLabel}>{doctorData.location}</Text>
-            <Text style={styles.statValue}>{doctorData.distance}</Text>
+            <View style={[styles.iconBox, { backgroundColor: '#ECFDF5' }]}>
+              <MapPin size={18} color="#10B981" />
+            </View>
+            <Text style={styles.statLabel} numberOfLines={1}>{doctorData.location.split(',')[0]}</Text>
+            <Text style={styles.statSublabel}>{doctorData.distance}</Text>
           </View>
+
+          <View style={styles.divider} />
+
           <View style={styles.statItem}>
-            <View style={styles.statIconPlaceholder}><Text>💼</Text></View>
-            <Text style={styles.statLabel}>{doctorData.experience.split(' ')[0]}</Text>
-            <Text style={styles.statValue}>Experience</Text>
+            <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
+              <Globe size={18} color="#3B82F6" />
+            </View>
+            <Text style={styles.statLabel} numberOfLines={1}>{doctorData.languages.split(',')[0]}</Text>
+            <Text style={styles.statSublabel}>Languages</Text>
           </View>
+
+          <View style={styles.divider} />
+
           <View style={styles.statItem}>
-            <View style={styles.statIconPlaceholder}><Text>👥</Text></View>
-            <Text style={styles.statLabel}>{doctorData.patients}</Text>
-            <Text style={styles.statValue}>Patients</Text>
-          </View>
-          <View style={styles.statItem}>
-            <View style={styles.statIconPlaceholder}><Text>🗣️</Text></View>
-            <Text style={styles.statLabel}>{doctorData.languages.split(',')[0]}</Text>
-            <Text style={styles.statValue}>Languages</Text>
+            <View style={[styles.iconBox, { backgroundColor: '#FEF3C7' }]}>
+              <Clock size={18} color="#D97706" />
+            </View>
+            <Text style={styles.statLabel}>Available</Text>
+            <Text style={styles.statSublabel}>Today</Text>
           </View>
         </View>
       </View>
@@ -39,46 +46,53 @@ export default function DoctorStats({ doctorData, isDark }: Props) {
 }
 
 const styles = StyleSheet.create({
-  profileCardWrapper: {
+  statsContainer: {
     paddingHorizontal: 16,
-    zIndex: 2,
+    marginTop: 12,
   },
-  profileCard: {
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+  statsCard: {
+    borderRadius: 16,
     padding: 16,
-    paddingTop: 0,
     borderWidth: 1,
-    borderTopWidth: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 16,
-    borderTopWidth: 1,
+    alignItems: 'center',
   },
   statItem: {
     alignItems: 'center',
-    width: '24%',
+    flex: 1,
   },
-  statIconPlaceholder: {
-    marginBottom: 4,
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#4B5563',
+    color: '#374151',
     marginBottom: 2,
     textAlign: 'center',
   },
-  statValue: {
-    fontSize: 10,
-    color: '#9CA3AF',
+  statSublabel: {
+    fontSize: 11,
+    color: '#6B7280',
     textAlign: 'center',
   },
+  divider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#E5E7EB',
+  },
 });
+

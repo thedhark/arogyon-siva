@@ -6,6 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ChevronLeft, User, Users, Tag, CreditCard, ShieldCheck, CheckCircle2 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import CouponOverlay from '@/components/packages/CouponOverlay';
+import PaymentGatewayModal, { PaymentDetails } from '@/components/booking/PaymentGatewayModal';
 
 export default function CheckoutScreen() {
   const { packageId } = useLocalSearchParams();
@@ -19,6 +20,7 @@ export default function CheckoutScreen() {
   const [useInsurance, setUseInsurance] = useState(false);
   const [couponCode, setCouponCode] = useState<string | null>(null);
   const [showCouponOverlay, setShowCouponOverlay] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Mock package data
   const packagePrice = 24999;
@@ -206,13 +208,9 @@ export default function CheckoutScreen() {
           </View>
           <TouchableOpacity 
             style={styles.payBtn}
-            onPress={() => {
-              // Handle payment / booking confirmation
-              alert('Booking Confirmed!');
-              router.navigate('/(tabs)');
-            }}
+            onPress={() => setShowPaymentModal(true)}
           >
-            <Text style={styles.payBtnText}>Confirm Booking</Text>
+            <Text style={styles.payBtnText}>Pay & Confirm</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -221,6 +219,20 @@ export default function CheckoutScreen() {
         visible={showCouponOverlay}
         onClose={() => setShowCouponOverlay(false)}
         onApply={handleApplyCoupon}
+      />
+
+      <PaymentGatewayModal
+        visible={showPaymentModal}
+        amount={totalAmount}
+        title="Package Booking Payment"
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={(payment) => {
+          setShowPaymentModal(false);
+          router.replace({
+            pathname: '/booking/success',
+            params: { appointmentId: payment.paymentId },
+          });
+        }}
       />
     </View>
   );

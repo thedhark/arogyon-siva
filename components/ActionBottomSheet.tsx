@@ -1,9 +1,9 @@
-import React, { useCallback, forwardRef, useMemo, useImperativeHandle, useRef } from 'react';
-import { View, StyleSheet, Keyboard } from 'react-native';
+import React, { useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
+import { StyleSheet, Keyboard } from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
-  BottomSheetView,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -20,9 +20,9 @@ interface ActionBottomSheetProps {
 }
 
 export const ActionBottomSheet = forwardRef<ActionBottomSheetRef, ActionBottomSheetProps>(
-  ({ children, snapPoints = ['50%', '90%'], onDismiss }, ref) => {
+  ({ children, snapPoints = ['88%'], onDismiss }, ref) => {
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-    const { colors, isDark } = useTheme();
+    const { isDark } = useTheme();
 
     // Expose present/dismiss methods to parent
     useImperativeHandle(ref, () => ({
@@ -55,6 +55,7 @@ export const ActionBottomSheet = forwardRef<ActionBottomSheetRef, ActionBottomSh
         snapPoints={snapPoints}
         backdropComponent={renderBackdrop}
         onDismiss={onDismiss}
+        enableDynamicSizing={false}
         backgroundStyle={{
           backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
           borderRadius: 24,
@@ -64,9 +65,13 @@ export const ActionBottomSheet = forwardRef<ActionBottomSheetRef, ActionBottomSh
           width: 40,
         }}
       >
-        <BottomSheetView style={styles.contentContainer}>
+        <BottomSheetScrollView 
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {children}
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheetModal>
     );
   }
@@ -74,7 +79,8 @@ export const ActionBottomSheet = forwardRef<ActionBottomSheetRef, ActionBottomSh
 
 const styles = StyleSheet.create({
   contentContainer: {
-    flex: 1,
     padding: 24,
+    paddingBottom: 40,
   },
 });
+

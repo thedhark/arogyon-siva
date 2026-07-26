@@ -27,8 +27,7 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const { width } = Dimensions.get('window');
 
-const USER_NAME = 'Ananya';
-const AVATAR_URL = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
+
 
 export default function HomeScreen() {
   const { colors, isDark } = useTheme();
@@ -210,9 +209,9 @@ export default function HomeScreen() {
         >
           
           {/* Index 0: Header & Search Bar */}
-          <View style={{ marginBottom: 12, paddingHorizontal: 12 }}>
+          <View style={{ marginBottom: 12, paddingHorizontal: 16 }}>
             <View style={{ marginBottom: 4 }}>
-              <HomeHeader currentCity={currentCity} avatarUrl={AVATAR_URL} />
+              <HomeHeader currentCity={currentCity} />
             </View>
             <Animated.View entering={SlideInDown.delay(150)}>
               <PremiumSearchBar />
@@ -220,7 +219,7 @@ export default function HomeScreen() {
           </View>
 
           {/* Index 1: Recommended Plans */}
-          <View style={{ paddingHorizontal: 12 }}>
+          <View style={{ paddingHorizontal: 16 }}>
             <RecommendedPlans />
           </View>
 
@@ -233,7 +232,7 @@ export default function HomeScreen() {
           </Animated.View>
 
           {/* Index 3: Category Grid (Specialties) */}
-          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 12, marginBottom: 12 }}>
+          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 16, marginBottom: 12 }}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
             </View>
@@ -294,7 +293,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: {
-    paddingTop: Platform.OS === 'ios' ? 50 : 32,
+    paddingTop: Platform.OS === 'ios' ? 54 : 36,
     paddingBottom: 100,
   },
   section: {

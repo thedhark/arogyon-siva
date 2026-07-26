@@ -10,6 +10,8 @@ export interface MedicalRecord {
   extractedText?: string;
   summary?: string;
   tags?: string[];
+  patientName?: string;
+  familyMemberId?: string;
 }
 
 export interface Order {

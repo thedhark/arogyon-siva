@@ -1,17 +1,24 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { Calendar, Clock, MessageSquare, ShieldCheck, Check, Plus, Minus, ArrowRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 import DoctorProfileHeader from '@/components/doctor/DoctorProfileHeader';
-import DoctorStats from '@/components/doctor/DoctorStats';
 import DoctorAbout from '@/components/doctor/DoctorAbout';
-import { SlotSelectionBottomSheet } from '@/components/booking/SlotSelectionBottomSheet';
 
-const TABS = ['About', 'Services', 'Reviews', 'Availability'];
+const DATES = [
+  { id: '1', day: 'Today', date: 'Aug 14' },
+  { id: '2', day: 'Tomorrow', date: 'Aug 15' },
+  { id: '3', day: 'Wed', date: 'Aug 16' },
+  { id: '4', day: 'Thu', date: 'Aug 17' },
+];
+
+const TIME_SLOTS = [
+  '09:00 AM', '10:00 AM', '11:30 AM', 
+  '02:00 PM', '04:00 PM', '05:30 PM'
+];
 
 export default function DoctorProfile() {
   const { id } = useLocalSearchParams();
@@ -21,10 +28,10 @@ export default function DoctorProfile() {
   const getDoctor = useBookingStore(state => state.getDoctor);
   const doctorData = getDoctor(id as string);
   
-  const [activeTab, setActiveTab] = useState('About');
-  const [selectedSlot, setSelectedSlot] = useState({ date: 'Aug 14', time: '10:00 AM' });
-  
-  const slotSheetRef = useRef<BottomSheetModal>(null);
+  const [selectedDate, setSelectedDate] = useState(DATES[0]);
+  const [selectedTime, setSelectedTime] = useState(TIME_SLOTS[1]);
+  const [patientCount, setPatientCount] = useState(1);
+  const [requestNotes, setRequestNotes] = useState('');
 
   if (!doctorData) {
     return (
@@ -37,86 +44,150 @@ export default function DoctorProfile() {
     );
   }
 
+  const baseFee = parseInt(doctorData.fee) || 500;
+  const totalFee = baseFee * patientCount;
+
   const handleBook = () => {
     router.push({ 
       pathname: '/booking/checkout', 
-      params: { type: 'In-Clinic', doctorId: doctorData.id, date: selectedSlot.date, time: selectedSlot.time } 
+      params: { 
+        type: 'In-Clinic', 
+        doctorId: doctorData.id, 
+        date: `${selectedDate.day}, ${selectedDate.date}`, 
+        time: selectedTime,
+        patients: patientCount.toString(),
+        notes: requestNotes,
+        fee: totalFee.toString()
+      } 
     });
   };
 
-  const handleSlotConfirm = (date: string, time: string) => {
-    setSelectedSlot({ date, time });
-    slotSheetRef.current?.dismiss();
-  };
-
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      
       <ScrollView showsVerticalScrollIndicator={false} bounces={false} contentContainerStyle={styles.scrollContent}>
         
+        {/* Doctor Profile Header */}
         <DoctorProfileHeader doctorData={doctorData} colors={colors} isDark={isDark} />
-        
-        <DoctorStats doctorData={doctorData} isDark={isDark} />
 
-        {/* Tabs */}
-        <View style={[styles.tabsContainer, { borderBottomColor: isDark ? '#333' : '#F3F4F6' }]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-            {TABS.map(tab => {
-              const isActive = activeTab === tab;
+        {/* Doctor About Summary */}
+        <View style={styles.sectionContainer}>
+          <DoctorAbout doctorData={doctorData} colors={colors} isDark={isDark} />
+        </View>
+
+        {/* Slot Selection Card */}
+        <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
+          <View style={styles.cardHeader}>
+            <Calendar size={18} color="#10B981" />
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Select Date & Time</Text>
+          </View>
+
+          {/* Date Selector */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.datesRow}>
+            {DATES.map((item) => {
+              const isSelected = selectedDate.id === item.id;
               return (
-                <TouchableOpacity 
-                  key={tab} 
-                  style={[styles.tab, isActive && styles.activeTab]}
-                  onPress={() => setActiveTab(tab)}
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.dateChip,
+                    {
+                      backgroundColor: isSelected ? '#10B981' : (isDark ? '#2B2B2B' : '#F3F4F6'),
+                      borderColor: isSelected ? '#10B981' : 'transparent',
+                    }
+                  ]}
+                  onPress={() => setSelectedDate(item)}
                 >
-                  <Text style={[
-                    styles.tabText, 
-                    { color: isActive ? '#10B981' : colors.textMuted, fontWeight: isActive ? '700' : '500' }
-                  ]}>{tab}</Text>
+                  <Text style={[styles.dateDay, { color: isSelected ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#6B7280') }]}>{item.day}</Text>
+                  <Text style={[styles.dateText, { color: isSelected ? '#FFFFFF' : colors.text }]}>{item.date}</Text>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
+
+          {/* Time Slots */}
+          <View style={styles.timeSlotsGrid}>
+            {TIME_SLOTS.map((time) => {
+              const isSelected = selectedTime === time;
+              return (
+                <TouchableOpacity
+                  key={time}
+                  style={[
+                    styles.timeChip,
+                    {
+                      backgroundColor: isSelected ? '#ECFDF5' : (isDark ? '#2B2B2B' : '#F9FAFB'),
+                      borderColor: isSelected ? '#10B981' : (isDark ? '#333' : '#E5E7EB'),
+                    }
+                  ]}
+                  onPress={() => setSelectedTime(time)}
+                >
+                  <Clock size={12} color={isSelected ? '#10B981' : '#9CA3AF'} style={{ marginRight: 4 }} />
+                  <Text style={[styles.timeText, { color: isSelected ? '#10B981' : colors.text, fontWeight: isSelected ? '700' : '500' }]}>
+                    {time}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
-        {/* Tab Content */}
-        {activeTab === 'About' && (
-          <DoctorAbout doctorData={doctorData} colors={colors} isDark={isDark} />
-        )}
-        {activeTab !== 'About' && (
-          <View style={{ padding: 24 }}>
-            <Text style={{ color: colors.textSecondary }}>{activeTab} content coming soon.</Text>
+        {/* Consultation Request Box (Matches Reference Image UI) */}
+        <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
+          <View style={styles.cardHeader}>
+            <MessageSquare size={18} color="#10B981" />
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Add a consultation request (optional)</Text>
           </View>
-        )}
+          
+          <Text style={styles.requestSubtext}>
+            The doctor will try its best to fulfill your requests. However, medical decisions depend on clinical assessment.
+          </Text>
+
+          <TextInput
+            style={[
+              styles.notesInput, 
+              { 
+                backgroundColor: isDark ? '#2A2A2A' : '#F9FAFB', 
+                color: colors.text,
+                borderColor: isDark ? '#3A3A3A' : '#E5E7EB'
+              }
+            ]}
+            placeholder="e.g. Fever for 2 days, back pain or routine checkup"
+            placeholderTextColor="#9CA3AF"
+            multiline
+            numberOfLines={3}
+            value={requestNotes}
+            onChangeText={setRequestNotes}
+          />
+        </View>
 
       </ScrollView>
 
-      {/* Sticky Bottom Bar */}
-      <View style={[styles.bottomBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderTopColor: isDark ? '#333' : '#F3F4F6' }]}>
-        <View style={styles.bottomBarHeader}>
-          <Text style={styles.nextAvailableLabel}>Selected Slot</Text>
-          <TouchableOpacity onPress={() => slotSheetRef.current?.present()}>
-            <Text style={styles.changeText}>Change</Text>
+      {/* Sticky Bottom Action Bar (Inspired by Reference Image) */}
+      <View style={[styles.bottomBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderTopColor: isDark ? '#333' : '#E5E7EB' }]}>
+        {/* Quantity Stepper [- 1 +] */}
+        <View style={[styles.stepperContainer, { borderColor: isDark ? '#333' : '#E5E7EB' }]}>
+          <TouchableOpacity 
+            style={styles.stepperBtn}
+            onPress={() => setPatientCount(Math.max(1, patientCount - 1))}
+          >
+            <Minus size={16} color={patientCount > 1 ? '#EF4444' : '#9CA3AF'} />
+          </TouchableOpacity>
+          <Text style={[styles.stepperVal, { color: colors.text }]}>{patientCount}</Text>
+          <TouchableOpacity 
+            style={styles.stepperBtn}
+            onPress={() => setPatientCount(patientCount + 1)}
+          >
+            <Plus size={16} color="#10B981" />
           </TouchableOpacity>
         </View>
-        <Text style={[styles.nextAvailableTime, { color: colors.text }]}>
-          {selectedSlot.date}, {selectedSlot.time}
-        </Text>
-        
-        <TouchableOpacity style={styles.bookBtn} onPress={handleBook}>
-          <Text style={styles.bookBtnText}>Book Appointment</Text>
+
+        {/* Primary Action Button */}
+        <TouchableOpacity style={styles.bookBtn} onPress={handleBook} activeOpacity={0.85}>
+          <Text style={styles.bookBtnText}>Book Visit ₹{totalFee}</Text>
           <ArrowRight size={18} color="#FFFFFF" />
         </TouchableOpacity>
-
-        <View style={styles.bottomStatsRow}>
-          <Text style={styles.consultationFee}>Consultation fee <Text style={{ fontWeight: '800' }}>₹{doctorData.fee}</Text></Text>
-          <View style={styles.secureBooking}>
-            <Text style={{ fontSize: 12 }}>🔒</Text>
-            <Text style={styles.secureText}>Secure Booking</Text>
-          </View>
-        </View>
       </View>
-
-      <SlotSelectionBottomSheet ref={slotSheetRef} onConfirm={handleSlotConfirm} />
     </View>
   );
 }
@@ -126,95 +197,146 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 220, // Extra space for the big bottom bar
+    paddingBottom: 110,
   },
-  tabsContainer: {
-    borderBottomWidth: 1,
-    marginTop: 8,
+  sectionContainer: {
+    marginTop: 4,
   },
-  tabsScroll: {
+  card: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  datesRow: {
+    gap: 10,
+    paddingVertical: 8,
+  },
+  dateChip: {
     paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 70,
+    borderWidth: 1,
   },
-  tab: {
-    paddingVertical: 16,
-    marginRight: 24,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+  dateDay: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 2,
   },
-  activeTab: {
-    borderBottomColor: '#10B981',
+  dateText: {
+    fontSize: 13,
+    fontWeight: '800',
   },
-  tabText: {
-    fontSize: 14,
+  timeSlotsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  timeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    width: '31%',
+    justifyContent: 'center',
+  },
+  timeText: {
+    fontSize: 12,
+  },
+  requestSubtext: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  notesInput: {
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    fontSize: 13,
+    minHeight: 70,
+    textAlignVertical: 'top',
   },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
     borderTopWidth: 1,
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 10,
   },
-  bottomBarHeader: {
+  stepperContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    backgroundColor: 'transparent',
   },
-  nextAvailableLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+  stepperBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  changeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#10B981',
-  },
-  nextAvailableTime: {
+  stepperVal: {
     fontSize: 16,
     fontWeight: '800',
-    marginBottom: 16,
+    paddingHorizontal: 10,
   },
   bookBtn: {
-    backgroundColor: '#10B981',
-    borderRadius: 16,
-    paddingVertical: 16,
+    flex: 1,
+    backgroundColor: '#F43F5E', // Vibrant coral/red matching reference image action button
+    borderRadius: 14,
+    paddingVertical: 14,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    marginBottom: 12,
+    shadowColor: '#F43F5E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   bookBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
   },
-  bottomStatsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  consultationFee: {
-    fontSize: 12,
-    color: '#4B5563',
-  },
-  secureBooking: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  secureText: {
-    fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '500',
-  }
 });
+

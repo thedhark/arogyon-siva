@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
-import { ArrowLeft, Heart, Share, Star, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, Heart, Share, Star, CheckCircle2, MapPin, Globe, ShieldCheck } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 interface Props {
@@ -13,112 +13,147 @@ export default function DoctorProfileHeader({ doctorData, colors, isDark }: Prop
   const router = useRouter();
 
   return (
-    <>
-      <View style={styles.heroSection}>
-        <Image source={{ uri: doctorData.image }} style={styles.heroImage} resizeMode="cover" />
-        
-        <View style={styles.floatingHeader}>
-          <TouchableOpacity 
-            style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : '#FFFFFF' }]}
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={20} color={isDark ? '#FFF' : '#000'} />
+    <View style={styles.headerContainer}>
+      {/* Top Header Bar */}
+      <View style={styles.topHeader}>
+        <TouchableOpacity 
+          style={[styles.headerBtn, { backgroundColor: isDark ? '#2D2D2D' : '#F3F4F6' }]}
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={20} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Doctor Profile</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={[styles.headerBtn, { backgroundColor: isDark ? '#2D2D2D' : '#F3F4F6' }]}>
+            <Heart size={20} color={colors.text} />
           </TouchableOpacity>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : '#FFFFFF' }]}>
-              <Heart size={20} color={isDark ? '#FFF' : '#000'} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : '#FFFFFF' }]}>
-              <Share size={20} color={isDark ? '#FFF' : '#000'} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={[styles.headerBtn, { backgroundColor: isDark ? '#2D2D2D' : '#F3F4F6' }]}>
+            <Share size={20} color={colors.text} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.profileCardWrapper}>
-        <View style={[styles.profileCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
-          <View style={styles.cardTop}>
+      {/* Main Doctor Info Card (No Cover Photo!) */}
+      <View style={[styles.profileCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
+        <View style={styles.cardTop}>
+          <View style={styles.avatarWrapper}>
             <Image source={{ uri: doctorData.image }} style={styles.cardAvatar} />
-            <View style={styles.cardInfo}>
-              <View style={styles.nameRow}>
-                <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{doctorData.name}</Text>
-                {doctorData.verified && <CheckCircle2 size={16} color="#10B981" fill="#D1FAE5" style={{ marginLeft: 4 }} />}
-              </View>
-              <Text style={styles.speciality}>{doctorData.speciality}</Text>
-              <Text style={styles.experience}>{doctorData.experience}</Text>
+            <View style={styles.badgeTag}>
+              <Star size={10} color="#FFFFFF" fill="#FFFFFF" />
+              <Text style={styles.badgeTagText}>{doctorData.rating}</Text>
             </View>
-            <View style={styles.ratingBox}>
-              <Text style={styles.ratingValue}>{doctorData.rating}</Text>
-              <Star size={12} color="#10B981" fill="#10B981" />
+          </View>
+
+          <View style={styles.cardInfo}>
+            <View style={styles.nameRow}>
+              <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{doctorData.name}</Text>
+              {doctorData.verified && <CheckCircle2 size={18} color="#10B981" fill="#D1FAE5" style={{ marginLeft: 4 }} />}
+            </View>
+            <Text style={styles.speciality}>{doctorData.speciality}</Text>
+            
+            {/* Rating and Reviews */}
+            <View style={styles.ratingRow}>
+              <Star size={14} color="#F59E0B" fill="#F59E0B" />
+              <Text style={[styles.ratingValue, { color: colors.text }]}>{doctorData.rating}</Text>
               <Text style={styles.reviewsText}>({doctorData.reviews} reviews)</Text>
+              <View style={styles.verifiedChip}>
+                <ShieldCheck size={12} color="#10B981" />
+                <Text style={styles.verifiedChipText}>Verified</Text>
+              </View>
             </View>
           </View>
         </View>
+
+        {/* Location & Languages Row */}
+        <View style={[styles.detailsStrip, { borderTopColor: isDark ? '#333' : '#F3F4F6' }]}>
+          <View style={styles.detailItem}>
+            <MapPin size={15} color="#10B981" />
+            <Text style={[styles.detailText, { color: colors.text }]} numberOfLines={1}>
+              {doctorData.location.includes(',') ? doctorData.location.split(',')[1].trim() : doctorData.location}
+            </Text>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailItem}>
+            <Globe size={15} color="#3B82F6" />
+            <Text style={[styles.detailText, { color: colors.text }]} numberOfLines={1}>
+              {doctorData.languages}
+            </Text>
+          </View>
+        </View>
       </View>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  heroSection: {
-    width: '100%',
-    height: 280,
-    position: 'relative',
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 56 : 36,
+    paddingBottom: 8,
   },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  floatingHeader: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 40,
-    left: 16,
-    right: 16,
+  topHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    zIndex: 10,
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '800',
   },
   headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   headerRight: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  profileCardWrapper: {
-    paddingHorizontal: 16,
-    marginTop: -40,
-    zIndex: 2,
+    gap: 8,
   },
   profileCard: {
     borderRadius: 20,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
     padding: 16,
-    paddingBottom: 0,
     borderWidth: 1,
-    borderBottomWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   cardTop: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginRight: 16,
   },
   cardAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    marginRight: 16,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#F3F4F6',
+  },
+  badgeTag: {
+    position: 'absolute',
+    bottom: -4,
+    alignSelf: 'center',
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  badgeTagText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
   },
   cardInfo: {
     flex: 1,
@@ -126,33 +161,69 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   name: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
   },
   speciality: {
-    fontSize: 13,
-    color: '#4B5563',
-    marginBottom: 2,
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: '700',
+    marginBottom: 6,
   },
-  experience: {
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingValue: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  reviewsText: {
     fontSize: 12,
     color: '#6B7280',
   },
-  ratingBox: {
-    alignItems: 'flex-end',
+  verifiedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 6,
   },
-  ratingValue: {
-    fontSize: 16,
-    fontWeight: '800',
+  verifiedChipText: {
+    fontSize: 11,
+    fontWeight: '700',
     color: '#10B981',
-    marginBottom: 2,
   },
-  reviewsText: {
-    fontSize: 10,
-    color: '#6B7280',
-    marginTop: 4,
+  detailsStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  detailText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  detailDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: '#E5E7EB',
   },
 });
+

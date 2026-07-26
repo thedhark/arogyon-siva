@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   heroSection: {
-    height: 320,
+    height: 230,
     position: 'relative',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,

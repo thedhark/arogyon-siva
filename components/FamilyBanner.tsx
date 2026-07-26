@@ -1,11 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { MEDICAL_ILLUSTRATIONS } from '@/constants/medical-illustrations';
 
 export default function FamilyBanner() {
+  const router = useRouter();
+
   return (
-    <TouchableOpacity activeOpacity={0.9} style={styles.container}>
+    <TouchableOpacity 
+      activeOpacity={0.9} 
+      style={styles.container}
+      onPress={() => router.push('/packages/category/senior' as any)}
+    >
       <View style={styles.bannerContainer}>
         <View style={styles.content}>
           <Text style={styles.tagText}>FAMILY PROTECTION</Text>

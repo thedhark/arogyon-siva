@@ -7,14 +7,22 @@ import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useProfileStore } from '@/hooks/useProfileStore';
+
 export default function OnboardingScreen() {
   const { colors, isDark } = useTheme();
+  const updateUserProfile = useProfileStore((state) => state.updateUserProfile);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState<string | null>(null);
 
   const handleComplete = () => {
     if (name && age && gender) {
+      updateUserProfile({
+        name,
+        age: parseInt(age, 10) || 28,
+        gender: gender as any,
+      });
       router.replace('/(tabs)');
     }
   };

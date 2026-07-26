@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, ScrollView, ActivityIndicator, TextInput } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Platform, ScrollView, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, UploadCloud, File, Image as ImageIcon, Camera, Sparkles, CheckCircle2, Copy, FileText, Tag } from 'lucide-react-native';
+import { ChevronLeft, UploadCloud, File, Image as ImageIcon, Camera, Sparkles, CheckCircle2, Copy, FileText, Tag, User, Users, Plus } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useRecordsStore } from '@/hooks/useRecordsStore';
+import { useProfileStore } from '@/hooks/useProfileStore';
 import { readDocumentOnDevice, ParsedDocumentResult } from '@/services/documentReaderService';
+import { formatDisplayDate } from '@/utils';
+import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
+import FamilyMemberForm from '@/components/profile/FamilyMemberForm';
 
 export default function UploadRecordScreen() {
   const { colors, isDark } = useTheme();
   const addRecord = useRecordsStore((state) => state.addRecord);
+  const userProfile = useProfileStore((state) => state.userProfile);
+  const familyMembers = useProfileStore((state) => state.familyMembers);
+  const bottomSheetRef = useRef<ActionBottomSheetRef>(null);
 
+  const [selectedPatient, setSelectedPatient] = useState(userProfile.name);
   const [selectedFile, setSelectedFile] = useState<{ uri: string, name: string, type: string } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -93,8 +101,9 @@ export default function UploadRecordScreen() {
     setTimeout(() => {
       addRecord({
         title: customTitle || selectedFile.name,
-        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        date: formatDisplayDate(new Date()),
         category: parsedResult?.category || 'Other',
+        patientName: selectedPatient,
         fileUri: selectedFile.uri,
         fileName: selectedFile.name,
         extractedText: parsedResult?.extractedText,
@@ -125,6 +134,53 @@ export default function UploadRecordScreen() {
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Scan & store your medical prescriptions, lab reports, and invoices.
             </Text>
+          </Animated.View>
+
+          {/* Select Patient / Family Member Section */}
+          <Animated.View entering={FadeInDown.delay(200)} style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary, marginBottom: 0 }]}>Select Patient</Text>
+              <TouchableOpacity 
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                onPress={() => bottomSheetRef.current?.present()}
+              >
+                <Plus size={14} color={colors.accent} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent }}>Add Family Member</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              <TouchableOpacity
+                style={[
+                  styles.patientChip,
+                  { backgroundColor: isDark ? '#1E1E1E' : '#F5F5F5', borderColor: isDark ? '#333' : '#E5E7EB' },
+                  selectedPatient === userProfile.name && { backgroundColor: colors.accent, borderColor: colors.accent }
+                ]}
+                onPress={() => setSelectedPatient(userProfile.name)}
+              >
+                <User size={14} color={selectedPatient === userProfile.name ? '#FFF' : colors.textMuted} />
+                <Text style={[styles.patientChipText, { color: selectedPatient === userProfile.name ? '#FFF' : colors.text }]}>
+                  Self ({userProfile.name.split(' ')[0]})
+                </Text>
+              </TouchableOpacity>
+
+              {familyMembers.map((m) => (
+                <TouchableOpacity
+                  key={m.id}
+                  style={[
+                    styles.patientChip,
+                    { backgroundColor: isDark ? '#1E1E1E' : '#F5F5F5', borderColor: isDark ? '#333' : '#E5E7EB' },
+                    selectedPatient === m.name && { backgroundColor: colors.accent, borderColor: colors.accent }
+                  ]}
+                  onPress={() => setSelectedPatient(m.name)}
+                >
+                  <Users size={14} color={selectedPatient === m.name ? '#FFF' : colors.textMuted} />
+                  <Text style={[styles.patientChipText, { color: selectedPatient === m.name ? '#FFF' : colors.text }]}>
+                    {m.name} ({m.relation})
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(300)} style={styles.uploadArea}>
@@ -183,14 +239,6 @@ export default function UploadRecordScreen() {
               >
                 <ImageIcon size={24} color={colors.accent} />
                 <Text style={[styles.optionText, { color: colors.text }]}>Gallery</Text>
-              </Pressable>
-              
-              <Pressable 
-                style={[styles.optionCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}
-                onPress={() => handleImagePick(true)}
-              >
-                <Camera size={24} color={colors.accent} />
-                <Text style={[styles.optionText, { color: colors.text }]}>Camera</Text>
               </Pressable>
             </Animated.View>
           )}
@@ -251,8 +299,20 @@ export default function UploadRecordScreen() {
               <View style={[styles.fullTextContainer, { backgroundColor: isDark ? '#141414' : '#F8F9FA' }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <Text style={[styles.fullTextHeader, { color: colors.textSecondary }]}>Extracted Plain Text</Text>
+                  <Pressable 
+                    onPress={() => {
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                  >
+                    {copied ? <CheckCircle2 size={14} color="#10B981" /> : <Copy size={14} color={colors.accent} />}
+                    <Text style={{ fontSize: 12, color: copied ? '#10B981' : colors.accent, fontWeight: '600' }}>
+                      {copied ? 'Copied!' : 'Copy Text'}
+                    </Text>
+                  </Pressable>
                 </View>
-                <Text style={[styles.fullTextContent, { color: colors.text }]} numberOfLines={5}>
+                <Text style={[styles.fullTextContent, { color: colors.text }]} numberOfLines={6}>
                   {parsedResult.extractedText}
                 </Text>
               </View>
@@ -278,6 +338,12 @@ export default function UploadRecordScreen() {
             </Pressable>
           </Animated.View>
         </ScrollView>
+
+        {/* Add Family Member Modal Sheet */}
+        <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
+          <FamilyMemberForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
+        </ActionBottomSheet>
+
       </View>
     </AnimatedScreen>
   );
@@ -285,6 +351,19 @@ export default function UploadRecordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  patientChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+  },
+  patientChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

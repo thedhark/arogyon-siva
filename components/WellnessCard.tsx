@@ -1,12 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Play } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 
-export default function WellnessCard({ image, title, desc, bgColor }: any) {
+export default function WellnessCard({ image, title, desc, bgColor, categorySlug, onPress }: any) {
   const { isDark, colors } = useTheme();
+  const router = useRouter();
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else if (categorySlug) {
+      router.push(`/packages/category/${categorySlug}` as any);
+    } else {
+      router.push('/care/service/preventive' as any);
+    }
+  };
+
   return (
-    <TouchableOpacity activeOpacity={1} style={[styles.wellnessCard, { backgroundColor: isDark ? colors.surfaceElevated : bgColor }]}>
+    <TouchableOpacity 
+      activeOpacity={0.85} 
+      style={[styles.wellnessCard, { backgroundColor: isDark ? colors.surfaceElevated : bgColor }]}
+      onPress={handlePress}
+    >
       <View style={styles.wellnessContent}>
         <Text style={styles.wellnessTitle} numberOfLines={1}>{title}</Text>
         <Text style={styles.wellnessDesc} numberOfLines={2}>{desc}</Text>

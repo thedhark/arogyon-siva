@@ -42,7 +42,7 @@ export default function ExpertsScreen() {
     id: doc.id,
     name: doc.name,
     speciality: doc.speciality,
-    degrees: doc.experience,
+    degrees: doc.location,
     rating: doc.rating,
     reviews: doc.reviews,
     price: doc.fee,
@@ -125,14 +125,6 @@ export default function ExpertsScreen() {
             </ScrollView>
           </Animated.View>
 
-          {/* Section Header */}
-          <Animated.View entering={FadeInDown.delay(400)} style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {activeFilter === 'all' ? 'All Experts' : SPECIALITY_FILTERS.find(f => f.id === activeFilter)?.label + ' Experts'}
-            </Text>
-            <Text style={styles.countText}>{filteredDoctors.length} found</Text>
-          </Animated.View>
-
           {/* Doctor Cards */}
           <Animated.View entering={FadeInDown.delay(500)} style={styles.doctorList}>
             {filteredDoctors.map((doc) => {
@@ -167,8 +159,8 @@ export default function ExpertsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: {
-    paddingHorizontal: 12,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 54 : 36,
     paddingBottom: 120,
   },
   filtersScroll: {

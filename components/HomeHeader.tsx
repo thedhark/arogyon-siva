@@ -5,13 +5,19 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAddressStore } from '@/hooks/useAddressStore';
+import { useProfileStore } from '@/hooks/useProfileStore';
 
-export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: string; avatarUrl: string }) {
+const DEFAULT_FALLBACK_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
+
+export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: string; avatarUrl?: string }) {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const addresses = useAddressStore((state) => state.addresses);
+  const profileAvatar = useProfileStore((state) => state.userProfile?.avatar);
+
+  const displayAvatar = profileAvatar || avatarUrl || DEFAULT_FALLBACK_AVATAR;
+
 
   const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
   let displayCity = currentCity;
@@ -34,7 +40,7 @@ export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: st
       >
         <View style={[styles.glassPillContainer, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)', borderWidth: StyleSheet.hairlineWidth }]}>
           <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-          <View style={[styles.glassPill, { paddingHorizontal: 14 }]}>
+          <View style={styles.glassPill}>
             <MapIcon size={14} color="#F43F5E" strokeWidth={3} />
             <Text style={[styles.locationText, { color: colors.text, marginLeft: 6, maxWidth: 180 }]} numberOfLines={1}>
               {displayCity}
@@ -48,7 +54,7 @@ export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: st
       <View style={styles.rightGroup}>
         <TouchableOpacity style={styles.avatarContainer} onPress={() => router.push('/profile')}>
           <View style={[styles.avatarBackdrop, { backgroundColor: isDark ? '#333' : '#E2E8F0' }]} />
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          <Image source={{ uri: displayAvatar }} style={styles.avatar} />
         </TouchableOpacity>
       </View>
     </Animated.View>
@@ -60,13 +66,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
-    paddingHorizontal: 4,
+    marginBottom: 12,
+    paddingHorizontal: 0,
+    height: 44,
   },
   leftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginLeft: -6,
   },
   rightGroup: {
     flexDirection: 'row',
@@ -74,9 +82,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   glassPillContainer: {
-    borderRadius: 32, // Keep M3 fully rounded
+    borderRadius: 32,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Premium white base
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
   glassPill: {
     flexDirection: 'row',
@@ -84,6 +92,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 40,
     minWidth: 40,
+    paddingLeft: 10,
+    paddingRight: 14,
   },
   locationText: {
     fontSize: 15,
@@ -109,3 +119,4 @@ const styles = StyleSheet.create({
     borderColor: '#FDFDFD',
   },
 });
+

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TouchableOpacity, Alert } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { ChevronLeft, Plus, MapPin, Home, Briefcase, MoreHorizontal, Map } from 'lucide-react-native';
+import { ChevronLeft, Plus, MapPin, Home, Briefcase, Trash2, Map } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -14,12 +14,24 @@ export default function AddressesScreen() {
   
   const addresses = useAddressStore((state) => state.addresses);
   const setDefaultAddress = useAddressStore((state) => state.setDefaultAddress);
+  const removeAddress = useAddressStore((state) => state.removeAddress);
   const bottomSheetRef = useRef<ActionBottomSheetRef>(null);
 
   const getIcon = (type: string) => {
     if (type === 'Home') return Home;
     if (type === 'Work') return Briefcase;
     return Map;
+  };
+
+  const handleDelete = (id: string, type: string) => {
+    Alert.alert(
+      'Remove Address',
+      `Are you sure you want to delete this ${type} address?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: () => removeAddress(id) }
+      ]
+    );
   };
 
   return (
@@ -42,7 +54,7 @@ export default function AddressesScreen() {
           
           <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Manage your addresses for home sample collection and medicine delivery.
+              Manage your saved addresses for medicine delivery and home blood sample collection.
             </Text>
           </Animated.View>
 
@@ -62,9 +74,9 @@ export default function AddressesScreen() {
                     
                     <View style={styles.cardHeader}>
                       <View style={styles.titleRow}>
-                         <View style={[styles.iconWrap, { backgroundColor: colors.accent + '15' }]}>
-                           <Icon size={20} color={colors.accent} />
-                         </View>
+                        <View style={[styles.iconWrap, { backgroundColor: colors.accent + '15' }]}>
+                          <Icon size={20} color={colors.accent} />
+                        </View>
                         <Text style={[styles.typeText, { color: colors.text }]}>{item.type}</Text>
                         {item.isDefault && (
                           <View style={[styles.defaultBadge, { backgroundColor: colors.accent }]}>
@@ -72,9 +84,13 @@ export default function AddressesScreen() {
                           </View>
                         )}
                       </View>
-                      <Pressable style={styles.optionsButton}>
-                        <MoreHorizontal size={24} color={colors.textSecondary} />
-                      </Pressable>
+                      
+                      <TouchableOpacity 
+                        style={styles.optionsButton} 
+                        onPress={() => handleDelete(item.id, item.type)}
+                      >
+                        <Trash2 size={18} color="#EF4444" />
+                      </TouchableOpacity>
                     </View>
 
                     <Text style={[styles.addressText, { color: colors.textSecondary }]}>
@@ -102,7 +118,7 @@ export default function AddressesScreen() {
         </ScrollView>
       </View>
 
-      <ActionBottomSheet ref={bottomSheetRef}>
+      <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
         <AddressForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
       </ActionBottomSheet>
     </AnimatedScreen>
@@ -124,11 +140,11 @@ const styles = StyleSheet.create({
   addButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: 24, paddingBottom: 100 },
   header: { marginBottom: 24 },
-  subtitle: { fontSize: 16, lineHeight: 24 },
+  subtitle: { fontSize: 15, lineHeight: 22 },
   list: { gap: 16, marginBottom: 16 },
   card: {
-    padding: 16,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 20,
     borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -147,17 +163,18 @@ const styles = StyleSheet.create({
   typeText: { fontSize: 16, fontWeight: '700' },
   defaultBadge: { marginLeft: 12, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   defaultText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
-  optionsButton: { padding: 4 },
-  addressText: { fontSize: 15, lineHeight: 22 },
+  optionsButton: { padding: 6 },
+  addressText: { fontSize: 14, lineHeight: 22 },
   addCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 2,
-    height: 80,
+    height: 72,
   },
   addIconWrap: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   addText: { fontSize: 16, fontWeight: '700' }
 });
+

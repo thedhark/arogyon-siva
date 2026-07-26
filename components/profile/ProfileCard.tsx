@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
-import { CheckCircle2, TrendingUp } from 'lucide-react-native';
+import { CheckCircle2, TrendingUp, SquarePen } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
+import { useProfileStore } from '@/hooks/useProfileStore';
 
 export default function ProfileCard() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
+  const userProfile = useProfileStore((state) => state.userProfile);
 
   return (
     <View style={styles.wrapper}>
@@ -25,18 +27,36 @@ export default function ProfileCard() {
       ]}>
       {/* Top Profile Info */}
       <View style={styles.topRow}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=250' }} 
-          style={styles.avatar} 
-        />
+        {userProfile.avatar ? (
+          <Image 
+            source={{ uri: userProfile.avatar }} 
+            style={styles.avatar} 
+          />
+        ) : (
+          <View style={[styles.avatarPlaceholder, { backgroundColor: colors.accent }]}>
+            <Text style={styles.initialsText}>
+              {userProfile.name
+                ? userProfile.name.trim().split(' ').length >= 2
+                  ? `${userProfile.name.trim().split(' ')[0][0]}${userProfile.name.trim().split(' ')[1][0]}`.toUpperCase()
+                  : userProfile.name.substring(0, 2).toUpperCase()
+                : 'U'}
+            </Text>
+          </View>
+        )}
         <View style={styles.infoCol}>
           <View style={styles.nameRow}>
-            <Text style={[styles.name, { color: colors.text }]}>Ananya Sharma</Text>
-            <TouchableOpacity onPress={() => router.push('/profile/edit')}>
-              <Text style={styles.editBtn}>Edit</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{userProfile.name}</Text>
+            <TouchableOpacity 
+              style={[styles.editIconBtn, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#ECFDF5' }]} 
+              onPress={() => router.push('/profile/edit')}
+              activeOpacity={0.7}
+            >
+              <SquarePen size={16} color="#10B981" />
             </TouchableOpacity>
           </View>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>28 Years • Female</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+            {userProfile.age} Yrs • {userProfile.gender} • {userProfile.bloodGroup}
+          </Text>
           
           <View style={styles.verifiedBadge}>
             <CheckCircle2 size={14} color="#10B981" fill="#10B981" style={styles.verifiedIcon} />
@@ -131,6 +151,19 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginRight: 16,
   },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initialsText: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '800',
+  },
   infoCol: {
     flex: 1,
     justifyContent: 'center',
@@ -146,10 +179,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
   },
-  editBtn: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#10B981',
+  editIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   subtitle: {
     fontSize: 14,

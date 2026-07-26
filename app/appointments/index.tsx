@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
-import { router } from 'expo-router';
-import { Calendar as CalendarIcon, Clock, MapPin, ChevronRight, CheckCircle2, XCircle } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity } from 'react-native';
+import { router, Stack } from 'expo-router';
+import { Calendar as CalendarIcon, Clock, MapPin, ChevronRight, ArrowLeft, Plus, CalendarPlus } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useBookingStore } from '@/hooks/useBookingStore';
 
 export default function AppointmentsScreen() {
+  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const appointments = useBookingStore(state => state.appointments);
@@ -28,8 +30,24 @@ export default function AppointmentsScreen() {
 
   return (
     <AnimatedScreen entrance="fade">
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         
+        {/* Header */}
+        <View style={[styles.headerRow, { paddingTop: insets.top + 10, backgroundColor: colors.background }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>My Appointments</Text>
+          <TouchableOpacity 
+            style={[styles.bookBtn, { backgroundColor: colors.accent }]}
+            onPress={() => router.push('/category/doctor')}
+          >
+            <Plus size={16} color="#FFFFFF" />
+            <Text style={styles.bookBtnText}>Book</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Header Tabs */}
         <View style={[styles.tabsContainer, { borderBottomColor: isDark ? '#333' : '#F0F0F0' }]}>
           <Pressable 
@@ -39,9 +57,9 @@ export default function AppointmentsScreen() {
             <Text style={[
               styles.tabText, 
               { color: activeTab === 'upcoming' ? colors.accent : colors.textSecondary,
-                fontWeight: activeTab === 'upcoming' ? '600' : '500'
+                fontWeight: activeTab === 'upcoming' ? '700' : '500'
               }
-            ]}>Upcoming</Text>
+            ]}>Upcoming ({appointments.filter(a => a.status === 'upcoming').length})</Text>
           </Pressable>
           <Pressable 
             style={[styles.tab, activeTab === 'past' && { borderBottomColor: colors.accent }]}
@@ -50,19 +68,29 @@ export default function AppointmentsScreen() {
             <Text style={[
               styles.tabText, 
               { color: activeTab === 'past' ? colors.accent : colors.textSecondary,
-                fontWeight: activeTab === 'past' ? '600' : '500'
+                fontWeight: activeTab === 'past' ? '700' : '500'
               }
-            ]}>Past</Text>
+            ]}>Past History</Text>
           </Pressable>
         </View>
 
         <ScrollView contentContainerStyle={styles.listContainer} showsVerticalScrollIndicator={false}>
           {filteredAppointments.length === 0 ? (
             <View style={styles.emptyState}>
-              <CalendarIcon size={48} color={colors.textSecondary} opacity={0.5} />
-              <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
-                No {activeTab} appointments found
+              <CalendarIcon size={56} color={colors.accent} opacity={0.3} />
+              <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+                No {activeTab} appointments
               </Text>
+              <Text style={[styles.emptyStateSubtitle, { color: colors.textMuted }]}>
+                Book a consultation with top specialists & doctors nearby.
+              </Text>
+              <TouchableOpacity 
+                style={[styles.bookNowBtn, { backgroundColor: colors.accent }]}
+                onPress={() => router.push('/category/doctor')}
+              >
+                <CalendarPlus size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.bookNowBtnText}>Book Doctor Consultation</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             filteredAppointments.map((app, index) => (
@@ -76,7 +104,7 @@ export default function AppointmentsScreen() {
                 >
                   <View style={styles.cardHeader}>
                     {app.image && (
-                      <Image source={{ uri: app.image }} style={{ width: 48, height: 48, borderRadius: 24, marginRight: 12 }} />
+                      <Image source={{ uri: app.image }} style={{ width: 52, height: 52, borderRadius: 26, marginRight: 12 }} />
                     )}
                     <View style={styles.doctorInfo}>
                       <Text style={[styles.doctorName, { color: colors.text }]}>{app.doctorName}</Text>
@@ -119,37 +147,72 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 22, fontWeight: '700', flex: 1 },
+  bookBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 4 },
+  bookBtnText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   tabsContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
   },
   tab: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 15,
   },
   listContainer: {
-    padding: 16,
+    padding: 20,
     gap: 16,
+    paddingBottom: 60,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 100,
+    paddingTop: 60,
+    paddingHorizontal: 20,
   },
-  emptyStateText: {
-    fontSize: 16,
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     marginTop: 16,
+    marginBottom: 6,
+  },
+  emptyStateSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  bookNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 24,
+  },
+  bookNowBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 16,
+    padding: 18,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -168,12 +231,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   doctorName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   specialty: {
-    fontSize: 14,
+    fontSize: 13,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -189,8 +252,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
     backgroundColor: '#00000005',
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
   },
   detailRow: {
     flexDirection: 'row',
@@ -199,7 +262,8 @@ const styles = StyleSheet.create({
     width: '45%',
   },
   detailText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
   }
 });
+

@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
-import { router } from 'expo-router';
-import { FileText, Plus, Search, Folder, File } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, TouchableOpacity } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { FileText, Plus, Search, Folder, File, Users, UserPlus } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRecordsStore, MedicalRecord } from '@/hooks/useRecordsStore';
+import { useProfileStore } from '@/hooks/useProfileStore';
 import RecordItemCard from '@/components/records/RecordItemCard';
 import DocumentReaderModal from '@/components/records/DocumentReaderModal';
+import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
+import FamilyMemberForm from '@/components/profile/FamilyMemberForm';
 
 const CATEGORIES = [
   { id: '1', name: 'Prescriptions', icon: FileText, color: '#3B82F6' },
@@ -17,20 +20,37 @@ const CATEGORIES = [
 
 export default function RecordsScreen() {
   const { colors, isDark } = useTheme();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeModalRecord, setActiveModalRecord] = useState<MedicalRecord | null>(null);
-  
+  const params = useLocalSearchParams<{ memberId?: string }>();
+  const bottomSheetRef = useRef<ActionBottomSheetRef>(null);
+
+  const userProfile = useProfileStore((state) => state.userProfile);
+  const familyMembers = useProfileStore((state) => state.familyMembers);
   const records = useRecordsStore((state) => state.records);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMemberId, setSelectedMemberId] = useState<string>(params.memberId || 'all');
+  const [activeModalRecord, setActiveModalRecord] = useState<MedicalRecord | null>(null);
+
   const filteredRecords = records.filter(r => {
+    // Search query match
     const q = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = !q || (
       r.title.toLowerCase().includes(q) || 
       r.category.toLowerCase().includes(q) ||
       (r.summary && r.summary.toLowerCase().includes(q)) ||
       (r.extractedText && r.extractedText.toLowerCase().includes(q)) ||
       (r.tags && r.tags.some(t => t.toLowerCase().includes(q)))
     );
+
+    // Patient family member match
+    const selectedMember = familyMembers.find(m => m.id === selectedMemberId);
+    const targetName = selectedMemberId === 'self'
+      ? userProfile.name.toLowerCase()
+      : (selectedMember ? selectedMember.name.toLowerCase() : '');
+
+    const matchesMember = selectedMemberId === 'all' || !targetName || (r.patientName && r.patientName.toLowerCase().includes(targetName));
+
+    return matchesSearch && matchesMember;
   });
 
   return (
@@ -64,6 +84,72 @@ export default function RecordsScreen() {
               onChangeText={setSearchQuery}
             />
           </Animated.View>
+
+          {/* Family Member / Patient Filter Chips */}
+          <View style={{ marginTop: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>Patient / Family</Text>
+              <TouchableOpacity 
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                onPress={() => bottomSheetRef.current?.present()}
+              >
+                <UserPlus size={14} color={colors.accent} />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent }}>+ Add Family</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.memberScroll}>
+              <TouchableOpacity
+                style={[
+                  styles.memberChip,
+                  { backgroundColor: isDark ? '#1E1E1E' : '#F5F5F5', borderColor: isDark ? '#333' : '#E5E7EB' },
+                  selectedMemberId === 'all' && { backgroundColor: colors.accent, borderColor: colors.accent }
+                ]}
+                onPress={() => setSelectedMemberId('all')}
+              >
+                <Users size={15} color={selectedMemberId === 'all' ? '#FFF' : colors.textMuted} />
+                <Text style={[styles.chipText, { color: selectedMemberId === 'all' ? '#FFF' : colors.text }]}>All</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.memberChip,
+                  { backgroundColor: isDark ? '#1E1E1E' : '#F5F5F5', borderColor: isDark ? '#333' : '#E5E7EB' },
+                  selectedMemberId === 'self' && { backgroundColor: colors.accent, borderColor: colors.accent }
+                ]}
+                onPress={() => setSelectedMemberId('self')}
+              >
+                <Text style={[styles.chipText, { color: selectedMemberId === 'self' ? '#FFF' : colors.text }]}>Self ({userProfile.name.split(' ')[0]})</Text>
+              </TouchableOpacity>
+
+              {familyMembers.map((m) => (
+                <TouchableOpacity
+                  key={m.id}
+                  style={[
+                    styles.memberChip,
+                    { backgroundColor: isDark ? '#1E1E1E' : '#F5F5F5', borderColor: isDark ? '#333' : '#E5E7EB' },
+                    selectedMemberId === m.id && { backgroundColor: colors.accent, borderColor: colors.accent }
+                  ]}
+                  onPress={() => setSelectedMemberId(m.id)}
+                >
+                  <Text style={[styles.chipText, { color: selectedMemberId === m.id ? '#FFF' : colors.text }]}>
+                    {m.name} ({m.relation})
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                style={[
+                  styles.memberChip,
+                  { backgroundColor: colors.accent + '15', borderColor: colors.accent, borderStyle: 'dashed' }
+                ]}
+                onPress={() => bottomSheetRef.current?.present()}
+              >
+                <Plus size={15} color={colors.accent} />
+                <Text style={[styles.chipText, { color: colors.accent }]}>New Member</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
 
           {/* Categories */}
           <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>Categories</Text>
@@ -103,7 +189,7 @@ export default function RecordsScreen() {
           <View style={styles.filesList}>
             {filteredRecords.length === 0 ? (
               <Text style={{ textAlign: 'center', color: colors.textMuted, marginTop: 20 }}>
-                No matching medical records or text found.
+                No matching medical records found.
               </Text>
             ) : (
               filteredRecords.map((file, index) => (
@@ -125,6 +211,11 @@ export default function RecordsScreen() {
           visible={!!activeModalRecord}
           onClose={() => setActiveModalRecord(null)}
         />
+
+        {/* Add Family Member Sheet */}
+        <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
+          <FamilyMemberForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
+        </ActionBottomSheet>
 
       </View>
     </AnimatedScreen>
@@ -177,6 +268,23 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
+  },
+  memberScroll: {
+    gap: 8,
+    paddingVertical: 4,
+  },
+  memberChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   sectionTitle: {
     fontSize: 20,

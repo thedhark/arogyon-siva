@@ -1,8 +1,7 @@
+export * from './dateFormatter';
+
+import { formatShortDate } from './dateFormatter';
 export const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+  return formatShortDate(dateString, true);
 };
+

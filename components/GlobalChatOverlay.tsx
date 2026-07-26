@@ -23,6 +23,12 @@ import Animated, {
   useAnimatedReaction,
   runOnJS,
 } from 'react-native-reanimated';
+import { formatTime, formatDisplayDate } from '@/utils';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { readDocumentOnDevice } from '@/services/documentReaderService';
+import { useRecordsStore } from '@/hooks/useRecordsStore';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -44,6 +50,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { Alert } from 'react-native';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 const AVATAR_URL = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
@@ -58,26 +65,33 @@ interface ChatMessage {
   sender: 'user' | 'ai';
   text: string;
   timestamp: string;
+  attachment?: {
+    uri: string;
+    name: string;
+    type: 'image' | 'document';
+    category?: string;
+    summary?: string;
+  };
 }
 
 const generateAiResponse = (query: string): string => {
   const q = query.toLowerCase();
   if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q.includes('help')) {
-    return "Hello Rahul! I'm Arogyon AI, your personal clinical guide. How can I assist with your health today?";
+    return "Hello Rahul! How can I assist with your health today?";
   }
   if (q.includes('pain') || q.includes('fever') || q.includes('cough') || q.includes('headache') || q.includes('stomach') || q.includes('hurt')) {
-    return "For symptoms or discomfort, consulting a specialist is best. Would you like me to connect you with an In-Clinic Specialist or GP?";
+    return "For medical symptoms, consulting a specialist is recommended. Would you like to connect with a doctor?";
   }
   if (q.includes('book') || q.includes('doctor') || q.includes('clinic') || q.includes('appointment') || q.includes('specialist')) {
-    return "You can book top-rated specialists directly under the 'Experts' tab or via In-Clinic services on the home screen.";
+    return "You can book top-rated specialists directly under the 'Experts' tab.";
   }
   if (q.includes('diet') || q.includes('nutrition') || q.includes('food')) {
-    return "We offer 1-on-1 personalized Ayurvedic Diet & Lifestyle plans managed by certified nutritionists in the 'Packages' tab.";
+    return "Personalized diet plans are available under the 'Packages' tab.";
   }
   if (q.includes('lab') || q.includes('test') || q.includes('blood') || q.includes('report')) {
-    return "We provide at-home sample collection for lab diagnostics. You can schedule a test directly from the Home screen.";
+    return "At-home lab test bookings are available from the Home screen.";
   }
-  return "Thank you for reaching out! For precise medical guidance, I recommend booking a quick consultation with our verified doctors.";
+  return "How can I assist with your health today?";
 };
 
 const INITIAL_MESSAGES: ChatMessage[] = [];
@@ -160,7 +174,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
       id: Date.now().toString(),
       sender: 'user',
       text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: formatTime(new Date()),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -177,7 +191,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
         id: (Date.now() + 1).toString(),
         sender: 'ai',
         text: replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: formatTime(new Date()),
       };
 
       setMessages((prev) => [...prev, aiMsg]);
@@ -190,20 +204,93 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
     }, 900);
   };
 
+  const addRecord = useRecordsStore((state) => state.addRecord);
+
   const handleOpenAttachmentModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setShowAttachmentModal(true);
   };
 
-  const handleSelectAttachmentOption = (docType: string, label: string) => {
+  const handleSelectAttachmentOption = async (docType: string, label: string) => {
     setShowAttachmentModal(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    let fileToProcess: { uri: string; name: string; type: string; isImage: boolean } | null = null;
+
+    try {
+      if (docType === 'camera') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Camera Permission Required', 'Please enable camera access in your settings to capture medical records.');
+          return;
+        }
+        const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          fileToProcess = {
+            uri: asset.uri,
+            name: asset.fileName || `Camera_Scan_${Date.now()}.jpg`,
+            type: 'image/jpeg',
+            isImage: true,
+          };
+        }
+      } else if (docType === 'gallery') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission Required', 'Please allow photo library access to attach photos.');
+          return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: 'images',
+          quality: 0.8,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          fileToProcess = {
+            uri: asset.uri,
+            name: asset.fileName || `Photo_Record_${Date.now()}.jpg`,
+            type: 'image/jpeg',
+            isImage: true,
+          };
+        }
+      } else if (docType === 'prescription' || docType === 'lab') {
+        const mimeTypes = docType === 'lab'
+          ? ['application/pdf', 'image/*', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+          : ['*/*'];
+        const result = await DocumentPicker.getDocumentAsync({
+          type: mimeTypes,
+          copyToCacheDirectory: true,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          const isImage = (asset.mimeType || '').startsWith('image/') || asset.name.match(/\.(jpg|jpeg|png|webp|heic)$/i) !== null;
+          fileToProcess = {
+            uri: asset.uri,
+            name: asset.name,
+            type: asset.mimeType || 'application/octet-stream',
+            isImage,
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('Attachment picking failed:', error);
+      return;
+    }
+
+    if (!fileToProcess) return;
+
+    const selected = fileToProcess;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
-      text: `📄 Attached Record: ${label}`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      text: '',
+      timestamp: formatTime(new Date()),
+      attachment: {
+        uri: selected.uri,
+        name: selected.name,
+        type: selected.isImage ? 'image' : 'document',
+      },
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -213,33 +300,58 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
+    // Perform on-device OCR scan
+    const ocrResult = await readDocumentOnDevice(selected);
+
+    // Update message attachment category & summary
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === userMsg.id && msg.attachment
+          ? {
+              ...msg,
+              attachment: {
+                ...msg.attachment,
+                category: ocrResult.category,
+                summary: ocrResult.summary,
+              },
+            }
+          : msg
+      )
+    );
+
+    // Persist to central Records Store
+    addRecord({
+      title: ocrResult.suggestedTitle || selected.name,
+      date: formatDisplayDate(new Date()),
+      category: ocrResult.category,
+      fileUri: selected.uri,
+      fileName: selected.name,
+      extractedText: ocrResult.extractedText,
+      summary: ocrResult.summary,
+      tags: ocrResult.tags,
+    });
+
+    let aiText = `Document "${selected.name}" saved to Records.`;
+    if (ocrResult.category === 'Prescription') {
+      aiText = `Prescription saved to Records.`;
+    } else if (ocrResult.category === 'Lab Report') {
+      aiText = `Lab report saved to Records.`;
+    }
+
+    const aiMsg: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      sender: 'ai',
+      text: aiText,
+      timestamp: formatTime(new Date()),
+    };
+
+    setMessages((prev) => [...prev, aiMsg]);
+    setIsThinking(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
     setTimeout(() => {
-      let aiText = `✅ ${label} successfully scanned! I've extracted your health parameters. How can I assist with this report?`;
-      if (docType === 'prescription') {
-        aiText = `📄 Doctor Prescription scanned! Active medications & dosage schedule extracted. Would you like me to set daily medication reminders or explain drug interactions?`;
-      } else if (docType === 'lab') {
-        aiText = `🧪 Diagnostic Lab Report analyzed! Hemoglobin, Blood Sugar & Lipid metrics processed. All values are within normal clinical reference ranges.`;
-      } else if (docType === 'camera') {
-        aiText = `📷 Physical document captured via Camera OCR! Text extracted cleanly. What guidance do you need regarding this record?`;
-      } else if (docType === 'gallery') {
-        aiText = `🖼️ Health record image imported from Photo Library! File attached successfully.`;
-      }
-
-      const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: 'ai',
-        text: aiText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsThinking(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }, 1100);
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   };
 
   const handleReset = () => {
@@ -417,9 +529,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
               >
                 <Text style={styles.quoteMark}>“</Text>
                 <Text style={[styles.quoteText, { color: isDark ? '#E2E8F0' : '#1E293B' }]}>
-                  Tirupati is trying to{' '}
-                  <Text style={styles.highlightWord}>roast</Text>{' '}
-                  you today, but you’ve got this! 😜
+                  Stay hydrated and maintain balanced rest for optimal wellness today.
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.8}
@@ -452,21 +562,62 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
                     ]}
                   >
                     <View style={styles.msgBubblePure}>
-                      <Text
-                        style={[
-                          styles.msgTextPure,
-                          {
-                            color: isUser
-                              ? '#10B981'
-                              : isDark
-                              ? '#F1F5F9'
-                              : '#0F172A',
-                            textAlign: isUser ? 'right' : 'left',
-                          },
-                        ]}
-                      >
-                        {msg.text}
-                      </Text>
+                      {Boolean(msg.text) && (
+                        <Text
+                          style={[
+                            styles.msgTextPure,
+                            {
+                              color: isUser
+                                ? '#10B981'
+                                : isDark
+                                ? '#F1F5F9'
+                                : '#0F172A',
+                              textAlign: isUser ? 'right' : 'left',
+                            },
+                          ]}
+                        >
+                          {msg.text}
+                        </Text>
+                      )}
+
+                      {/* Render Attachment if present */}
+                      {msg.attachment && (
+                        <View style={[styles.attachmentCardContainer, isUser && { alignSelf: 'flex-end' }]}>
+                          {msg.attachment.type === 'image' ? (
+                            <View style={styles.attachedImgWrapper}>
+                              <Image source={{ uri: msg.attachment.uri }} style={styles.attachedImg} resizeMode="cover" />
+                              <View style={[styles.attachedImgFooter, { backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.85)' }]}>
+                                <ImageIcon size={13} color="#10B981" />
+                                <Text style={[styles.attachedImgName, { color: isDark ? '#E2E8F0' : '#1E293B' }]} numberOfLines={1}>
+                                  {msg.attachment.name}
+                                </Text>
+                              </View>
+                            </View>
+                          ) : (
+                            <View
+                              style={[
+                                styles.attachedDocCard,
+                                {
+                                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#EFFFFA',
+                                  borderColor: isDark ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.25)',
+                                },
+                              ]}
+                            >
+                              <View style={styles.attachedDocIconCircle}>
+                                <FileText size={20} color="#10B981" />
+                              </View>
+                              <View style={styles.attachedDocTextCol}>
+                                <Text style={[styles.attachedDocTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]} numberOfLines={1}>
+                                  {msg.attachment.name}
+                                </Text>
+                                <Text style={[styles.attachedDocSub, { color: isDark ? '#94A3B8' : '#64748B' }]}>
+                                  {msg.attachment.category || 'Medical Record'} • Saved to Records
+                                </Text>
+                              </View>
+                            </View>
+                          )}
+                        </View>
+                      )}
                     </View>
                   </View>
                 );
@@ -555,21 +706,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
                 ]}
                 onPress={(e) => e.stopPropagation()}
               >
-                {/* Item 1: Camera */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => handleSelectAttachmentOption('camera', 'Camera Photo')}
-                  style={styles.popoverItemRow}
-                >
-                  <View style={[styles.popoverIconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
-                    <Camera size={19} color={isDark ? '#FFFFFF' : '#0F172A'} strokeWidth={2} />
-                  </View>
-                  <Text style={[styles.popoverItemText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    Camera
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Item 2: Photos */}
+                {/* Item 1: Photos */}
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => handleSelectAttachmentOption('gallery', 'Photo Library')}
@@ -937,6 +1074,63 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 14,
     letterSpacing: -0.2,
+  },
+
+  /* ── Attachment Styling ────────────────────────────────────────── */
+  attachmentCardContainer: {
+    marginTop: 8,
+    maxWidth: SCREEN_WIDTH * 0.78,
+  },
+  attachedImgWrapper: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.25)',
+  },
+  attachedImg: {
+    width: '100%',
+    height: 150,
+    backgroundColor: '#111',
+  },
+  attachedImgFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  attachedImgName: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  attachedDocCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+  },
+  attachedDocIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(16,185,129,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  attachedDocTextCol: {
+    flex: 1,
+  },
+  attachedDocTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  attachedDocSub: {
+    fontSize: 11.5,
+    fontWeight: '500',
+    marginTop: 2,
   },
 });
 

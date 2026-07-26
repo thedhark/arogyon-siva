@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
-import ProviderPackageCard from '@/components/packages/ProviderPackageCard';
+import { ChevronRight, Search, SlidersHorizontal, X, CheckCircle2, HeartPulse, Stethoscope, Activity } from 'lucide-react-native';
 
 interface Props {
   colors: any;
@@ -22,18 +22,25 @@ interface HealthPackage {
   discount: string;
   image: string;
   inclusions: string[];
-  badge?: { text: string; icon: string; color: string; bgColor: string };
 }
 
 export const PACKAGE_CATEGORIES = [
-  { id: 'all', name: 'All Packages', count: 7 },
-  { id: 'pregnancy', name: 'Pregnancy & Maternity', count: 2 },
-  { id: 'cardiac', name: 'Cardiac Care', count: 1 },
-  { id: 'diabetes', name: 'Diabetes & Metabolism', count: 1 },
-  { id: 'knee', name: 'Knee & Joint Recovery', count: 1 },
-  { id: 'gastro', name: 'Gastro & Digestive', count: 1 },
-  { id: 'hernia', name: 'Hernia Repair', count: 1 },
-  { id: 'rehab', name: 'Rehab & Physio', count: 1 },
+  { id: 'all', name: 'All' },
+  { id: 'pregnancy', name: 'Pregnancy & Maternity' },
+  { id: 'cardiac', name: 'Cardiac Care' },
+  { id: 'diabetes', name: 'Diabetes' },
+  { id: 'knee', name: 'Knee & Joint' },
+];
+
+export const ALL_PACKAGE_CATEGORIES = [
+  { id: 'all', name: 'All Packages' },
+  { id: 'pregnancy', name: 'Pregnancy & Maternity' },
+  { id: 'cardiac', name: 'Cardiac Care' },
+  { id: 'diabetes', name: 'Diabetes & Metabolism' },
+  { id: 'knee', name: 'Knee & Joint Recovery' },
+  { id: 'gastro', name: 'Gastro & Digestive' },
+  { id: 'hernia', name: 'Hernia Repair' },
+  { id: 'rehab', name: 'Rehab & Physio' },
 ];
 
 export const MOCK_PACKAGES: HealthPackage[] = [
@@ -41,33 +48,31 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-preg-1',
     category: 'Pregnancy Care',
     categorySlug: 'pregnancy',
-    title: 'Complete Maternity Care Package',
+    title: '1 x Complete Maternity Care Package',
     subtitle: 'Full pregnancy cover, trimesters 1-3, scans & delivery',
     price: '₹45,000',
     originalPrice: '₹60,000',
     discount: '25% OFF',
     image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=600',
     inclusions: ['Gynaecologist Consults', '2D/3D Scans', 'Labor Room Stay', 'Postnatal Care'],
-    badge: { text: 'Popular', icon: 'flame', color: '#EF4444', bgColor: '#FEE2E2' }
   },
   {
     id: 'pkg-preg-2',
     category: 'Pregnancy Care',
     categorySlug: 'pregnancy',
-    title: 'Premium Delivery & Luxury Suite Package',
+    title: '1 x Premium Delivery Suite Package',
     subtitle: 'Private luxury suite delivery & pediatrician cover',
-    price: '₹75,000',
-    originalPrice: '₹95,000',
-    discount: '21% OFF',
+    price: '₹75,999',
+    originalPrice: '₹90,000',
+    discount: '15% OFF',
     image: 'https://images.unsplash.com/photo-1531983412531-1f49a365ffed?q=80&w=600',
     inclusions: ['Luxury Private Suite', 'Pediatrician On-Call', 'Gdm Screening', 'Baby Gift Hamper'],
-    badge: { text: 'Premium', icon: 'sparkles', color: '#7C3AED', bgColor: '#F3E8FF' }
   },
   {
     id: 'pkg-cardiac-1',
     category: 'Cardiac Care',
     categorySlug: 'cardiac',
-    title: 'Comprehensive Heart Checkup & Echo',
+    title: '1 x Comprehensive Heart Checkup & Echo',
     subtitle: 'ECG, TMT, 2D Echo, Lipid profile & Cardiac consult',
     price: '₹4,999',
     originalPrice: '₹8,500',
@@ -79,20 +84,19 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-knee-1',
     category: 'Knee & Joint Recovery',
     categorySlug: 'knee',
-    title: '3D Robot-Assisted Knee Surgery Package',
+    title: '1 x 3D Robot-Assisted Knee Surgery',
     subtitle: 'Robotic knee replacement, implant & 10 physio sessions',
     price: '₹1,85,000',
     originalPrice: '₹2,20,000',
     discount: '16% OFF',
     image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=600',
     inclusions: ['Robotic Surgery', 'US FDA Implant', '4 Days Room Stay', '10 Physio Sessions'],
-    badge: { text: 'Advanced', icon: 'diamond', color: '#3B82F6', bgColor: '#DBEAFE' }
   },
   {
     id: 'pkg-diab-1',
     category: 'Diabetes & Metabolism',
     categorySlug: 'diabetes',
-    title: 'Annual Diabetes Reversal & Management',
+    title: '1 x Annual Diabetes Reversal Plan',
     subtitle: 'HbA1c quarterly tests & continuous glucose monitor',
     price: '₹12,499',
     originalPrice: '₹16,000',
@@ -104,7 +108,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-gastro-1',
     category: 'Gastro & Digestive',
     categorySlug: 'gastro',
-    title: 'Advanced Endoscopy & Gut Wellness',
+    title: '1 x Advanced Endoscopy & Gut Wellness',
     subtitle: 'Upper GI endoscopy, LFT & gastroenterology consult',
     price: '₹8,999',
     originalPrice: '₹12,000',
@@ -116,7 +120,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-hernia-1',
     category: 'Hernia Repair',
     categorySlug: 'hernia',
-    title: 'Laparoscopic 3D Mesh Hernia Surgery',
+    title: '1 x Laparoscopic 3D Mesh Hernia Surgery',
     subtitle: 'Keyhole hernia repair, 3D mesh implant & 1-day stay',
     price: '₹55,000',
     originalPrice: '₹70,000',
@@ -129,6 +133,8 @@ export const MOCK_PACKAGES: HealthPackage[] = [
 export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory }: Props) {
   const router = useRouter();
   const [internalCategory, setInternalCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const activeCategory = externalCategory !== undefined ? externalCategory : internalCategory;
 
@@ -139,20 +145,36 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
     }
   };
 
-  const filteredPackages = activeCategory === 'all'
-    ? MOCK_PACKAGES
-    : MOCK_PACKAGES.filter(p => p.categorySlug === activeCategory);
+  const filteredPackages = useMemo(() => {
+    return MOCK_PACKAGES.filter(p => {
+      const matchCat = activeCategory === 'all' || p.categorySlug === activeCategory;
+      const matchQuery = !searchQuery.trim() || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCat && matchQuery;
+    });
+  }, [activeCategory, searchQuery]);
+
+  const handleViewPackage = (pkgId: string) => {
+    router.push(`/packages/detail/${pkgId}` as any);
+  };
 
   return (
     <View style={styles.container}>
-      {/* Category Pills Header */}
-      <View style={styles.categoriesHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Health Packages Catalog</Text>
-        <Text style={[styles.sectionSubtitle, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
-          Transparent package pricing with cashless insurance support
-        </Text>
+      {/* Search Bar matching Doctors module */}
+      <View style={[styles.searchContainer, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF', borderColor: isDark ? '#3F3F46' : '#E2E8F0' }]}>
+        <Search size={16} color={isDark ? '#9CA3AF' : '#64748B'} style={{ marginRight: 8 }} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Search packages, tests or procedures..."
+          placeholderTextColor={isDark ? '#6B7280' : '#94A3B8'}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <TouchableOpacity style={styles.filterBtn} activeOpacity={0.7} onPress={() => setShowCategoryModal(true)}>
+          <SlidersHorizontal size={16} color={isDark ? '#9CA3AF' : '#334155'} />
+        </TouchableOpacity>
       </View>
 
+      {/* Sleek, Compact Category Scroll Pills matching Doctors module */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
@@ -160,26 +182,45 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
       >
         {PACKAGE_CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat.id;
+          if (cat.id === 'all') {
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                style={[
+                  styles.allPill,
+                  {
+                    backgroundColor: isActive ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#27272A' : '#F8FAFC'),
+                    borderColor: isActive ? 'transparent' : (isDark ? '#3F3F46' : '#E2E8F0'),
+                  },
+                ]}
+                onPress={() => handleCategoryPress('all')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.allPillText, { color: isActive ? (isDark ? '#0F172A' : '#FFFFFF') : colors.text }]}>
+                  All
+                </Text>
+                {isActive && <View style={[styles.allUnderline, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]} />}
+              </TouchableOpacity>
+            );
+          }
+
           return (
             <TouchableOpacity
               key={cat.id}
               style={[
                 styles.categoryChip,
                 {
-                  backgroundColor: isActive
-                    ? '#7C3AED'
-                    : isDark ? '#1E1E1E' : '#F3F4F6',
-                  borderColor: isActive
-                    ? '#7C3AED'
-                    : isDark ? '#333333' : '#E5E7EB',
+                  backgroundColor: isActive ? (isDark ? '#2E1065' : '#F3E8FF') : (isDark ? '#1E1E24' : '#FFFFFF'),
+                  borderColor: isActive ? '#7C3AED' : (isDark ? '#333333' : '#E2E8F0'),
                 }
               ]}
               onPress={() => handleCategoryPress(cat.id)}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
                   styles.categoryChipText,
-                  { color: isActive ? '#FFFFFF' : isDark ? '#D1D5DB' : '#4B5563' }
+                  { color: isActive ? '#7C3AED' : (isDark ? '#E2E8F0' : '#1E293B'), fontWeight: isActive ? '700' : '600' }
                 ]}
               >
                 {cat.name}
@@ -187,192 +228,352 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
             </TouchableOpacity>
           );
         })}
+
+        {/* "+More" Pill (Interactive) */}
+        <TouchableOpacity
+          style={[styles.morePill, { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}
+          activeOpacity={0.7}
+          onPress={() => setShowCategoryModal(true)}
+        >
+          <Text style={[styles.morePillText, { color: isDark ? '#CBD5E1' : '#334155' }]}>+More</Text>
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Top to Bottom Scroll List of Reusable Provider Package Cards */}
-      <View style={styles.packageList}>
-        {filteredPackages.map((pkg, idx) => (
-          <ProviderPackageCard
-            key={pkg.id}
-            id={pkg.id}
-            providerId="1"
-            title={pkg.title}
-            duration={pkg.subtitle}
-            startingPrice={pkg.price}
-            hospitalName={hospitalName}
-            hospitalLogo={pkg.image}
-            location="Bangalore"
-            distance="2.5 km"
-            badge={pkg.badge}
-            inclusions={pkg.inclusions}
-            image={pkg.image}
-            index={idx}
-          />
+      {/* Horizontal Carousel of Package Cards */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.carouselContainer}
+      >
+        {filteredPackages.map((pkg) => (
+          <View 
+            key={pkg.id} 
+            style={[
+              styles.packageCard,
+              { 
+                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                borderColor: isDark ? '#333333' : '#E5E5E5' 
+              }
+            ]}
+          >
+            {/* Top Image */}
+            <View style={styles.packageImageContainer}>
+              <Image source={{ uri: pkg.image }} style={styles.packageImage} resizeMode="cover" />
+            </View>
+
+            {/* Content */}
+            <View style={styles.packageContent}>
+              <Text style={[styles.packageTitle, { color: colors.text }]} numberOfLines={2}>
+                {pkg.title}
+              </Text>
+
+              {/* Price & View Package Action Row */}
+              <View style={styles.priceAndActionRow}>
+                <View style={styles.priceLeft}>
+                  <Text style={[styles.currentPrice, { color: colors.text }]}>{pkg.price}</Text>
+                  <Text style={[styles.originalPrice, { color: isDark ? '#9CA3AF' : '#999999' }]}>{pkg.originalPrice}</Text>
+                  <View style={[styles.discountBadge, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
+                    <Text style={styles.discountText}>{pkg.discount}</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.viewPackageBtn}
+                  onPress={() => handleViewPackage(pkg.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.viewPackageText}>View package</Text>
+                  <ChevronRight size={14} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         ))}
+      </ScrollView>
+
+      {/* Centered "View full menu >" Button */}
+      <View style={styles.fullMenuBtnWrapper}>
+        <TouchableOpacity 
+          style={[
+            styles.fullMenuBtn,
+            {
+              backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+              borderColor: isDark ? '#333333' : '#E5E5E5',
+            }
+          ]}
+          onPress={() => handleCategoryPress('all')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.fullMenuText, { color: colors.text }]}>View full menu</Text>
+          <ChevronRight size={16} color={colors.text} />
+        </TouchableOpacity>
       </View>
+
+      {/* Category Selection Modal */}
+      <Modal visible={showCategoryModal} transparent animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Select Package Category</Text>
+              <TouchableOpacity onPress={() => setShowCategoryModal(false)} style={styles.closeBtn}>
+                <X size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+              {ALL_PACKAGE_CATEGORIES.map((item) => {
+                const isSelected = activeCategory === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.modalItemRow,
+                      isSelected && { backgroundColor: isDark ? '#2E1065' : '#F3E8FF' },
+                    ]}
+                    onPress={() => {
+                      handleCategoryPress(item.id);
+                      setShowCategoryModal(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modalItemText,
+                        { color: isSelected ? '#7C3AED' : colors.text, fontWeight: isSelected ? '800' : '600' },
+                      ]}
+                    >
+                      {item.name}
+                    </Text>
+                    {isSelected && <CheckCircle2 size={18} color="#7C3AED" />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  categoriesHeader: {
-    marginBottom: 12,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    marginBottom: 10,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
+  searchInput: {
+    flex: 1,
     fontSize: 13,
     fontWeight: '500',
   },
+  filterBtn: {
+    paddingLeft: 6,
+  },
   categoryPillsScroll: {
-    gap: 8,
-    paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingBottom: 12,
+  },
+  allPill: {
+    paddingHorizontal: 11,
+    paddingVertical: 4,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    borderWidth: 0.8,
+    height: 28,
+  },
+  allPillText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+  },
+  allUnderline: {
+    width: 10,
+    height: 2,
+    borderRadius: 1,
+    marginTop: 1,
   },
   categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    borderWidth: 0.8,
+    height: 28,
   },
   categoryChipText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 11.5,
   },
-  packageList: {
-    gap: 16,
+  morePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    borderWidth: 0.8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 28,
   },
-  cardContainer: {
+  morePillText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+  },
+  carouselContainer: {
+    gap: 14,
+  },
+  packageCard: {
+    width: 280,
     borderRadius: 16,
     borderWidth: 1,
-    padding: 14,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
+  packageImageContainer: {
+    width: '100%',
+    height: 140,
   },
-  cardImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
+  packageImage: {
+    width: '100%',
+    height: '100%',
   },
-  cardInfoCol: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  discountBadge: {
-    backgroundColor: '#DEF7EC',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  discountText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#03543F',
-  },
-  tagBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  tagText: {
-    fontSize: 11,
-    fontWeight: '700',
+  packageContent: {
+    padding: 12,
   },
   packageTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
-    marginBottom: 4,
-    lineHeight: 20,
+    marginBottom: 8,
+    lineHeight: 18,
   },
-  packageSubtitle: {
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  inclusionsBox: {
+  priceAndActionRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 10,
-    borderRadius: 10,
-    gap: 10,
-    marginBottom: 12,
-  },
-  inclusionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    width: '47%',
-  },
-  inclusionText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    alignItems: 'center',
+    marginTop: 2,
   },
-  priceCol: {
-    justifyContent: 'center',
-  },
-  startsFromText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-  },
-  priceVal: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#10B981',
-  },
-  origPriceVal: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    textDecorationLine: 'line-through',
-  },
-  bookBtn: {
+  priceLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#7C3AED',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    flexWrap: 'wrap',
+    flex: 1,
     gap: 4,
   },
-  bookBtnText: {
-    color: '#FFFFFF',
+  currentPrice: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  originalPrice: {
+    fontSize: 11,
+    textDecorationLine: 'line-through',
+    fontWeight: '600',
+  },
+  discountBadge: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  discountText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  viewPackageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginLeft: 4,
+  },
+  viewPackageText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  fullMenuBtnWrapper: {
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  fullMenuBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  fullMenuText: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: 20,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  closeBtn: {
+    padding: 2,
+  },
+  modalItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginVertical: 2,
+  },
+  modalItemText: {
+    fontSize: 14,
   },
 });

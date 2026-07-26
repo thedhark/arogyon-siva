@@ -1,20 +1,32 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, Platform } from 'react-native';
-import { ChevronRight } from 'lucide-react-native';
+import { ChevronRight, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { getCategoryById } from '@/constants/package-data';
 
 interface Props {
   title: string;
   subtitle: string;
-  duration: string;
-  image: string;
-  colors: [string, string, ...string[]];
+  duration?: string;
+  image?: string;
+  colors?: [string, string, ...string[]];
+  categorySlug?: string;
 }
 
-export default function WidePlanCard({ title, subtitle, image, colors }: Props) {
+export default function WidePlanCard({ title, subtitle, image, colors, categorySlug }: Props) {
   const router = useRouter();
+
+  // Extract or lookup category slug
+  const derivedSlug = categorySlug || title.split(' ')[0].toLowerCase();
+  const categoryData = getCategoryById(derivedSlug);
+
+  const cardTitle = title || categoryData.title;
+  const cardSubtitle = subtitle || categoryData.subtitle;
+  const cardImage = image || categoryData.heroImage;
+  const cardColors = colors || categoryData.cardColors;
+  const cardBadge = categoryData.cardBadge || 'EXCLUSIVE OFFER';
 
   return (
     <Pressable 
@@ -24,31 +36,32 @@ export default function WidePlanCard({ title, subtitle, image, colors }: Props) 
       ]}
       android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
       onPress={() => {
-        // Extract the first word or main category from the title, e.g., 'Pregnancy', 'Knee'
-        const categoryName = title.split(' ')[0].toLowerCase();
-        router.push(`/packages/category/${encodeURIComponent(categoryName)}` as any);
+        router.push(`/packages/category/${encodeURIComponent(categoryData.id)}` as any);
       }}
     >
       <LinearGradient
-        colors={colors}
+        colors={cardColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.cardGradient}
       >
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          <Text style={styles.subtitle} numberOfLines={2}>{subtitle}</Text>
-
+          <View style={styles.badgeRow}>
+            <Sparkles size={11} color="#0D9488" />
+            <Text style={styles.badgeText}>{cardBadge}</Text>
+          </View>
+          <Text style={styles.title} numberOfLines={1}>{cardTitle}</Text>
+          <Text style={styles.subtitle} numberOfLines={2}>{cardSubtitle}</Text>
         </View>
         
         <View style={styles.imageContainer}>
           <LinearGradient 
-            colors={[colors[0], 'transparent']} 
+            colors={[cardColors[0], 'transparent']} 
             start={{ x: 0, y: 0 }} 
             end={{ x: 0.6, y: 0 }} 
             style={styles.imageGradientOverlay} 
           />
-          <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
+          <Image source={{ uri: cardImage }} style={styles.image} resizeMode="cover" />
         </View>
 
         <View style={styles.btnWrapper}>
@@ -70,7 +83,7 @@ export default function WidePlanCard({ title, subtitle, image, colors }: Props) 
 const styles = StyleSheet.create({
   cardContainer: {
     height: 140,
-    borderRadius: Platform.OS === 'android' ? 24 : 14, // M3 uses larger border radii
+    borderRadius: Platform.OS === 'android' ? 24 : 14,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
@@ -86,26 +99,37 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 18,
     justifyContent: 'center',
     zIndex: 2,
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+    marginBottom: 6,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0D9488',
+    letterSpacing: 0.3,
+  },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: '#1a1a1a',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 12,
     color: '#4a4a4a',
     fontWeight: '500',
-    marginBottom: 16,
-  },
-  duration: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#5c5c5c',
   },
   imageContainer: {
     width: '45%',

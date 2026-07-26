@@ -3,17 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { BottomSheetModal, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { useTheme } from '@/hooks/useTheme';
 import { Calendar, Clock } from 'lucide-react-native';
+import { getUpcomingDates } from '@/utils';
 
 interface Props {
   onConfirm: (date: string, time: string) => void;
 }
 
-const DATES = [
-  { id: '1', date: 'Aug 14', day: 'Mon' },
-  { id: '2', date: 'Aug 15', day: 'Tue' },
-  { id: '3', date: 'Aug 16', day: 'Wed' },
-  { id: '4', date: 'Aug 17', day: 'Thu' },
-];
+const DATES = getUpcomingDates(5);
+
 
 const TIMES = [
   '09:00 AM', '09:30 AM', '10:00 AM', '11:00 AM',

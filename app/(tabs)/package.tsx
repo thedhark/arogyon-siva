@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 54 : 36,
     paddingBottom: 120,
   },
   searchContainer: {

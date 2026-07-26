@@ -1,19 +1,19 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Modal, Pressable, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { ShieldCheck, Star, MapPin, HeartPulse, Calendar, Menu, X, ChevronRight, Sparkles } from 'lucide-react-native';
+import { ShieldCheck, Star, MapPin, HeartPulse, Calendar, Menu, X, ChevronRight, Sparkles, Users, Briefcase } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
 
 import HospitalHeader from '@/components/HospitalHeader';
-import HospitalOverview from '@/components/hospital/HospitalOverview';
+import HospitalFacilities from '@/components/hospital/HospitalFacilities';
 import HospitalDoctors from '@/components/hospital/HospitalDoctors';
 import HospitalPackages from '@/components/hospital/HospitalPackages';
+import HospitalInfoModal from '@/components/hospital/HospitalInfoModal';
 
 const MENU_SECTIONS = [
-  { id: 'overview', tab: 'Overview', categorySlug: 'all', title: 'Hospital Overview & Facilities', count: 10 },
-  { id: 'doctors', tab: 'Doctors', categorySlug: 'all', title: 'Top Specialist Doctors', count: 18 },
+  { id: 'experts', tab: 'Experts', categorySlug: 'all', title: 'Top Specialist Experts', count: 18 },
   { id: 'all_packages', tab: 'Packages', categorySlug: 'all', title: 'All Health Packages', count: 7 },
   { id: 'pregnancy', tab: 'Packages', categorySlug: 'pregnancy', title: 'Pregnancy & Maternity', count: 2 },
   { id: 'cardiac', tab: 'Packages', categorySlug: 'cardiac', title: 'Cardiac Care', count: 1 },
@@ -36,11 +36,12 @@ export default function HospitalProfile() {
     return Object.values(storeDoctors || {}).filter(doc => doc.hospitalId === (id as string));
   }, [storeDoctors, id]);
 
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState('Experts');
   const [selectedPackageCategory, setSelectedPackageCategory] = useState('all');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
-  const tabs = ['Overview', 'Doctors', 'Packages'];
+  const tabs = ['Experts', 'Packages'];
 
   const toggleDocLike = (docId: any) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
@@ -95,8 +96,9 @@ export default function HospitalProfile() {
           />
           <HospitalHeader 
             onBackPress={() => router.back()}
-            onSearchPress={() => {}}
             onSharePress={() => {}}
+            onCallPress={() => {}}
+            onInfoPress={() => setIsInfoModalOpen(true)}
           />
           <View style={styles.imageCountBadge}>
             <Text style={styles.imageCountText}>1/15</Text>
@@ -105,7 +107,7 @@ export default function HospitalProfile() {
 
         <View style={[styles.topSection, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
           <View style={styles.mainInfoRow}>
-            <View style={[styles.logoBox, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
+            <View style={[styles.logoBox, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E5E5' }]}>
               <Image source={{ uri: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=200' }} style={styles.logo} />
             </View>
             <View style={styles.mainInfoText}>
@@ -124,23 +126,34 @@ export default function HospitalProfile() {
             </View>
           </View>
 
+          {/* Hospital Facilities Bar */}
+          <HospitalFacilities 
+            colors={colors} 
+            isDark={isDark} 
+            onViewAllPress={() => setIsInfoModalOpen(true)}
+          />
+
+          {/* Top Tabs matching Image 1 */}
           <View style={styles.tabsContainer}>
-            {tabs.map((tab) => (
-              <TouchableOpacity 
-                key={tab} 
-                style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
-                onPress={() => handleTabChange(tab)}
-              >
-                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive, { color: activeTab === tab ? '#7C3AED' : (isDark ? '#9CA3AF' : '#6B7280') }]}>{tab}</Text>
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity 
+              style={[styles.tabItem, activeTab === 'Experts' && styles.tabItemActive]}
+              onPress={() => handleTabChange('Experts')}
+            >
+              <Users size={18} color={activeTab === 'Experts' ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#9CA3AF' : '#64748B')} style={{ marginRight: 8 }} />
+              <Text style={[styles.tabText, activeTab === 'Experts' && styles.tabTextActive, { color: activeTab === 'Experts' ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#9CA3AF' : '#64748B') }]}>Doctors</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.tabItem, activeTab === 'Packages' && styles.tabItemActive]}
+              onPress={() => handleTabChange('Packages')}
+            >
+              <Briefcase size={18} color={activeTab === 'Packages' ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#9CA3AF' : '#64748B')} style={{ marginRight: 8 }} />
+              <Text style={[styles.tabText, activeTab === 'Packages' && styles.tabTextActive, { color: activeTab === 'Packages' ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#9CA3AF' : '#64748B') }]}>Packages</Text>
+            </TouchableOpacity>
           </View>
-          <View style={[styles.tabDivider, { backgroundColor: isDark ? '#333' : '#F3F4F6' }]} />
         </View>
 
-        {activeTab === 'Overview' && <HospitalOverview colors={colors} isDark={isDark} />}
-
-        {activeTab === 'Doctors' && (
+        {activeTab === 'Experts' && (
           <HospitalDoctors 
             doctors={doctors} 
             likedDocs={likedDocs as any} 
@@ -241,6 +254,14 @@ export default function HospitalProfile() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Hospital Facilities & Info Detailed Modal */}
+      <HospitalInfoModal
+        visible={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+        hospitalName={hospitalData.name}
+        location={hospitalData.location}
+      />
     </View>
   );
 }
@@ -344,20 +365,22 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   tabItem: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 2,
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   tabItemActive: {
-    borderBottomColor: '#7C3AED',
+    borderBottomColor: '#0F172A',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   tabTextActive: {
