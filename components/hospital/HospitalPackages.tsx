@@ -9,6 +9,7 @@ interface Props {
   hospitalName?: string;
   selectedCategory?: string;
   onSelectCategory?: (catId: string) => void;
+  searchQuery?: string;
 }
 
 interface HealthPackage {
@@ -130,10 +131,9 @@ export const MOCK_PACKAGES: HealthPackage[] = [
   },
 ];
 
-export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory }: Props) {
+export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory, searchQuery: externalSearchQuery = '' }: Props) {
   const router = useRouter();
   const [internalCategory, setInternalCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const activeCategory = externalCategory !== undefined ? externalCategory : internalCategory;
@@ -146,12 +146,27 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
   };
 
   const filteredPackages = useMemo(() => {
+    const query = (externalSearchQuery || '').trim().toLowerCase();
     return MOCK_PACKAGES.filter(p => {
       const matchCat = activeCategory === 'all' || p.categorySlug === activeCategory;
-      const matchQuery = !searchQuery.trim() || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchQuery = !query || p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
       return matchCat && matchQuery;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, externalSearchQuery]);
+
+  const groupedPackages = useMemo(() => {
+    const groups: { [key: string]: { categoryName: string; packages: HealthPackage[] } } = {};
+    filteredPackages.forEach((pkg) => {
+      if (!groups[pkg.categorySlug]) {
+        groups[pkg.categorySlug] = {
+          categoryName: pkg.category,
+          packages: [],
+        };
+      }
+      groups[pkg.categorySlug].packages.push(pkg);
+    });
+    return Object.values(groups);
+  }, [filteredPackages]);
 
   const handleViewPackage = (pkgId: string) => {
     router.push(`/packages/detail/${pkgId}` as any);
@@ -159,20 +174,6 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
 
   return (
     <View style={styles.container}>
-      {/* Search Bar matching Doctors module */}
-      <View style={[styles.searchContainer, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF', borderColor: isDark ? '#3F3F46' : '#E2E8F0' }]}>
-        <Search size={16} color={isDark ? '#9CA3AF' : '#64748B'} style={{ marginRight: 8 }} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search packages, tests or procedures..."
-          placeholderTextColor={isDark ? '#6B7280' : '#94A3B8'}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <TouchableOpacity style={styles.filterBtn} activeOpacity={0.7} onPress={() => setShowCategoryModal(true)}>
-          <SlidersHorizontal size={16} color={isDark ? '#9CA3AF' : '#334155'} />
-        </TouchableOpacity>
-      </View>
 
       {/* Sleek, Compact Category Scroll Pills matching Doctors module */}
       <ScrollView 
@@ -239,74 +240,76 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Horizontal Carousel of Package Cards */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carouselContainer}
-      >
-        {filteredPackages.map((pkg) => (
-          <View 
-            key={pkg.id} 
-            style={[
-              styles.packageCard,
-              { 
-                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                borderColor: isDark ? '#333333' : '#E5E5E5' 
-              }
-            ]}
-          >
-            {/* Top Image */}
-            <View style={styles.packageImageContainer}>
-              <Image source={{ uri: pkg.image }} style={styles.packageImage} resizeMode="cover" />
-            </View>
+      {/* Vertical Top-to-Bottom Category-Wise List of Package Cards */}
+      <View style={styles.verticalContainer}>
+        {groupedPackages.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: isDark ? '#9CA3AF' : '#64748B' }]}>
+              No packages found for this category.
+            </Text>
+          </View>
+        ) : (
+          groupedPackages.map((group) => (
+            <View key={group.categoryName} style={styles.categorySectionGroup}>
+              {/* Department / Category Section Header ABOVE Cards */}
+              <View style={styles.categorySectionHeader}>
+                <Text style={[styles.categorySectionTitle, { color: colors.text }]}>
+                  {group.categoryName}
+                </Text>
+                <View style={[styles.categoryBadgeCount, { backgroundColor: isDark ? '#2E1065' : '#F3E8FF' }]}>
+                  <Text style={[styles.categoryBadgeCountText, { color: '#7C3AED' }]}>
+                    {group.packages.length} {group.packages.length === 1 ? 'Package' : 'Packages'}
+                  </Text>
+                </View>
+              </View>
 
-            {/* Content */}
-            <View style={styles.packageContent}>
-              <Text style={[styles.packageTitle, { color: colors.text }]} numberOfLines={2}>
-                {pkg.title}
-              </Text>
+              {group.packages.map((pkg) => (
+                <View 
+                  key={pkg.id} 
+                  style={[
+                    styles.verticalPackageCard,
+                    { 
+                      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                      borderColor: isDark ? '#333333' : '#E5E5E5' 
+                    }
+                  ]}
+                >
+                  <View style={styles.cardRow}>
+                    {/* Image */}
+                    <Image source={{ uri: pkg.image }} style={styles.verticalPackageImage} resizeMode="cover" />
 
-              {/* Price & View Package Action Row */}
-              <View style={styles.priceAndActionRow}>
-                <View style={styles.priceLeft}>
-                  <Text style={[styles.currentPrice, { color: colors.text }]}>{pkg.price}</Text>
-                  <Text style={[styles.originalPrice, { color: isDark ? '#9CA3AF' : '#999999' }]}>{pkg.originalPrice}</Text>
-                  <View style={[styles.discountBadge, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
-                    <Text style={styles.discountText}>{pkg.discount}</Text>
+                    {/* Content */}
+                    <View style={styles.verticalPackageContent}>
+                      <Text style={[styles.packageTitle, { color: colors.text }]} numberOfLines={2}>
+                        {pkg.title}
+                      </Text>
+
+                      {/* Price & View Package Action Row */}
+                      <View style={styles.priceAndActionRow}>
+                        <View style={styles.priceLeft}>
+                          <Text style={[styles.currentPrice, { color: colors.text }]}>{pkg.price}</Text>
+                          <Text style={[styles.originalPrice, { color: isDark ? '#9CA3AF' : '#999999' }]}>{pkg.originalPrice}</Text>
+                          <View style={[styles.discountBadge, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
+                            <Text style={styles.discountText}>{pkg.discount}</Text>
+                          </View>
+                        </View>
+
+                        <TouchableOpacity 
+                          style={styles.viewPackageBtn}
+                          onPress={() => handleViewPackage(pkg.id)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.viewPackageText}>View package</Text>
+                          <ChevronRight size={14} color="#EF4444" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   </View>
                 </View>
-
-                <TouchableOpacity 
-                  style={styles.viewPackageBtn}
-                  onPress={() => handleViewPackage(pkg.id)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.viewPackageText}>View package</Text>
-                  <ChevronRight size={14} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
+              ))}
             </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Centered "View full menu >" Button */}
-      <View style={styles.fullMenuBtnWrapper}>
-        <TouchableOpacity 
-          style={[
-            styles.fullMenuBtn,
-            {
-              backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-              borderColor: isDark ? '#333333' : '#E5E5E5',
-            }
-          ]}
-          onPress={() => handleCategoryPress('all')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.fullMenuText, { color: colors.text }]}>View full menu</Text>
-          <ChevronRight size={16} color={colors.text} />
-        </TouchableOpacity>
+          ))
+        )}
       </View>
 
       {/* Category Selection Modal */}
@@ -428,36 +431,61 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '800',
   },
-  carouselContainer: {
+  verticalContainer: {
     gap: 14,
+    marginTop: 4,
   },
-  packageCard: {
-    width: 280,
+  emptyContainer: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  verticalPackageCard: {
     borderRadius: 16,
     borderWidth: 1,
-    overflow: 'hidden',
+    padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },
-  packageImageContainer: {
-    width: '100%',
-    height: 140,
+  cardHeaderCategory: {
+    marginBottom: 8,
   },
-  packageImage: {
-    width: '100%',
-    height: '100%',
+  cardCategoryTagText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#7C3AED',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  packageContent: {
-    padding: 12,
+  cardRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  verticalPackageImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 12,
+  },
+  verticalPackageContent: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   packageTitle: {
     fontSize: 14,
     fontWeight: '800',
-    marginBottom: 8,
+    marginBottom: 4,
     lineHeight: 18,
+  },
+  packageSubtitle: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 8,
   },
   priceAndActionRow: {
     flexDirection: 'row',
@@ -572,6 +600,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     marginVertical: 2,
+  },
+  categorySectionGroup: {
+    marginBottom: 20,
+  },
+  categorySectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  categorySectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  categoryBadgeCount: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  categoryBadgeCountText: {
+    fontSize: 11,
+    fontWeight: '800',
   },
   modalItemText: {
     fontSize: 14,

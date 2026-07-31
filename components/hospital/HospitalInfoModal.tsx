@@ -1,21 +1,28 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
 import { 
-  X, 
-  ShieldCheck, 
-  Zap, 
-  Activity, 
-  Truck, 
-  FlaskConical, 
-  Pill, 
-  Bone, 
-  Baby, 
+  View, 
+  Text, 
+  StyleSheet, 
+  Modal, 
+  ScrollView, 
+  TouchableOpacity, 
+  Image, 
+  Linking, 
+  Share,
+  Platform 
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { 
+  ChevronLeft, 
+  Share2, 
+  Navigation, 
   Clock, 
-  PhoneCall, 
-  Award, 
-  Coffee, 
-  Wifi, 
-  Building2 
+  ChevronDown, 
+  ShieldCheck, 
+  Image as ImageIcon,
+  PhoneCall,
+  FileText,
+  MapPin
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -25,150 +32,463 @@ interface HospitalInfoModalProps {
   hospitalName: string;
   location?: string;
   phone?: string;
+  image?: string;
 }
 
-const ALL_FACILITIES = [
-  { id: '1', name: 'Cashless Insurance Clearance', desc: 'Direct claim settlement with 30+ TPA insurance providers.', icon: ShieldCheck },
-  { id: '2', name: '24x7 Emergency & Trauma', desc: 'Round-the-clock emergency triage and life support.', icon: Zap },
-  { id: '3', name: 'Advanced ICU & CCU Beds', desc: 'Multi-parameter ventilator and cardiac monitoring units.', icon: Activity },
-  { id: '4', name: 'Advanced Ambulance Fleet', desc: 'GPS-tracked ACLS ambulances equipped with paramedic care.', icon: Truck },
-  { id: '5', name: 'NABL Diagnostic Lab', desc: 'In-house automated blood analyzers and pathology reporting.', icon: FlaskConical },
-  { id: '6', name: '24x7 In-House Pharmacy', desc: 'Complete inventory of critical medicines and surgical supplies.', icon: Pill },
-  { id: '7', name: 'Digital Radiology & CT/MRI', desc: 'Ultra-low radiation 3D scanning and digital X-rays.', icon: Bone },
-  { id: '8', name: 'NICU & PICU Neonatal Unit', desc: 'Specialized intensive care for infants and young children.', icon: Baby },
-  { id: '9', name: 'High-Speed Wi-Fi & VIP Rooms', desc: 'Private luxury suites with patient lounge & guest amenities.', icon: Wifi },
-  { id: '10', name: 'Multi-Cuisine Cafeteria', desc: 'Dietitian-approved hygienic meal services for patients & guests.', icon: Coffee },
+const SAMPLE_PHOTOS = [
+  'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=500',
+  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=500',
+  'https://images.unsplash.com/photo-1538108149393-cebb47cdf14d?q=80&w=500',
+  'https://images.unsplash.com/photo-1587351021355-a479a299d2f9?q=80&w=500',
 ];
 
-export default function HospitalInfoModal({ visible, onClose, hospitalName, location, phone }: HospitalInfoModalProps) {
+export default function HospitalInfoModal({ 
+  visible, 
+  onClose, 
+  hospitalName, 
+  location = 'Old Airport Road, Bangalore', 
+  phone,
+  image
+}: HospitalInfoModalProps) {
+  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const [showHoursDropdown, setShowHoursDropdown] = useState(false);
+
+  const handleDirections = () => {
+    const query = encodeURIComponent(`${hospitalName}, ${location}`);
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`).catch(() => {});
+  };
+
+  const handleShare = () => {
+    Share.share({
+      title: hospitalName,
+      message: `Check out ${hospitalName} on Arogyon: ${location}`,
+    }).catch(() => {});
+  };
 
   return (
     <Modal
       visible={visible}
-      transparent={true}
+      transparent={false}
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable 
-          style={[styles.modalCard, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}
-          onPress={(e) => e.stopPropagation()}
+      <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+        
+        {/* Top Header Bar */}
+        <View style={[
+          styles.headerBar, 
+          { 
+            paddingTop: Math.max(insets.top, Platform.OS === 'ios' ? 44 : 24) + 8,
+            backgroundColor: isDark ? '#18181B' : '#FFFFFF' 
+          }
+        ]}>
+          <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.7}>
+            <ChevronLeft size={24} color={colors.text} />
+          </TouchableOpacity>
+
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Hospital Information</Text>
+
+          <TouchableOpacity onPress={handleShare} style={styles.headerBtn} activeOpacity={0.7}>
+            <Share2 size={20} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={[
+            styles.scrollContent, 
+            { paddingBottom: Math.max(insets.bottom, 20) + 90 }
+          ]}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>{hospitalName}</Text>
-              <Text style={[styles.modalSub, { color: colors.textSecondary }]}>Facilities & Key Information</Text>
+          {/* Hospital Header Title Card */}
+          <View style={[styles.cardSection, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF' }]}>
+            <Text style={[styles.hospitalTitle, { color: colors.text }]}>{hospitalName}</Text>
+            
+            <View style={styles.feeBadgeRow}>
+              <View style={[styles.feePill, { backgroundColor: isDark ? '#27272A' : '#F1F5F9' }]}>
+                <Text style={[styles.feePillText, { color: colors.text }]}>₹800 Consultation Fee</Text>
+              </View>
+              <Text style={styles.subCategoryText}>Multi Speciality • Quaternary Care</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: isDark ? '#2D2D38' : '#F1F5F9' }]}>
-              <X size={20} color={colors.text} />
-            </TouchableOpacity>
+
+            {/* Real Map Location Card */}
+            <View style={[styles.mapCard, { backgroundColor: isDark ? '#27272A' : '#F1F5F9' }]}>
+              <View style={styles.mapImageWrapper}>
+                <Image 
+                  source={{ uri: 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=600' }} 
+                  style={styles.mapImage} 
+                />
+                <View style={styles.mapPinOverlay}>
+                  <MapPin size={22} color="#EF4444" fill="#EF4444" />
+                </View>
+                <View style={styles.distanceBadge}>
+                  <Text style={styles.distanceBadgeText}>3.7 km away</Text>
+                </View>
+              </View>
+
+              <View style={styles.mapDetailsBody}>
+                <Text style={[styles.fullAddressText, { color: colors.text }]}>
+                  98, {location}, HAL 2nd Stage, Kodihalli, Bengaluru, Karnataka 560017
+                </Text>
+
+                <TouchableOpacity style={styles.directionsCtaBtn} onPress={handleDirections} activeOpacity={0.88}>
+                  <Navigation size={16} color="#FFFFFF" fill="#FFFFFF" />
+                  <Text style={styles.directionsCtaText}>Get Directions on Map</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Call Desk & Emergency Hotlines */}
+            <View style={styles.callButtonsRow}>
+              <TouchableOpacity 
+                style={[styles.callBtn, { backgroundColor: '#10B981' }]} 
+                onPress={() => Linking.openURL(`tel:${phone || '08022223333'}`).catch(() => {})}
+                activeOpacity={0.85}
+              >
+                <PhoneCall size={15} color="#FFFFFF" />
+                <Text style={styles.callBtnText}>Call Desk</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.callBtn, { backgroundColor: '#E11D48' }]} 
+                onPress={() => Linking.openURL('tel:108').catch(() => {})}
+                activeOpacity={0.85}
+              >
+                <PhoneCall size={15} color="#FFFFFF" />
+                <Text style={styles.callBtnText}>24x7 Ambulance</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            {/* Accreditation Badge Row */}
-            <View style={[styles.badgeBox, { backgroundColor: isDark ? '#2A2315' : '#FEF3C7', borderColor: isDark ? '#78350F' : '#FCD34D' }]}>
-              <Award size={18} color="#D97706" style={{ marginRight: 8 }} />
+          {/* Operating Hours Box */}
+          <View style={[styles.cardSection, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF' }]}>
+            <TouchableOpacity 
+              style={styles.hoursRow} 
+              onPress={() => setShowHoursDropdown(!showHoursDropdown)}
+              activeOpacity={0.7}
+            >
+              <Clock size={18} color="#10B981" />
+              <Text style={styles.hoursText}>
+                <Text style={styles.openNowText}>Open 24/7</Text> • Emergency & OPD Care
+              </Text>
+              <ChevronDown 
+                size={18} 
+                color="#64748B" 
+                style={{ transform: [{ rotate: showHoursDropdown ? '180deg' : '0deg' }] }} 
+              />
+            </TouchableOpacity>
+
+            {showHoursDropdown && (
+              <View style={styles.hoursDropdownContent}>
+                <Text style={styles.dropdownLine}>• Emergency & ICU Triage: Open 24/7</Text>
+                <Text style={styles.dropdownLine}>• OPD Specialist Consults: 8:00 AM - 8:00 PM</Text>
+                <Text style={styles.dropdownLine}>• Pathology Lab & Pharmacy: Open 24/7</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Photos Gallery */}
+          <View style={[styles.cardSection, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF' }]}>
+            <View style={styles.sectionHeaderRow}>
+              <ImageIcon size={18} color="#0284C7" />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Hospital Photo Gallery</Text>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photosScroll}>
+              {SAMPLE_PHOTOS.map((imgUri, idx) => (
+                <Image key={idx} source={{ uri: imgUri }} style={styles.photoThumbnail} />
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Accreditation & Verified Credentials Box */}
+          <View style={[styles.cardSection, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF' }]}>
+            <View style={styles.accreditationHeader}>
+              <ShieldCheck size={20} color="#10B981" />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.badgeTitle, { color: isDark ? '#FBBF24' : '#92400E' }]}>NABH & JCI Accredited Facility</Text>
-                <Text style={[styles.badgeSub, { color: isDark ? '#FCD34D' : '#B45309' }]}>Certified for Highest International Patient Safety & Quality Care</Text>
+                <Text style={[styles.accreditationTitle, { color: colors.text }]}>NABH & JCI Quality Accreditation</Text>
+                <Text style={styles.accreditationSub}>This facility adheres strictly to NABH medical safety protocols.</Text>
               </View>
             </View>
 
-            {/* Quick Info Grid */}
-            <View style={styles.infoGrid}>
-              <View style={[styles.infoCard, { backgroundColor: isDark ? '#272730' : '#F8FAFC' }]}>
-                <Clock size={16} color={colors.accent} />
-                <Text style={[styles.infoCardTitle, { color: colors.text }]}>Emergency</Text>
-                <Text style={[styles.infoCardVal, { color: colors.textSecondary }]}>Open 24/7</Text>
-              </View>
+            <View style={[styles.cardDivider, { backgroundColor: isDark ? '#27272A' : '#F1F5F9' }]} />
 
-              <View style={[styles.infoCard, { backgroundColor: isDark ? '#272730' : '#F8FAFC' }]}>
-                <Building2 size={16} color={colors.accent} />
-                <Text style={[styles.infoCardTitle, { color: colors.text }]}>Bed Capacity</Text>
-                <Text style={[styles.infoCardVal, { color: colors.textSecondary }]}>350+ Beds</Text>
+            <View style={[styles.credentialsBox, { backgroundColor: isDark ? '#27272A' : '#F8FAFC' }]}>
+              <View style={styles.credentialsHeader}>
+                <FileText size={16} color="#0284C7" />
+                <Text style={[styles.credentialsTitle, { color: colors.text }]}>Verified Registration & License</Text>
               </View>
-
-              <View style={[styles.infoCard, { backgroundColor: isDark ? '#272730' : '#F8FAFC' }]}>
-                <PhoneCall size={16} color={colors.accent} />
-                <Text style={[styles.infoCardTitle, { color: colors.text }]}>Helpline</Text>
-                <Text style={[styles.infoCardVal, { color: colors.textSecondary }]}>{phone || '1800-102-456'}</Text>
+              <View style={styles.credentialsList}>
+                <Text style={styles.credText}>• State Medical Reg No: <Text style={{ fontWeight: '700', color: colors.text }}>KA/BGC/HOSP/2019/9941</Text></Text>
+                <Text style={styles.credText}>• CIN Registration: <Text style={{ fontWeight: '700', color: colors.text }}>U85110KA2015PTC082910</Text></Text>
+                <Text style={styles.credText}>• NABH Quality License: <Text style={{ fontWeight: '700', color: colors.text }}>NABH-H-2021-0842</Text></Text>
               </View>
             </View>
+          </View>
+        </ScrollView>
 
-            {/* Facilities List Title */}
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Comprehensive Facilities</Text>
+        {/* Bottom Fixed Action Button */}
+        <View style={[
+          styles.bottomContainer, 
+          { 
+            backgroundColor: isDark ? '#18181B' : '#FFFFFF',
+            paddingBottom: Math.max(insets.bottom, 14) 
+          }
+        ]}>
+          <TouchableOpacity style={styles.goBackBtn} onPress={onClose} activeOpacity={0.9}>
+            <Text style={styles.goBackBtnText}>Go back to hospital</Text>
+          </TouchableOpacity>
+        </View>
 
-            {ALL_FACILITIES.map((item) => {
-              const IconComp = item.icon;
-              return (
-                <View key={item.id} style={[styles.facilityItem, { borderColor: isDark ? '#2D2D38' : '#F1F5F9' }]}>
-                  <View style={[styles.facilityIconWrap, { backgroundColor: colors.accent + '15' }]}>
-                    <IconComp size={20} color={colors.accent} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.facilityName, { color: colors.text }]}>{item.name}</Text>
-                    <Text style={[styles.facilityDesc, { color: colors.textSecondary }]}>{item.desc}</Text>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </Pressable>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
   },
-  modalCard: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    maxHeight: '85%',
-  },
-  header: {
+  headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
     paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomWidth: 0,
   },
-  modalTitle: { fontSize: 20, fontWeight: '800' },
-  modalSub: { fontSize: 13, marginTop: 2 },
-  closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { paddingVertical: 16, paddingBottom: 40 },
-  badgeBox: {
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  scrollContent: {
+    padding: 16,
+    gap: 14,
+  },
+  cardSection: {
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 0,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  hospitalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  feeBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
+    flexWrap: 'wrap',
+    gap: 10,
     marginBottom: 16,
   },
-  badgeTitle: { fontSize: 13, fontWeight: '700' },
-  badgeSub: { fontSize: 11, marginTop: 2 },
-  infoGrid: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  infoCard: { flex: 1, padding: 12, borderRadius: 14, alignItems: 'center' },
-  infoCardTitle: { fontSize: 12, fontWeight: '700', marginTop: 6 },
-  infoCardVal: { fontSize: 11, marginTop: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
-  facilityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+  feePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  feePillText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  subCategoryText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  mapCard: {
+    borderRadius: 16,
+    borderWidth: 0,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  mapImageWrapper: {
+    height: 120,
+    width: '100%',
+    position: 'relative',
+    backgroundColor: '#E2E8F0',
+  },
+  mapImage: {
+    width: '100%',
+    height: '100%',
+  },
+  mapPinOverlay: {
+    position: 'absolute',
+    top: '40%',
+    left: '48%',
+  },
+  distanceBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  distanceBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  mapDetailsBody: {
+    padding: 14,
     gap: 12,
   },
-  facilityIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  facilityName: { fontSize: 14, fontWeight: '700' },
-  facilityDesc: { fontSize: 12, marginTop: 2, lineHeight: 16 },
+  fullAddressText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  directionsCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E11D48',
+    paddingVertical: 11,
+    borderRadius: 14,
+    gap: 8,
+  },
+  directionsCtaText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  callButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  callBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 14,
+    gap: 6,
+  },
+  callBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  hoursRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  hoursText: {
+    fontSize: 14,
+    color: '#475569',
+    fontWeight: '600',
+    flex: 1,
+  },
+  openNowText: {
+    color: '#10B981',
+    fontWeight: '800',
+  },
+  hoursDropdownContent: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+    gap: 6,
+  },
+  dropdownLine: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  photosScroll: {
+    gap: 10,
+  },
+  photoThumbnail: {
+    width: 120,
+    height: 95,
+    borderRadius: 14,
+    backgroundColor: '#F1F5F9',
+  },
+  accreditationHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  accreditationTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  accreditationSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  cardDivider: {
+    height: 1,
+    marginVertical: 14,
+  },
+  credentialsBox: {
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 0,
+  },
+  credentialsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  credentialsTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  credentialsList: {
+    gap: 4,
+  },
+  credText: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 14,
+    paddingHorizontal: 16,
+    borderTopWidth: 0,
+  },
+  goBackBtn: {
+    backgroundColor: '#E11D48',
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goBackBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
 });

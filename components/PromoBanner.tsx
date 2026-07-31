@@ -1,14 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable, Platform } from 'react-native';
-import { usePartnerStore } from '../hooks/usePartnerStore';
 
 interface PromoBannerProps {
   isDark: boolean;
 }
 
 export default function PromoBanner({ isDark }: PromoBannerProps) {
-  const { posts } = usePartnerStore();
-  const latestPost = posts[0];
+  const latestPost = {
+    category: 'Hospital Announcement',
+    title: 'Health Checkup Packages',
+    content: 'Up to 30% OFF on Master Executive Checkups',
+    image: 'https://images.unsplash.com/photo-1581056771107-24ca5f033842?q=80&w=200',
+  };
 
   return (
     <View style={[styles.promoBanner, { backgroundColor: isDark ? '#1E1E1E' : '#F8FAFC', borderColor: isDark ? '#333' : 'rgba(0,0,0,0.02)' }]}>

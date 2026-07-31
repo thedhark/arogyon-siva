@@ -1,5 +1,24 @@
 {
-  "specialties": {},
+  "specialties": {
+    "General Physician": "assets/images/medical-theme/specialties/general-physician.png",
+    "Cardiology": "assets/images/medical-theme/specialties/cardiology.png",
+    "Ophthalmology": "assets/images/medical-theme/specialties/ophthalmology.png",
+    "Dentistry": "assets/images/medical-theme/specialties/dentistry.png",
+    "General Surgery": "assets/images/medical-theme/specialties/general-surgery.png",
+    "Oncology": "assets/images/medical-theme/specialties/oncology.png",
+    "Pediatrics": "assets/images/medical-theme/specialties/pediatrics.png",
+    "Orthopedics": "assets/images/medical-theme/specialties/orthopedics.png",
+    "Gynecology": "assets/images/medical-theme/specialties/gynecology.png",
+    "Neurology": "assets/images/medical-theme/specialties/neurology.png",
+    "Urology": "assets/images/medical-theme/specialties/urology.png",
+    "Dermatology": "assets/images/medical-theme/specialties/dermatology.png",
+    "ENT Care": "assets/images/medical-theme/specialties/ent-care.png",
+    "Psychiatry": "assets/images/medical-theme/specialties/psychiatry.png",
+    "Diabetology": "assets/images/medical-theme/specialties/diabetology.png",
+    "Gastroenterology": "assets/images/medical-theme/specialties/gastroenterology.png",
+    "Pulmonology": "assets/images/medical-theme/specialties/pulmonology.png",
+    "Nephrology": "assets/images/medical-theme/specialties/nephrology.png"
+  },
   "situations": {
     "Accident": "assets/images/medical-theme/situations/accident.png",
     "Fever": "assets/images/medical-theme/situations/fever.png",

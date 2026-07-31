@@ -1,132 +1,298 @@
 /**
- * On-Device Real Document Reader & OCR Scanner Service
- * 100% Free, Zero External API Billing, On-Device Medical Report & PDF Parsing Service for Arogyon Premium
+ * Local document parsing & OCR service. Uploaded files are read locally on device.
  */
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 
-import { formatDisplayDate } from '@/utils';
+export type MedicalDocumentCategory = 'Prescription' | 'Lab Report' | 'Invoice' | 'Other';
 
 export interface ParsedDocumentResult {
   extractedText: string;
-  category: 'Prescription' | 'Lab Report' | 'Invoice' | 'Other';
+  category: MedicalDocumentCategory;
   suggestedTitle: string;
   summary: string;
   tags: string[];
-  doctorName?: string;
-  dateDetected?: string;
   confidenceScore: number;
+  processingWarning?: string;
 }
 
-/**
- * Extracts and parses document text on-device safely without backend servers or paid APIs.
- */
-export async function readDocumentOnDevice(file: { uri: string; name: string; type: string }): Promise<ParsedDocumentResult> {
-  const fileName = file.name.toLowerCase();
-  const fileUri = file.uri.toLowerCase();
-  const isPdf = file.type.includes('pdf') || fileName.endsWith('.pdf');
+type SelectedDocument = { uri: string; name: string; type: string };
 
-  // Fast processing simulation representing local canvas/OCR thread processing
-  await new Promise((resolve) => setTimeout(resolve, 900));
+const CATEGORY_KEYWORDS: [MedicalDocumentCategory, RegExp][] = [
+  ['Prescription', /\b(rx|prescription|prescribed|doctor|dr\.|dosage|tablet|capsule|mg|syrup|bd|tds|once daily)\b/i],
+  ['Lab Report', /\b(laboratory|lab report|haemoglobin|hemoglobin|blood|diagnostic|test result|hba1c|glucose|cholesterol|tsh|cbc)\b/i],
+  ['Invoice', /\b(invoice|receipt|bill|gst|amount paid|total due|rs\.|₹|payment)\b/i],
+];
 
-  let extractedText = '';
-  let category: 'Prescription' | 'Lab Report' | 'Invoice' | 'Other' = 'Other';
-  let suggestedTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-  let summary = '';
-  let tags: string[] = [];
-  let doctorName: string | undefined = undefined;
+const TAG_KEYWORDS = [
+  'CBC',
+  'glucose',
+  'hemoglobin',
+  'blood pressure',
+  'diabetes',
+  'vitamin',
+  'allergy',
+  'cardiology',
+  'thyroid',
+  'cholesterol',
+  'lipid profile',
+  'hba1c',
+  'renal',
+  'liver function',
+];
 
-  // Real entity & keyword analysis based on document features & names
-  if (fileName.includes('blood') || fileName.includes('lab') || fileName.includes('cbc') || fileName.includes('report') || fileName.includes('test')) {
-    category = 'Lab Report';
-    suggestedTitle = suggestedTitle || 'Complete Blood Count (CBC) Report';
-    extractedText = `AROGYON DIAGNOSTICS & PATHOLOGY LAB\n` +
-      `Patient Name: Self / John Doe\n` +
-      `Ref ID: LAB-${Math.floor(100000 + Math.random() * 900000)}\n` +
-      `Collection Date: ${formatDisplayDate(new Date())}\n\n` +
-      `HAEMATOLOGY REPORT:\n` +
-      `--------------------------------------------------\n` +
-      `1. Hemoglobin (Hb): 14.2 g/dL       [Ref Range: 13.0 - 17.0]\n` +
-      `2. Total RBC Count: 4.8 million/uL   [Ref Range: 4.5 - 5.5]\n` +
-      `3. Total WBC Count: 7,500 /uL        [Ref Range: 4,000 - 11,000]\n` +
-      `4. Platelet Count: 265,000 /uL       [Ref Range: 150,000 - 450,000]\n` +
-      `5. Fasting Blood Glucose: 95 mg/dL   [Ref Range: 70 - 100]\n` +
-      `6. HbA1c (Glycated Hb): 5.4%         [Normal: < 5.7%]\n` +
-      `--------------------------------------------------\n` +
-      `LABORATORY IMPRESSION:\n` +
-      `All blood count indices and glycated hemoglobin levels are within physiological normal reference ranges. No abnormal cell morphology detected.`;
-    
-    summary = 'Complete Blood Count & Glycated Hemoglobin Report. All parameters (Hemoglobin 14.2 g/dL, Glucose 95 mg/dL, HbA1c 5.4%) are within normal limits.';
-    tags = ['Lab Report', 'CBC', 'Blood Test', 'Normal', 'Glucose'];
+function isPdf(file: SelectedDocument) {
+  return file.type.toLowerCase().includes('pdf') || file.name.toLowerCase().endsWith('.pdf');
+}
 
-  } else if (fileName.includes('prescription') || fileName.includes('dr') || fileName.includes('doctor') || fileName.includes('rx') || fileName.includes('consult')) {
-    category = 'Prescription';
-    doctorName = 'Dr. S. K. Mehta';
-    suggestedTitle = `Doctor Rx - ${doctorName}`;
-    extractedText = `CITY MEDICAL CONSULTATION CLINIC\n` +
-      `Consulting Physician: ${doctorName} (MD, Internal Medicine)\n` +
-      `Reg. No: MCI-849204\n` +
-      `Date: ${formatDisplayDate(new Date())}\n\n` +
-      `CLINICAL DIAGNOSIS:\n` +
-      `Acute Seasonal Allergic Rhinitis & Mild Throat Irritation\n\n` +
-      `PRESCRIPTION (Rx):\n` +
-      `1. Tab. Montelukast 10mg + Levocetirizine 5mg - 1 Tab at Bedtime (5 Days)\n` +
-      `2. Tab. Pantoprazole 40mg - 1 Tab daily before breakfast (5 Days)\n` +
-      `3. Syrup Alex Cough Formula - 10ml Thrice Daily (3 Days)\n\n` +
-      `PATIENT ADVICE:\n` +
-      `- Avoid cold beverages and steam inhalation twice daily.\n` +
-      `- Adequate fluid intake & 7-8 hours rest. Follow up if symptoms persist.`;
+function titleFromName(name: string) {
+  const title = name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim();
+  return title ? title.replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Medical Document';
+}
 
-    summary = `Medical prescription issued by ${doctorName}. Prescribed Montelukast + Levocetirizine and Antacid for 5 days.`;
-    tags = ['Prescription', doctorName, 'Allergy', 'Rx', 'Internal Medicine'];
+function compactText(value: string) {
+  return value.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
+}
 
-  } else if (fileName.includes('invoice') || fileName.includes('bill') || fileName.includes('receipt') || fileName.includes('pharmacy') || fileName.includes('payment')) {
-    category = 'Invoice';
-    suggestedTitle = suggestedTitle || 'Pharmacy Medical Invoice';
-    const amount = Math.floor(350 + Math.random() * 850);
-    extractedText = `AROGYON PHARMACY & CARE STORE\n` +
-      `GSTIN: 29AAAAA0000A1Z5\n` +
-      `Invoice No: INV-2026-${Math.floor(1000 + Math.random() * 9000)}\n` +
-      `Date: ${formatDisplayDate(new Date())}\n\n` +
-      `ITEMIZED BILL:\n` +
-      `--------------------------------------------------\n` +
-      `1. Paracetamol 650mg (Strip of 15)  - ₹42.00\n` +
-      `2. Vitamin C + Zinc Chews (30 Tabs)  - ₹185.00\n` +
-      `3. N95 Protective Masks (Pack of 5)  - ₹${amount - 227}.00\n` +
-      `--------------------------------------------------\n` +
-      `Subtotal: ₹${amount - Math.round(amount * 0.05)}\n` +
-      `GST (5%): ₹${Math.round(amount * 0.05)}\n` +
-      `TOTAL AMOUNT PAID: ₹${amount}.00\n` +
-      `Payment Mode: UPI / Online Paid`;
+function categoryFromText(text: string): MedicalDocumentCategory {
+  return CATEGORY_KEYWORDS.find(([, expression]) => expression.test(text))?.[0] ?? 'Other';
+}
 
-    summary = `Pharmacy tax invoice #INV-2026 for medical supplies. Total amount paid: ₹${amount}.00.`;
-    tags = ['Invoice', 'Pharmacy', 'Bill Paid', 'Receipt'];
+function buildTags(text: string, category: MedicalDocumentCategory) {
+  const matched = TAG_KEYWORDS.filter((keyword) =>
+    new RegExp(`\\b${keyword.replace(' ', '\\s+')}\\b`, 'i').test(text)
+  );
+  const tagList = [category, ...matched];
+  return Array.from(new Set(tagList)).slice(0, 5);
+}
 
-  } else {
-    // General On-Device Text Parser for generic files/images
-    category = isPdf ? 'Lab Report' : 'Prescription';
-    suggestedTitle = suggestedTitle.length > 3 ? suggestedTitle.charAt(0).toUpperCase() + suggestedTitle.slice(1) : 'Medical Document Scan';
-    extractedText = `ON-DEVICE SCANNED MEDICAL RECORD\n` +
-      `Document Name: ${file.name}\n` +
-      `Format: ${isPdf ? 'PDF Document' : 'Image Scan (JPEG/PNG)'}\n` +
-      `Processed: ${new Date().toLocaleString()}\n\n` +
-      `DOCUMENT SUMMARY & EXTRACEPT:\n` +
-      `Document uploaded and parsed on-device via zero-cost client text recognition.\n` +
-      `Includes patient reference record, clinical observations, and health parameters.\n\n` +
-      `NOTES:\n` +
-      `- Record verified clean & legible.\n` +
-      `- Stored securely in your private Arogyon Vault.`;
-
-    summary = `${category} document extracted successfully. Text digitized and formatted on-device.`;
-    tags = ['Medical Vault', category, isPdf ? 'PDF' : 'Image', 'Scanned'];
+function buildSummary(text: string, category: MedicalDocumentCategory) {
+  const lines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 3)
+    .slice(0, 3);
+  
+  if (lines.length > 0) {
+    return lines.join(' • ').slice(0, 220);
   }
+  return `${category} text extracted locally from document.`;
+}
+
+function deriveSuggestedTitle(text: string, fallbackName: string): string {
+  if (!text) return titleFromName(fallbackName);
+
+  // Look for Doctor name in text
+  const docMatch = text.match(/Dr\.\s+[A-Za-z\s]{3,25}/i);
+  if (docMatch) {
+    return `${docMatch[0].trim()} Prescription`;
+  }
+
+  // Look for report titles
+  const reportMatch = text.match(/\b(Complete Blood Count|Lipid Profile|Thyroid Function|HbA1c Test|Blood Glucose|Renal Function|Liver Function)\b/i);
+  if (reportMatch) {
+    return `${reportMatch[0].trim()} Report`;
+  }
+
+  return titleFromName(fallbackName);
+}
+
+/** Get raw Uint8Array bytes from document URI across Web and Native */
+async function getFileBytes(uri: string): Promise<Uint8Array> {
+  try {
+    const response = await fetch(uri);
+    if (response.ok) {
+      const buffer = await response.arrayBuffer();
+      return new Uint8Array(buffer);
+    }
+  } catch {
+    // Ignore fetch error and fallback to FileSystem
+  }
+
+  if (Platform.OS !== 'web') {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: 'base64' as any,
+    });
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  throw new Error(`Unable to read document file at ${uri}`);
+}
+
+/** Direct embedded PDF text stream parser fallback (extracts Tj/TJ text operators) */
+function extractTextFromPdfBytes(bytes: Uint8Array): string {
+  const textParts: string[] = [];
+  const decoder = new TextDecoder('latin1');
+  const rawStr = decoder.decode(bytes);
+
+  // Match text operators: (string) Tj or (string) ' or (string) "
+  const tjRegex = /\(([^()\\]*(?:\\.[^()\\]*)*)\)\s*(?:Tj|'|")/g;
+  let match: RegExpExecArray | null;
+  while ((match = tjRegex.exec(rawStr)) !== null) {
+    let str = match[1]
+      .replace(/\\\( /g, '(')
+      .replace(/\\\)/g, ')')
+      .replace(/\\\\/g, '\\')
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t');
+    str = str.replace(/[^\x20-\x7E\n\r\t]/g, ' ').trim();
+    if (str.length > 1) {
+      textParts.push(str);
+    }
+  }
+
+  // Match TJ arrays: [ (string1) -10 (string2) ] TJ
+  const arrayTjRegex = /\[\s*((?:\([^()\\]*(?:\\.[^()\\]*)*\)\s*|-?\d+\s*)+)\]\s*TJ/g;
+  while ((match = arrayTjRegex.exec(rawStr)) !== null) {
+    const innerArray = match[1];
+    const stringInArrayRegex = /\(([^()\\]*(?:\\.[^()\\]*)*)\)/g;
+    let subMatch: RegExpExecArray | null;
+    let lineText = '';
+    while ((subMatch = stringInArrayRegex.exec(innerArray)) !== null) {
+      let str = subMatch[1].replace(/\\\( /g, '(').replace(/\\\)/g, ')').replace(/\\\\/g, '\\');
+      str = str.replace(/[^\x20-\x7E\n\r\t]/g, ' ').trim();
+      if (str) lineText += str + ' ';
+    }
+    lineText = lineText.trim();
+    if (lineText.length > 1) {
+      textParts.push(lineText);
+    }
+  }
+
+  return textParts.join('\n');
+}
+
+async function extractPdfText(uri: string): Promise<string> {
+  const bytes = await getFileBytes(uri);
+  let textFromPdfJs = '';
+
+  try {
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const task = pdfjs.getDocument({ data: bytes, useWorkerFetch: false, isEvalSupported: false });
+    const document = await task.promise;
+    const pages = await Promise.all(
+      Array.from({ length: document.numPages }, async (_, index) => {
+        const page = await document.getPage(index + 1);
+        const content = await page.getTextContent();
+        return content.items.map((item) => ('str' in item ? item.str : '')).join(' ');
+      })
+    );
+    textFromPdfJs = compactText(pages.join('\n\n'));
+    await task.destroy();
+  } catch {
+    // pdfjs worker error ignored
+  }
+
+  if (textFromPdfJs.length > 10) {
+    return textFromPdfJs;
+  }
+
+  // Pure JS stream text parser fallback
+  const textFromStream = compactText(extractTextFromPdfBytes(bytes));
+  if (textFromStream.length > 5) {
+    return textFromStream;
+  }
+
+  return textFromPdfJs || textFromStream;
+}
+
+async function extractImageText(uri: string): Promise<string> {
+  if (Platform.OS !== 'web') {
+    try {
+      const { recognizeText } = await import('@infinitered/react-native-mlkit-text-recognition');
+      const result = await recognizeText(uri);
+      const text = compactText(result.text ?? '');
+      if (text) return text;
+    } catch {
+      // MLKit native OCR fallback
+    }
+  }
+  return '';
+}
+
+/** Extract real embedded PDF text or image OCR; no mock content generated. */
+export async function readDocumentOnDevice(file: SelectedDocument): Promise<ParsedDocumentResult> {
+  const pdf = isPdf(file);
+  let extractedText = '';
+  let processingWarning: string | undefined;
+
+  try {
+    extractedText = pdf ? await extractPdfText(file.uri) : await extractImageText(file.uri);
+    if (!extractedText) {
+      processingWarning = pdf
+        ? 'This PDF has no selectable text layer. Scanned pages or image PDFs can be saved directly.'
+        : 'No readable text was detected in this image. The document will still be saved.';
+    }
+  } catch (error) {
+    processingWarning = error instanceof Error ? error.message : 'Text extraction could not be completed.';
+  }
+
+  const category = extractedText ? categoryFromText(extractedText) : 'Other';
+  const suggestedTitle = deriveSuggestedTitle(extractedText, file.name);
 
   return {
     extractedText,
     category,
     suggestedTitle,
-    summary,
-    tags,
-    doctorName,
-    dateDetected: formatDisplayDate(new Date()),
-    confidenceScore: 98.6,
+    summary: extractedText
+      ? buildSummary(extractedText, category)
+      : 'Document saved. Uploaded file is stored locally on device.',
+    tags: extractedText ? buildTags(extractedText, category) : [pdf ? 'PDF' : 'Medical File'],
+    confidenceScore: extractedText ? 100 : 0,
+    processingWarning,
   };
 }
+
+export function extractStructuredInsights(text: string): {
+  doctorName?: string;
+  keyFindings: string[];
+  medications: string[];
+  testValues: { name: string; value: string }[];
+} {
+  if (!text) {
+    return { keyFindings: [], medications: [], testValues: [] };
+  }
+
+  const doctorMatch = text.match(/Dr\.\s+[A-Za-z\s]{3,25}/i);
+  const doctorName = doctorMatch ? doctorMatch[0].trim() : undefined;
+
+  const keyFindings: string[] = [];
+  const medications: string[] = [];
+  const testValues: { name: string; value: string }[] = [];
+
+  // Match test results like "HbA1c: 6.2%" or "Hemoglobin: 13.5 g/dL" or "Glucose 110 mg/dl"
+  const testPattern = /\b(HbA1c|Hemoglobin|Haemoglobin|Glucose|Cholesterol|TSH|Platelets|WBC|RBC|Creatinine|Bilirubin|BP|Blood Pressure)\b[:\s]*([\d\.]+\s*(?:mg\/dl|g\/dl|%|mIU\/L|\/mm3|mmHg)?)/gi;
+  let testMatch: RegExpExecArray | null;
+  while ((testMatch = testPattern.exec(text)) !== null) {
+    testValues.push({ name: testMatch[1], value: testMatch[2].trim() });
+  }
+
+  // Match medications lines
+  const medPattern = /\b([A-Z][a-z0-9\-]+(?:\s+[\d\.]+\s*(?:mg|mcg|ml|g))?)\s+(?:Tab|Capsule|Syrup|Injection|once daily|twice daily|1-0-1|1-0-0|0-0-1)\b/gi;
+  let medMatch: RegExpExecArray | null;
+  while ((medMatch = medPattern.exec(text)) !== null) {
+    medications.push(medMatch[0].trim());
+  }
+
+  // General findings line extraction
+  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 5);
+  for (const line of lines.slice(0, 5)) {
+    if (!line.toLowerCase().includes('dr.') && !keyFindings.includes(line)) {
+      keyFindings.push(line);
+    }
+  }
+
+  return {
+    doctorName,
+    keyFindings: keyFindings.slice(0, 3),
+    medications: medications.slice(0, 5),
+    testValues: testValues.slice(0, 5),
+  };
+}
+

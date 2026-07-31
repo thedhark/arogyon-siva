@@ -26,9 +26,8 @@ import Animated, {
 import { formatTime, formatDisplayDate } from '@/utils';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { readDocumentOnDevice } from '@/services/documentReaderService';
+import { readDocumentOnDevice, extractStructuredInsights } from '@/services/documentReaderService';
 import { useRecordsStore } from '@/hooks/useRecordsStore';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -76,6 +75,29 @@ interface ChatMessage {
 
 const generateAiResponse = (query: string): string => {
   const q = query.toLowerCase();
+
+  // Check stored records for medical document questions
+  if (
+    q.includes('report') ||
+    q.includes('record') ||
+    q.includes('prescription') ||
+    q.includes('lab') ||
+    q.includes('blood') ||
+    q.includes('test') ||
+    q.includes('extract') ||
+    q.includes('document') ||
+    q.includes('summary')
+  ) {
+    const savedRecords = useRecordsStore.getState().records;
+    if (savedRecords.length > 0) {
+      const recordSummaries = savedRecords.slice(0, 3).map((r, i) => {
+        const textSnippet = r.summary || (r.extractedText ? r.extractedText.slice(0, 100) : 'Document stored securely');
+        return `${i + 1}. ${r.title} (${r.category})\n   • Summary: ${textSnippet}`;
+      }).join('\n');
+      return `📁 Found ${savedRecords.length} medical record(s) saved in your vault:\n\n${recordSummaries}\n\nWould you like me to analyze any specific parameters or connected doctor recommendations?`;
+    }
+  }
+
   if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q.includes('help')) {
     return "Hello Rahul! How can I assist with your health today?";
   }
@@ -91,7 +113,7 @@ const generateAiResponse = (query: string): string => {
   if (q.includes('lab') || q.includes('test') || q.includes('blood') || q.includes('report')) {
     return "At-home lab test bookings are available from the Home screen.";
   }
-  return "How can I assist with your health today?";
+  return "I've reviewed your request. How can I assist you with your health records, appointments, or medical questions?";
 };
 
 const INITIAL_MESSAGES: ChatMessage[] = [];
@@ -331,12 +353,19 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
       tags: ocrResult.tags,
     });
 
-    let aiText = `Document "${selected.name}" saved to Records.`;
-    if (ocrResult.category === 'Prescription') {
-      aiText = `Prescription saved to Records.`;
-    } else if (ocrResult.category === 'Lab Report') {
-      aiText = `Lab report saved to Records.`;
+    const insights = extractStructuredInsights(ocrResult.extractedText);
+    let aiText = `📄 Extracted Insights from "${selected.name}":\n• Category: ${ocrResult.category}\n• Summary: ${ocrResult.summary}`;
+    
+    if (insights.doctorName) {
+      aiText += `\n• Doctor: ${insights.doctorName}`;
     }
+    if (insights.testValues.length > 0) {
+      aiText += `\n• Detected Parameters: ${insights.testValues.map(t => `${t.name}: ${t.value}`).join(', ')}`;
+    }
+    if (insights.medications.length > 0) {
+      aiText += `\n• Prescribed Medicines: ${insights.medications.join(', ')}`;
+    }
+    aiText += `\n\n✅ Saved securely to your Records vault.`;
 
     const aiMsg: ChatMessage = {
       id: (Date.now() + 1).toString(),

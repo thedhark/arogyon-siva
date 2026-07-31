@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
-import { CheckCircle2, Calendar, Clock, MapPin, ArrowRight, Download, Home } from 'lucide-react-native';
+import { CheckCircle2, Calendar, Clock, MapPin, ArrowRight, Download, Home, Building2, ShieldCheck, Hourglass } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { FadeInDown, FadeIn, useSharedValue, useAnimatedStyle, withTiming, withDelay, Easing, withSequence, withSpring } from 'react-native-reanimated';
 import { useBookingStore } from '@/hooks/useBookingStore';
@@ -57,6 +57,8 @@ export default function BookingSuccessScreen() {
     );
   }
 
+  const isConfirmed = appointment.confirmationStatus === 'confirmed';
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -68,12 +70,75 @@ export default function BookingSuccessScreen() {
             <CheckCircle2 size={64} color="#10B981" />
           </Animated.View>
           <Animated.Text entering={FadeInDown.delay(700)} style={[styles.title, { color: colors.text }]}>
-            Booking Confirmed!
+            {isConfirmed ? 'Booking Confirmed!' : 'Visit Requested!'}
           </Animated.Text>
           <Animated.Text entering={FadeInDown.delay(800)} style={styles.subtitle}>
-            Your appointment has been successfully booked.
+            {isConfirmed 
+              ? 'Your appointment has been confirmed by the hospital.'
+              : 'Payment successful! Your visit request has been sent to the hospital.'}
           </Animated.Text>
         </View>
+
+        {/* Live Hospital Confirmation Progress Stepper Card */}
+        <Animated.View style={[
+          styles.stepperCard,
+          { backgroundColor: isDark ? '#1E1E1E' : '#F0FDFA', borderColor: isDark ? '#333' : '#CCFBF1' },
+          cardAnimatedStyle
+        ]}>
+          <View style={styles.stepperHeader}>
+            <Building2 size={20} color="#0D9488" />
+            <Text style={[styles.stepperTitle, { color: colors.text }]}>Hospital Confirmation Progress</Text>
+          </View>
+
+          <View style={styles.stepperContainer}>
+            {/* Step 1: Payment */}
+            <View style={styles.stepRow}>
+              <View style={[styles.stepIconWrap, { backgroundColor: '#10B981' }]}>
+                <CheckCircle2 size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.stepTextCol}>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>Payment Received (₹{appointment.totalPaid || appointment.fee})</Text>
+                <Text style={styles.stepSub}>Paid via {appointment.paymentMethod || 'UPI Instant'}</Text>
+              </View>
+            </View>
+
+            <View style={styles.stepLineActive} />
+
+            {/* Step 2: Visit Request Sent */}
+            <View style={styles.stepRow}>
+              <View style={[styles.stepIconWrap, { backgroundColor: '#10B981' }]}>
+                <CheckCircle2 size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.stepTextCol}>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>Visit Requested</Text>
+                <Text style={styles.stepSub}>Request submitted to {appointment.hospitalName}</Text>
+              </View>
+            </View>
+
+            <View style={[styles.stepLineActive, !isConfirmed && styles.stepLinePending]} />
+
+            {/* Step 3: Hospital Slot Confirmation */}
+            <View style={styles.stepRow}>
+              <View style={[styles.stepIconWrap, { backgroundColor: isConfirmed ? '#10B981' : '#F59E0B' }]}>
+                {isConfirmed ? (
+                  <CheckCircle2 size={16} color="#FFFFFF" />
+                ) : (
+                  <Hourglass size={16} color="#FFFFFF" />
+                )}
+              </View>
+              <View style={styles.stepTextCol}>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>
+                  {isConfirmed ? 'Hospital Slot Confirmed' : 'Awaiting Hospital Approval'}
+                </Text>
+                <Text style={[styles.stepSub, !isConfirmed && { color: '#D97706', fontWeight: '600' }]}>
+                  {isConfirmed 
+                    ? 'Doctor availability verified & slot confirmed'
+                    : 'Hospital usually confirms slot within 10-15 mins'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
 
         {/* Dynamic Booking Details Card */}
         <Animated.View style={[
@@ -85,7 +150,7 @@ export default function BookingSuccessScreen() {
             <View>
               <Text style={styles.ticketLabel}>Doctor</Text>
               <Text style={[styles.ticketValue, { color: colors.text }]}>{appointment.doctorName}</Text>
-              <Text style={styles.ticketSubValue}>{appointment.speciality}</Text>
+              <Text style={styles.ticketSubValue}>{appointment.speciality} • {appointment.hospitalName}</Text>
             </View>
           </View>
           
@@ -97,7 +162,7 @@ export default function BookingSuccessScreen() {
                 <Calendar size={18} color={colors.accent} />
               </View>
               <View style={styles.infoTextWrapper}>
-                <Text style={styles.infoLabel}>Date</Text>
+                <Text style={styles.infoLabel}>Requested Date</Text>
                 <Text style={[styles.infoValue, { color: colors.text }]}>{appointment.date}</Text>
               </View>
             </View>
@@ -107,7 +172,7 @@ export default function BookingSuccessScreen() {
                 <Clock size={18} color="#F59E0B" />
               </View>
               <View style={styles.infoTextWrapper}>
-                <Text style={styles.infoLabel}>Time</Text>
+                <Text style={styles.infoLabel}>Requested Time Slot</Text>
                 <Text style={[styles.infoValue, { color: colors.text }]}>{appointment.time}</Text>
               </View>
             </View>
@@ -117,14 +182,14 @@ export default function BookingSuccessScreen() {
                 <MapPin size={18} color="#EC4899" />
               </View>
               <View style={styles.infoTextWrapper}>
-                <Text style={styles.infoLabel}>Location</Text>
+                <Text style={styles.infoLabel}>Hospital / Location</Text>
                 <Text style={[styles.infoValue, { color: colors.text }]}>{appointment.location}</Text>
               </View>
             </View>
           </View>
 
           <View style={styles.ticketFooter}>
-            <Text style={styles.bookingIdText}>Booking ID: {appointment.id}</Text>
+            <Text style={styles.bookingIdText}>Ref ID: {appointment.paymentId || appointment.id}</Text>
           </View>
 
           {/* Ticket Cutout Effects */}
@@ -188,6 +253,63 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  stepperCard: {
+    width: width - 48,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 24,
+  },
+  stepperHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  stepperTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  stepperContainer: {
+    gap: 0,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  stepIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  stepTextCol: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+  },
+  stepSub: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  stepLineActive: {
+    width: 2,
+    height: 20,
+    backgroundColor: '#10B981',
+    marginLeft: 13,
+    marginVertical: 4,
+  },
+  stepLinePending: {
+    backgroundColor: '#F59E0B',
+    borderStyle: 'dashed',
   },
   ticketCard: {
     width: width - 48,

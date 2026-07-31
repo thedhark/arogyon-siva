@@ -1,3 +1,24 @@
+export const SPECIALTY_ILLUSTRATIONS = {
+  generalPhysician: require('../assets/images/medical-theme/specialties/general-physician.png'),
+  cardiology: require('../assets/images/medical-theme/specialties/cardiology.png'),
+  ophthalmology: require('../assets/images/medical-theme/specialties/ophthalmology.png'),
+  dentistry: require('../assets/images/medical-theme/specialties/dentistry.png'),
+  generalSurgery: require('../assets/images/medical-theme/specialties/general-surgery.png'),
+  oncology: require('../assets/images/medical-theme/specialties/oncology.png'),
+  pediatrics: require('../assets/images/medical-theme/specialties/pediatrics.png'),
+  orthopedics: require('../assets/images/medical-theme/specialties/orthopedics.png'),
+  gynecology: require('../assets/images/medical-theme/specialties/gynecology.png'),
+  neurology: require('../assets/images/medical-theme/specialties/neurology.png'),
+  urology: require('../assets/images/medical-theme/specialties/urology.png'),
+  dermatology: require('../assets/images/medical-theme/specialties/dermatology.png'),
+  entCare: require('../assets/images/medical-theme/specialties/ent-care.png'),
+  psychiatry: require('../assets/images/medical-theme/specialties/psychiatry.png'),
+  diabetology: require('../assets/images/medical-theme/specialties/diabetology.png'),
+  gastroenterology: require('../assets/images/medical-theme/specialties/gastroenterology.png'),
+  pulmonology: require('../assets/images/medical-theme/specialties/pulmonology.png'),
+  nephrology: require('../assets/images/medical-theme/specialties/nephrology.png'),
+} as const;
+
 export const SITUATION_ILLUSTRATIONS = {
   accident: require('../assets/images/medical-theme/situations/accident.png'),
   fever: require('../assets/images/medical-theme/situations/fever.png'),

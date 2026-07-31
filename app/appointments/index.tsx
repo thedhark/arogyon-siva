@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { Calendar as CalendarIcon, Clock, MapPin, ChevronRight, ArrowLeft, Plus, CalendarPlus } from 'lucide-react-native';
+import { Calendar as CalendarIcon, Clock, MapPin, ChevronRight, ArrowLeft, Plus, CalendarPlus, Receipt } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
@@ -39,13 +39,21 @@ export default function AppointmentsScreen() {
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>My Appointments</Text>
-          <TouchableOpacity 
-            style={[styles.bookBtn, { backgroundColor: colors.accent }]}
-            onPress={() => router.push('/category/doctor')}
-          >
-            <Plus size={16} color="#FFFFFF" />
-            <Text style={styles.bookBtnText}>Book</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <TouchableOpacity 
+              style={[styles.receiptHeaderBtn, { backgroundColor: isDark ? '#2D2D2D' : '#F1F5F9' }]}
+              onPress={() => router.push('/profile/payments')}
+            >
+              <Receipt size={18} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.bookBtn, { backgroundColor: colors.accent }]}
+              onPress={() => router.push('/category/doctor')}
+            >
+              <Plus size={16} color="#FFFFFF" />
+              <Text style={styles.bookBtnText}>Book</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Header Tabs */}
@@ -158,6 +166,7 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 22, fontWeight: '700', flex: 1 },
+  receiptHeaderBtn: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
   bookBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 4 },
   bookBtnText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   tabsContainer: {

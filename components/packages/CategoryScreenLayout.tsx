@@ -175,7 +175,14 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
 
               {/* View Full Menu Button */}
               <View style={styles.fullMenuBtnWrapper}>
-                <TouchableOpacity style={[styles.fullMenuBtn, { backgroundColor: isDark ? '#2A2A2A' : '#FFF', borderColor: isDark ? '#444' : '#E5E5E5' }]}>
+                <TouchableOpacity 
+                  style={[styles.fullMenuBtn, { backgroundColor: isDark ? '#2A2A2A' : '#FFF', borderColor: isDark ? '#444' : '#E5E5E5' }]}
+                  onPress={() => {
+                    const targetHospId = hospital.id === 'h2' ? 'hosp-1' : 'hosp-1';
+                    router.push(`/hospital/${targetHospId}?tab=Packages` as any);
+                  }}
+                  activeOpacity={0.8}
+                >
                   <Text style={[styles.fullMenuText, { color: isDark ? '#FFF' : '#1A1A1A' }]}>View full menu</Text>
                   <ChevronRight size={16} color={isDark ? '#FFF' : '#1A1A1A'} />
                 </TouchableOpacity>

@@ -41,9 +41,19 @@ export interface Appointment {
   date: string; // e.g. "2023-10-24"
   time: string; // e.g. "10:00 AM"
   status: 'upcoming' | 'completed' | 'cancelled';
+  confirmationStatus?: 'visit_requested' | 'awaiting_approval' | 'confirmed';
   fee: string;
   type: string; // 'In-Clinic' | 'Video Consult'
   image: string;
+  paymentId?: string;
+  paymentMethod?: string;
+  paymentStatus?: 'paid' | 'refunded' | 'pending';
+  category?: 'consultation' | 'lab' | 'pharmacy';
+  consultationFee?: number;
+  taxFee?: number;
+  discount?: number;
+  totalPaid?: number;
+  transactionDate?: string;
 }
 
 interface BookingState {
@@ -54,7 +64,7 @@ interface BookingState {
   getDoctor: (id: string) => Doctor | undefined;
   getHospital: (id: string) => Hospital | undefined;
   getHospitalDoctors: (hospitalId: string) => Doctor[];
-  bookAppointment: (details: Omit<Appointment, 'id' | 'status'>) => string;
+  bookAppointment: (details: Omit<Appointment, 'id' | 'status'> & Partial<Appointment>) => string;
   cancelAppointment: (id: string) => void;
   getAppointment: (id: string) => Appointment | undefined;
 }
@@ -71,9 +81,9 @@ const initialDoctors: Record<string, Doctor> = {
     location: 'Koramangala, Apollo Clinic',
     distance: '1.2 km',
     patients: '5000+',
-    languages: 'English, Hindi',
-    about: 'Specialized in sports injuries, post-surgical rehab, back pain, and joint pain management. He helps patients recover better and move stronger.',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=600',
+    languages: 'English, Hindi, Kannada',
+    about: 'A delightful and highly recommended specialist in sports injury rehabilitation, post-surgical recovery, spinal realignment, and chronic joint pain management. Layered with modern bio-mechanical assessments and a delicate blend of personalized recovery techniques.',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=800',
     fee: '699',
     hospitalId: 'hosp-1',
     services: [
@@ -86,16 +96,16 @@ const initialDoctors: Record<string, Doctor> = {
     id: 'doc-2',
     name: 'Dr. Sneha Iyer',
     verified: true,
-    speciality: 'Gynaecologist',
+    speciality: 'Senior Consultant Gynaecologist',
     experience: '12+ Years Experience',
     rating: '4.8',
     reviews: '1.2K',
     location: 'Saket, Apollo Hospitals',
     distance: '3.1 km',
     patients: '10K+',
-    languages: 'English, Tamil',
-    about: 'Expert in women\'s health, pregnancy care, and infertility treatments.',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=300',
+    languages: 'English, Tamil, Hindi',
+    about: 'Renowned expert in women\'s health, high-risk pregnancy management, laparoscopic surgeries, and modern fertility counseling. Trusted by thousands of families for compassionate care.',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=800',
     fee: '800',
     hospitalId: 'hosp-1',
     services: [
@@ -108,7 +118,7 @@ const initialDoctors: Record<string, Doctor> = {
     id: 'doc-3',
     name: 'Dr. Rajesh Kumar',
     verified: true,
-    speciality: 'Dermatologist',
+    speciality: 'Dermatologist & Cosmetologist',
     experience: '10+ Years Experience',
     rating: '4.7',
     reviews: '890',
@@ -116,8 +126,8 @@ const initialDoctors: Record<string, Doctor> = {
     distance: '5.4 km',
     patients: '8000+',
     languages: 'English, Kannada, Hindi',
-    about: 'Specialist in skin care, acne treatments, and hair fall therapies.',
-    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=200',
+    about: 'Specialist in clinical dermatology, laser skin therapies, acne scar treatment, and advance hair care procedures. Delivers holistic skincare tailored to individual patient needs.',
+    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=800',
     fee: '750',
     hospitalId: 'hosp-2',
     services: [
@@ -155,18 +165,96 @@ const initialHospitals: Record<string, Hospital> = {
 
 const initialAppointments: Appointment[] = [
   {
+    id: 'app-101',
+    doctorId: 'doc-1',
+    doctorName: 'Dr. Arjun Mehta',
+    speciality: 'Sports Physiotherapist',
+    hospitalName: 'Apollo Clinic',
+    location: 'Koramangala, Bangalore',
+    date: '2026-07-30',
+    time: '10:00 AM',
+    status: 'upcoming',
+    fee: '699',
+    type: 'In-Clinic',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=800',
+    paymentId: 'PAY-RZP-984210',
+    paymentMethod: 'UPI (Google Pay)',
+    paymentStatus: 'paid',
+    category: 'consultation',
+    consultationFee: 699,
+    taxFee: 50,
+    discount: 50,
+    totalPaid: 699,
+    transactionDate: '2026-07-29T10:15:00Z',
+  },
+  {
     id: 'app-1',
     doctorId: 'doc-3',
     doctorName: 'Dr. Rajesh Kumar',
     speciality: 'Dermatologist',
     hospitalName: 'Manipal Hospital',
     location: 'Indiranagar, Bangalore',
-    date: '2023-09-15',
+    date: '2026-07-15',
     time: '04:30 PM',
     status: 'completed',
     fee: '750',
     type: 'In-Clinic',
-    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=200'
+    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=200',
+    paymentId: 'PAY-RZP-882319',
+    paymentMethod: 'Credit Card (•••• 4242)',
+    paymentStatus: 'paid',
+    category: 'consultation',
+    consultationFee: 750,
+    taxFee: 60,
+    discount: 60,
+    totalPaid: 750,
+    transactionDate: '2026-07-15T14:20:00Z',
+  },
+  {
+    id: 'app-99',
+    doctorId: 'doc-2',
+    doctorName: 'Dr. Sneha Iyer',
+    speciality: 'Senior Consultant Gynaecologist',
+    hospitalName: 'Apollo Hospitals',
+    location: 'Saket, New Delhi',
+    date: '2026-06-20',
+    time: '11:30 AM',
+    status: 'completed',
+    fee: '800',
+    type: 'Video Consult',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=800',
+    paymentId: 'PAY-WLT-773192',
+    paymentMethod: 'Arogyon Wallet',
+    paymentStatus: 'paid',
+    category: 'consultation',
+    consultationFee: 800,
+    taxFee: 50,
+    discount: 50,
+    totalPaid: 800,
+    transactionDate: '2026-06-20T09:45:00Z',
+  },
+  {
+    id: 'app-98',
+    doctorId: 'doc-1',
+    doctorName: 'Dr. Arjun Mehta',
+    speciality: 'Sports Physiotherapist',
+    hospitalName: 'Apollo Clinic',
+    location: 'Koramangala, Bangalore',
+    date: '2026-05-10',
+    time: '02:00 PM',
+    status: 'cancelled',
+    fee: '699',
+    type: 'In-Clinic',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=800',
+    paymentId: 'PAY-RFD-665123',
+    paymentMethod: 'UPI (PhonePe)',
+    paymentStatus: 'refunded',
+    category: 'consultation',
+    consultationFee: 699,
+    taxFee: 0,
+    discount: 0,
+    totalPaid: 699,
+    transactionDate: '2026-05-10T11:00:00Z',
   }
 ];
 
@@ -190,10 +278,22 @@ export const useBookingStore = create<BookingState>((set, get) => ({
 
   bookAppointment: (details) => {
     const id = `app-${Date.now()}`;
+    const feeNum = parseFloat(details.fee || '699') || 699;
+    
     const newAppointment: Appointment = {
       ...details,
       id,
-      status: 'upcoming'
+      status: 'upcoming',
+      confirmationStatus: details.confirmationStatus || 'visit_requested',
+      paymentId: details.paymentId || `PAY-RZP-${Date.now().toString().slice(-6)}`,
+      paymentMethod: details.paymentMethod || 'UPI (Instant)',
+      paymentStatus: details.paymentStatus || 'paid',
+      category: details.category || 'consultation',
+      consultationFee: details.consultationFee || feeNum,
+      taxFee: details.taxFee || Math.round(feeNum * 0.05),
+      discount: details.discount || 0,
+      totalPaid: details.totalPaid || feeNum,
+      transactionDate: details.transactionDate || new Date().toISOString(),
     };
     
     set((state) => ({
@@ -206,7 +306,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   cancelAppointment: (id) => {
     set((state) => ({
       appointments: state.appointments.map(app => 
-        app.id === id ? { ...app, status: 'cancelled' } : app
+        app.id === id ? { ...app, status: 'cancelled', paymentStatus: 'refunded' } : app
       )
     }));
   },

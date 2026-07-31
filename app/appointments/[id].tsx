@@ -75,13 +75,39 @@ export default function AppointmentDetailsScreen() {
           
           {/* Status Banner */}
           <Animated.View entering={FadeInDown.delay(100)}>
-            <View style={[styles.statusBanner, { backgroundColor: statusColor + '15' }]}>
-              <Text style={[styles.statusBannerText, { color: statusColor }]}>
-                {appointment.status === 'upcoming' && 'Appointment Confirmed'}
+            <View style={[
+              styles.statusBanner, 
+              { 
+                backgroundColor: appointment.confirmationStatus === 'visit_requested' 
+                  ? '#FEF3C7' 
+                  : statusColor + '15' 
+              }
+            ]}>
+              <Text style={[
+                styles.statusBannerText, 
+                { 
+                  color: appointment.confirmationStatus === 'visit_requested' 
+                    ? '#D97706' 
+                    : statusColor 
+                }
+              ]}>
+                {appointment.status === 'upcoming' && (
+                  appointment.confirmationStatus === 'visit_requested'
+                    ? 'Visit Requested • Awaiting Hospital Confirmation'
+                    : 'Appointment Confirmed'
+                )}
                 {appointment.status === 'completed' && 'Appointment Completed'}
                 {appointment.status === 'cancelled' && 'Appointment Cancelled'}
               </Text>
             </View>
+
+            {appointment.confirmationStatus === 'visit_requested' && (
+              <View style={{ backgroundColor: isDark ? '#1F2937' : '#F0FDFA', padding: 14, borderRadius: 14, marginTop: 10, borderWidth: 1, borderColor: isDark ? '#374151' : '#CCFBF1' }}>
+                <Text style={{ fontSize: 13, color: isDark ? '#E5E7EB' : '#0F766E', fontWeight: '600' }}>
+                  ⏳ Hospital Approval Pending: {appointment.hospitalName} has received your visit request and is verifying doctor availability. Slot confirmation usually takes 10-15 mins.
+                </Text>
+              </View>
+            )}
           </Animated.View>
 
           {/* QR Code Section (Only for upcoming) */}
@@ -147,6 +173,34 @@ export default function AppointmentDetailsScreen() {
               <FileText size={20} color={colors.textSecondary} />
               <Text style={[styles.infoValue, { color: colors.text, marginLeft: 12 }]}>{appointment.type} Consultation</Text>
             </View>
+          </Animated.View>
+
+          {/* Payment & Receipt Details */}
+          <Animated.View entering={FadeInDown.delay(450)} style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment & Receipt</Text>
+            <View style={styles.infoRow}>
+              <View style={styles.infoTextContainer}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Payment Status</Text>
+                <Text style={[styles.infoValue, { color: appointment.paymentStatus === 'refunded' ? '#EF4444' : '#10B981' }]}>
+                  {appointment.paymentStatus === 'refunded' ? 'Refunded' : 'Paid'} • ₹{appointment.totalPaid || appointment.fee}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoTextContainer}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Payment Method & Ref ID</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>
+                  {appointment.paymentMethod || 'UPI Instant'} ({appointment.paymentId || 'PAY-RZP-984210'})
+                </Text>
+              </View>
+            </View>
+            <Pressable 
+              style={[styles.receiptBtn, { backgroundColor: colors.accent + '15' }]} 
+              onPress={() => router.push('/profile/payments')}
+            >
+              <FileText size={16} color={colors.accent} />
+              <Text style={[styles.receiptBtnText, { color: colors.accent }]}>View All Receipts & Invoices</Text>
+            </Pressable>
           </Animated.View>
           
         </ScrollView>
@@ -281,6 +335,20 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 16,
+    fontWeight: '700',
+  },
+  receiptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    marginTop: 4,
+  },
+  receiptBtnText: {
+    fontSize: 14,
     fontWeight: '700',
   }
 });

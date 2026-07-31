@@ -156,45 +156,63 @@ function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDrag
 
   const pressScale = useSharedValue(1);
   const focusProgress = useSharedValue(isFocused ? 1 : 0);
+  const pointerHoverProgress = useSharedValue(0);
 
   useEffect(() => {
     focusProgress.value = withTiming(isFocused ? 1 : 0, { duration: 200 });
   }, [isFocused]);
 
   const animatedIconStyle = useAnimatedStyle(() => {
-    const isHovered = isDragging.value && hoverIndex.value === tabIndex;
-    const bubbleScale = withSpring(isHovered ? 1.15 : 1, { damping: 12, stiffness: 250 });
-    const bubbleY = withSpring(isHovered ? -4 : 0, { damping: 12, stiffness: 250 });
+    const isHoveredScrub = isDragging.value && hoverIndex.value === tabIndex;
+    const bubbleScale = withSpring(isHoveredScrub ? 1.15 : (1 + 0.05 * pointerHoverProgress.value), { damping: 14, stiffness: 280 });
+    const bubbleY = withSpring(isHoveredScrub ? -3 : (-1 * pointerHoverProgress.value), { damping: 14, stiffness: 280 });
 
     return {
-      opacity: 0.8 + 0.2 * focusProgress.value,
+      opacity: 0.85 + 0.15 * focusProgress.value,
       transform: [
         { translateY: (-2 * focusProgress.value) + bubbleY },
-        { scale: (1 + 0.1 * focusProgress.value) * bubbleScale },
+        { scale: (1 + 0.08 * focusProgress.value) * bubbleScale },
       ],
     };
   });
 
   const animatedTextStyle = useAnimatedStyle(() => ({
-    opacity: 0.6 + 0.4 * focusProgress.value,
+    opacity: 0.65 + 0.35 * focusProgress.value,
     transform: [
       { translateY: -1 * focusProgress.value },
     ],
   }));
 
+  const pointerHoverStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(pointerHoverProgress.value * (isFocused ? 0 : 0.15), { duration: 150 }),
+    transform: [
+      { scale: withSpring(0.95 + 0.05 * pointerHoverProgress.value, { damping: 15, stiffness: 300 }) },
+    ],
+  }));
+
+  const handleMouseEnter = () => {
+    pointerHoverProgress.value = withTiming(1, { duration: 150 });
+  };
+
+  const handleMouseLeave = () => {
+    pointerHoverProgress.value = withTiming(0, { duration: 200 });
+  };
+
   return (
     <AnimatedTouchable
-      activeOpacity={1}
+      activeOpacity={0.8}
       onPress={onPress}
-      onPressIn={() => { pressScale.value = withTiming(0.9, { duration: 100 }); }}
+      onPressIn={() => { pressScale.value = withTiming(0.92, { duration: 100 }); }}
       onPressOut={() => { pressScale.value = withTiming(1, { duration: 150 }); }}
+      {...({ onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave } as any)}
       style={[styles.tabButton, { transform: [{ scale: pressScale }] }]}
     >
+      <Animated.View style={[styles.hoverBackdrop, pointerHoverStyle, { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.1)' }]} pointerEvents="none" />
       <Animated.View style={animatedIconStyle}>
         {getTabIcon(route.name, isFocused ? activeIconColor : inactiveColor, isFocused, isDark)}
       </Animated.View>
       <Animated.View style={[styles.textCapsule, animatedTextStyle]}>
-        <Text style={[styles.tabLabel, { color: isFocused ? activeIconColor : inactiveColor }]}>
+        <Text style={[styles.tabLabel, { color: isFocused ? (isDark ? '#FFFFFF' : '#0F172A') : inactiveColor, fontWeight: isFocused ? '800' : '600' }]}>
           {meta.label}
         </Text>
       </Animated.View>
@@ -275,18 +293,17 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
     );
 
     if (nextIndex !== -1) {
-      // EXAGGERATED WWDC24 LIQUID BUBBLE PHYSICS
-      // Leading edge shoots to the new tab very quickly
+      // The leading edge leaves first; the trailing edge follows. They reshape
+      // one mounted GlassView instead of cross-fading two separate indicators.
       leadPosition.value = withSpring(nextIndex, {
-        damping: 14,
-        stiffness: 350,
-        mass: 0.4,
+        damping: 17,
+        stiffness: 360,
+        mass: 0.48,
       });
-      // Trailing edge lags heavily to create a massive gooey liquid stretch
       trailPosition.value = withSpring(nextIndex, {
         damping: 20,
-        stiffness: 80,
-        mass: 1.5,
+        stiffness: 150,
+        mass: 0.82,
       });
     }
   }, [state.index, visibleRoutes]);
@@ -294,21 +311,22 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
   const indicatorStyle = useAnimatedStyle(() => {
     if (containerWidth.value === 0) return { opacity: 0, transform: [{ translateX: 0 }], width: 0 };
 
-    // The navContainer has paddingLeft: 6 and paddingRight: 12 (total 18)
+    // The nav container has 6pt leading and 12pt trailing padding.
     const availableWidth = containerWidth.value - 18;
     const tabW = availableWidth / visibleRoutes.length;
-    const INDICATOR_WIDTH = 65; // Width of the green capsule outline pill behind active tab
+    const indicatorWidth = Math.min(tabW - 8, 72);
 
-    const leadCenter = leadPosition.value * tabW + (tabW / 2);
-    const trailCenter = trailPosition.value * tabW + (tabW / 2);
+    const leadCenter = 6 + leadPosition.value * tabW + (tabW / 2);
+    const trailCenter = 6 + trailPosition.value * tabW + (tabW / 2);
 
-    const leftEdge = Math.min(leadCenter, trailCenter) - (INDICATOR_WIDTH / 2);
-    const rightEdge = Math.max(leadCenter, trailCenter) + (INDICATOR_WIDTH / 2);
+    const leftEdge = Math.min(leadCenter, trailCenter) - (indicatorWidth / 2);
+    const rightEdge = Math.max(leadCenter, trailCenter) + (indicatorWidth / 2);
     
     const widthVal = rightEdge - leftEdge;
+    const stretch = Math.min(Math.abs(leadPosition.value - trailPosition.value), 1);
 
     return {
-      transform: [{ translateX: leftEdge }],
+      transform: [{ translateX: leftEdge }, { scaleY: 1 - (stretch * 0.08) }],
       width: widthVal,
       opacity: 1,
     };
@@ -444,7 +462,44 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
             )
           )}
 
-
+          {/* Animated Pure Crystal-Clear Liquid Glass Active Tab Indicator */}
+          <Animated.View 
+            style={[
+              styles.activeIndicator, 
+              indicatorStyle,
+              styles.activeIndicatorShadow,
+            ]} 
+          >
+            {Platform.OS === 'android' ? (
+              <AndroidGlassView style={[StyleSheet.absoluteFill, { borderRadius: 24, overflow: 'hidden' }]} />
+            ) : supportsLiquidGlass ? (
+              <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 24, overflow: 'hidden' }]} />
+            ) : (
+              <BlurView intensity={75} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 24, overflow: 'hidden' }]} />
+            )}
+            <ExpoLinearGradient
+              pointerEvents="none"
+              colors={isDark
+                ? ['rgba(255,255,255,0.24)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']
+                : ['rgba(255,255,255,0.68)', 'rgba(255,255,255,0.24)', 'rgba(255,255,255,0.08)']}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={[StyleSheet.absoluteFill, styles.indicatorSheen]}
+            />
+            <View
+              style={[
+                StyleSheet.absoluteFill, 
+                { 
+                  borderRadius: 24, 
+                  borderWidth: 1, 
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.44)' : 'rgba(255, 255, 255, 0.88)',
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.08)',
+                }
+              ]} 
+            />
+            <View style={styles.specularRimLine} pointerEvents="none" />
+          </Animated.View>
 
           {visibleRoutes.map((route: any, index: number) => {
             const isFocused = state.index === state.routes.indexOf(route);
@@ -468,7 +523,15 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
                 key={route.key}
                 style={styles.tabSlot}
               >
-                <TabItem route={route} isFocused={isFocused} meta={meta} onPress={onPress} hoverIndex={hoverIndex} tabIndex={index} isDragging={isDraggingScrub} />
+                <TabItem 
+                  route={route} 
+                  isFocused={isFocused} 
+                  meta={meta} 
+                  onPress={onPress} 
+                  hoverIndex={hoverIndex} 
+                  tabIndex={index} 
+                  isDragging={isDraggingScrub} 
+                />
               </View>
             );
           })}
@@ -634,6 +697,24 @@ const styles = StyleSheet.create({
     height: 50,
     zIndex: 0,
   },
+  activeIndicator: {
+    position: 'absolute',
+    top: 6,
+    bottom: 6,
+    borderRadius: 25,
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  activeIndicatorShadow: {
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.28,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  indicatorSheen: {
+    borderRadius: 25,
+  },
   tabButton: {
     flex: 1,
     alignItems: 'center',
@@ -653,5 +734,23 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+  },
+  hoverBackdrop: {
+    position: 'absolute',
+    top: 6,
+    bottom: 6,
+    left: 4,
+    right: 4,
+    borderRadius: 22,
+    zIndex: -1,
+  },
+  specularRimLine: {
+    position: 'absolute',
+    top: 0,
+    left: 12,
+    right: 12,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    borderRadius: 1,
   },
 });

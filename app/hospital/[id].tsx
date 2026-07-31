@@ -1,13 +1,28 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Modal, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Modal, Pressable, Platform, Share, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { ShieldCheck, Star, MapPin, HeartPulse, Calendar, Menu, X, ChevronRight, Sparkles, Users, Briefcase } from 'lucide-react-native';
+import { 
+  ShieldCheck, 
+  Star, 
+  MapPin, 
+  HeartPulse, 
+  Calendar, 
+  Menu, 
+  X, 
+  ChevronRight, 
+  Sparkles, 
+  Users, 
+  Briefcase, 
+  Info
+} from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
+import AndroidGlassView from '@/components/AndroidGlassView';
 
 import HospitalHeader from '@/components/HospitalHeader';
-import HospitalFacilities from '@/components/hospital/HospitalFacilities';
 import HospitalDoctors from '@/components/hospital/HospitalDoctors';
 import HospitalPackages from '@/components/hospital/HospitalPackages';
 import HospitalInfoModal from '@/components/hospital/HospitalInfoModal';
@@ -23,11 +38,12 @@ const MENU_SECTIONS = [
 ];
 
 export default function HospitalProfile() {
-  const { id } = useLocalSearchParams();
+  const { id, tab: initialTab, category: initialCategory } = useLocalSearchParams<{ id: string; tab?: string; category?: string }>();
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
   
+  const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
   const storeHospitals = useBookingStore(state => state.hospitals);
   const storeDoctors = useBookingStore(state => state.doctors);
   
@@ -36,12 +52,25 @@ export default function HospitalProfile() {
     return Object.values(storeDoctors || {}).filter(doc => doc.hospitalId === (id as string));
   }, [storeDoctors, id]);
 
-  const [activeTab, setActiveTab] = useState('Experts');
-  const [selectedPackageCategory, setSelectedPackageCategory] = useState('all');
+  const [activeTab, setActiveTab] = useState(
+    initialTab && initialTab.toLowerCase() === 'packages' ? 'Packages' : 'Experts'
+  );
+  const [selectedPackageCategory, setSelectedPackageCategory] = useState(
+    initialCategory || 'all'
+  );
+  const [searchFilterText, setSearchFilterText] = useState('');
+
+  React.useEffect(() => {
+    if (initialTab && initialTab.toLowerCase() === 'packages') {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 220, animated: true });
+      }, 200);
+    }
+  }, [initialTab]);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
-  const tabs = ['Experts', 'Packages'];
 
   const toggleDocLike = (docId: any) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
@@ -77,6 +106,19 @@ export default function HospitalProfile() {
     );
   }
 
+  const handleOpenInfoPage = () => {
+    router.push({
+      pathname: '/hospital/info',
+      params: {
+        id: id as string,
+        hospitalName: hospitalData.name,
+        location: hospitalData.location,
+        phone: (hospitalData as any)?.phone,
+        image: hospitalData.image,
+      },
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -96,44 +138,52 @@ export default function HospitalProfile() {
           />
           <HospitalHeader 
             onBackPress={() => router.back()}
-            onSharePress={() => {}}
-            onCallPress={() => {}}
-            onInfoPress={() => setIsInfoModalOpen(true)}
+            onSearchChange={(text) => setSearchFilterText(text)}
+            isDark={isDark}
           />
           <View style={styles.imageCountBadge}>
             <Text style={styles.imageCountText}>1/15</Text>
           </View>
         </View>
 
+        {/* Main Hospital Details Section */}
         <View style={[styles.topSection, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
           <View style={styles.mainInfoRow}>
-            <View style={[styles.logoBox, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E5E5' }]}>
-              <Image source={{ uri: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=200' }} style={styles.logo} />
-            </View>
-            <View style={styles.mainInfoText}>
-              <View style={styles.titleRow}>
-                <Text style={[styles.hospitalName, { color: colors.text }]}>{hospitalData.name}</Text>
+            {/* Title & Info trigger button + Location pin */}
+            <TouchableOpacity 
+              style={styles.mainInfoText} 
+              onPress={handleOpenInfoPage}
+              activeOpacity={0.7}
+            >
+              <View style={styles.titleWithInfoRow}>
+                <Text style={[styles.hospitalName, { color: colors.text }]} numberOfLines={1}>
+                  {hospitalData.name}
+                </Text>
+                <View style={styles.infoTriggerBtn}>
+                  <Info size={18} color={isDark ? '#9CA3AF' : '#475569'} />
+                </View>
               </View>
-              <View style={styles.subInfoRow}>
-                <Star size={12} color="#10B981" fill="#10B981" />
-                <Text style={styles.ratingText}>{hospitalData.rating} ({hospitalData.ratingsCount})</Text>
-                <Text style={styles.typeText}> •  {hospitalData.type}</Text>
+
+              {/* Location Pin Row */}
+              <View style={styles.subwayLocationRow}>
+                <MapPin size={14} color="#64748B" />
+                <Text style={styles.subwayLocationText}>
+                  {hospitalData.distance || '3.7 km'} • {hospitalData.location || 'Bangalore'}
+                </Text>
               </View>
-              <View style={styles.locationRow}>
-                <MapPin size={12} color="#9CA3AF" />
-                <Text style={styles.locationText}>{hospitalData.distance} • {hospitalData.location}</Text>
+            </TouchableOpacity>
+
+            {/* Top Right Dark Green Rating Badge */}
+            <View style={styles.subwayRatingContainer}>
+              <View style={styles.subwayRatingPill}>
+                <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
+                <Text style={styles.subwayRatingVal}>{hospitalData.rating || '4.0'}</Text>
               </View>
+              <Text style={styles.subwayReviewsText}>By {hospitalData.ratingsCount || '2.8K+'}</Text>
             </View>
           </View>
 
-          {/* Hospital Facilities Bar */}
-          <HospitalFacilities 
-            colors={colors} 
-            isDark={isDark} 
-            onViewAllPress={() => setIsInfoModalOpen(true)}
-          />
-
-          {/* Top Tabs matching Image 1 */}
+          {/* Top Tabs */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity 
               style={[styles.tabItem, activeTab === 'Experts' && styles.tabItemActive]}
@@ -160,67 +210,61 @@ export default function HospitalProfile() {
             toggleDocLike={toggleDocLike} 
             colors={colors} 
             isDark={isDark} 
+            searchQuery={searchFilterText}
           />
         )}
 
         {activeTab === 'Packages' && (
           <HospitalPackages 
+            hospitalName={hospitalData.name} 
             colors={colors} 
-            isDark={isDark} 
-            hospitalName={hospitalData.name}
+            isDark={isDark}
             selectedCategory={selectedPackageCategory}
-            onSelectCategory={(catId) => setSelectedPackageCategory(catId)}
+            onSelectCategory={(slug: string) => setSelectedPackageCategory(slug)}
+            searchQuery={searchFilterText}
           />
         )}
       </ScrollView>
 
-      {/* Floating Menu Button at Bottom Right (Zomato/Swiggy Style) */}
+      {/* Menu Filter Button */}
       <TouchableOpacity 
         style={styles.floatingMenuBtn}
-        activeOpacity={0.9}
-        onPress={() => setIsMenuOpen(!isMenuOpen)}
+        onPress={() => setIsMenuOpen(true)}
+        activeOpacity={0.88}
       >
-        {isMenuOpen ? (
-          <>
-            <X size={18} color="#FFFFFF" />
-            <Text style={styles.floatingMenuText}>Close</Text>
-          </>
+        {Platform.OS === 'android' ? (
+          <AndroidGlassView style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.85)' }]} />
+        ) : supportsLiquidGlass ? (
+          <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.5)' }]} />
         ) : (
-          <>
-            <Menu size={18} color="#FFFFFF" />
-            <Text style={styles.floatingMenuText}>Menu</Text>
-          </>
+          <BlurView intensity={90} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.6)' }]} />
         )}
+        <Menu size={18} color="#FFFFFF" />
+        <Text style={styles.floatingMenuText}>Care Menu</Text>
       </TouchableOpacity>
 
-      {/* Zomato/Swiggy Section Menu Modal Overlay */}
+      {/* Menu Sheet Modal */}
       <Modal
         visible={isMenuOpen}
         transparent={true}
         animationType="fade"
         onRequestClose={() => setIsMenuOpen(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay} 
-          onPress={() => setIsMenuOpen(false)}
-        >
+        <Pressable style={styles.modalOverlay} onPress={() => setIsMenuOpen(false)}>
           <Pressable 
-            style={[
-              styles.modalCard,
-              { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }
-            ]}
+            style={[styles.modalCard, { backgroundColor: isDark ? '#1C1929' : '#FFFFFF' }]}
             onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Menu Categories</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Menu</Text>
               <TouchableOpacity onPress={() => setIsMenuOpen(false)}>
-                <X size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+                <X size={20} color={colors.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ maxHeight: 350 }}>
               {MENU_SECTIONS.map((sec) => {
-                const isActive = activeTab === sec.tab && (sec.tab !== 'Packages' || selectedPackageCategory === sec.categorySlug);
+                const isActive = activeTab === sec.tab && (sec.tab === 'Experts' || selectedPackageCategory === sec.categorySlug);
                 return (
                   <TouchableOpacity
                     key={sec.id}
@@ -255,12 +299,14 @@ export default function HospitalProfile() {
         </Pressable>
       </Modal>
 
-      {/* Hospital Facilities & Info Detailed Modal */}
+      {/* Hospital Facilities & Info Modal */}
       <HospitalInfoModal
         visible={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         hospitalName={hospitalData.name}
         location={hospitalData.location}
+        phone={(hospitalData as any)?.phone}
+        image={hospitalData.image}
       />
     </View>
   );
@@ -303,65 +349,66 @@ const styles = StyleSheet.create({
     marginTop: -20,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingTop: 24,
+    paddingTop: 20,
   },
   mainInfoRow: {
     flexDirection: 'row',
-    paddingHorizontal: 12,
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
     marginBottom: 16,
-  },
-  logoBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 4,
-    marginRight: 16,
-  },
-  logo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
   },
   mainInfoText: {
     flex: 1,
+    paddingRight: 12,
   },
-  titleRow: {
+  titleWithInfoRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 6,
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
   },
   hospitalName: {
     fontSize: 22,
     fontWeight: '800',
-    flex: 1,
-    marginRight: 8,
-    lineHeight: 28,
+    letterSpacing: -0.3,
   },
-  subInfoRow: {
+  infoTriggerBtn: {
+    padding: 2,
+  },
+  subwayLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    gap: 4,
   },
-  ratingText: {
+  subwayLocationText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#10B981',
-    marginLeft: 4,
+    color: '#64748B',
+    fontWeight: '500',
   },
-  typeText: {
-    fontSize: 13,
-    color: '#6B7280',
+  subwayRatingContainer: {
+    alignItems: 'flex-end',
   },
-  locationRow: {
+  subwayRatingPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#0F6D38',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 14,
+    gap: 4,
   },
-  locationText: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginLeft: 4,
+  subwayRatingVal: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  subwayReviewsText: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+    marginTop: 4,
+    textDecorationLine: 'underline',
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -386,22 +433,19 @@ const styles = StyleSheet.create({
   tabTextActive: {
     fontWeight: '800',
   },
-  tabDivider: {
-    height: 1,
-    width: '100%',
-    marginTop: -1,
-  },
   floatingMenuBtn: {
     position: 'absolute',
     bottom: 24,
     right: 20,
-    backgroundColor: '#1E1E2D',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 25,
     gap: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -463,4 +507,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, ScrollView, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, UploadCloud, File, Image as ImageIcon, Camera, Sparkles, CheckCircle2, Copy, FileText, Tag, User, Users, Plus } from 'lucide-react-native';
+import { ChevronLeft, UploadCloud, File, Image as ImageIcon, Sparkles, CheckCircle2, Copy, Tag, User, Users, Plus } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -26,11 +26,14 @@ export default function UploadRecordScreen() {
   const [isScanning, setIsScanning] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [parsedResult, setParsedResult] = useState<ParsedDocumentResult | null>(null);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
   const [customTitle, setCustomTitle] = useState('');
   const [copied, setCopied] = useState(false);
 
   const processFileWithOCR = async (file: { uri: string; name: string; type: string }) => {
     setSelectedFile(file);
+    setParsedResult(null);
+    setExtractionError(null);
     setIsScanning(true);
     try {
       const result = await readDocumentOnDevice(file);
@@ -38,6 +41,7 @@ export default function UploadRecordScreen() {
       setCustomTitle(result.suggestedTitle);
     } catch (err) {
       console.warn('OCR Scan failed:', err);
+      setExtractionError('The original file can still be saved, but its text could not be read on this device.');
     } finally {
       setIsScanning(false);
     }
@@ -95,10 +99,8 @@ export default function UploadRecordScreen() {
 
   const handleUpload = () => {
     if (!selectedFile) return;
-    
     setIsUploading(true);
-    
-    setTimeout(() => {
+    try {
       addRecord({
         title: customTitle || selectedFile.name,
         date: formatDisplayDate(new Date()),
@@ -110,10 +112,10 @@ export default function UploadRecordScreen() {
         summary: parsedResult?.summary,
         tags: parsedResult?.tags,
       });
-      
-      setIsUploading(false);
       router.back();
-    }, 800);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -248,8 +250,8 @@ export default function UploadRecordScreen() {
             <Animated.View entering={FadeInDown} style={[styles.ocrStatusCard, { backgroundColor: colors.accent + '10', borderColor: colors.accent + '30' }]}>
               <ActivityIndicator color={colors.accent} size="small" />
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={[styles.ocrStatusTitle, { color: colors.accent }]}>Scanning Document On-Device...</Text>
-                <Text style={[styles.ocrStatusSub, { color: colors.textSecondary }]}>Extracting text & medical parameters ($0 cost)</Text>
+                <Text style={[styles.ocrStatusTitle, { color: colors.accent }]}>Reading Document Locally...</Text>
+                <Text style={[styles.ocrStatusSub, { color: colors.textSecondary }]}>Running image OCR or extracting embedded PDF text</Text>
               </View>
             </Animated.View>
           )}
@@ -285,6 +287,8 @@ export default function UploadRecordScreen() {
                 <Text style={[styles.summaryText, { color: colors.text }]}>{parsedResult.summary}</Text>
               </View>
 
+              {parsedResult.processingWarning && <Text style={[styles.extractionWarning, { color: '#B45309' }]}>{parsedResult.processingWarning}</Text>}
+
               {/* Detected Tags */}
               <View style={styles.tagsRow}>
                 {parsedResult.tags.map((tag, idx) => (
@@ -318,6 +322,8 @@ export default function UploadRecordScreen() {
               </View>
             </Animated.View>
           )}
+
+          {extractionError && <Text style={[styles.extractionWarning, { color: '#B45309' }]}>{extractionError}</Text>}
 
           <Animated.View entering={FadeInUp.delay(500)} style={styles.footer}>
             <Pressable 
@@ -439,6 +445,7 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 12, fontWeight: '600', marginBottom: 4 },
   titleInput: { height: 44, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, fontSize: 15, fontWeight: '500' },
   summaryText: { fontSize: 14, lineHeight: 20 },
+  extractionWarning: { fontSize: 13, lineHeight: 19, marginTop: 12 },
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
   tagPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   tagText: { fontSize: 12, fontWeight: '500' },

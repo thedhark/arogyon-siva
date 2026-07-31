@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft, FileText, Download, Calendar } from 'lucide-react-native';
+import { ArrowLeft, FileText, Download, Calendar, Package } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import { useRecordsStore } from '@/hooks/useRecordsStore';
+import { exportPrescriptionPdf } from '@/services/prescriptionPdfService';
 
 export default function PrescriptionsScreen() {
   const router = useRouter();
@@ -13,6 +14,18 @@ export default function PrescriptionsScreen() {
   const { colors, isDark } = useTheme();
   
   const prescriptions = useRecordsStore((state) => state.prescriptions);
+  const [exportingId, setExportingId] = useState<string | null>(null);
+
+  const handleExport = async (script: (typeof prescriptions)[number]) => {
+    setExportingId(script.id);
+    try {
+      await exportPrescriptionPdf(script);
+    } catch (error) {
+      Alert.alert('Could not create PDF', error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      setExportingId(null);
+    }
+  };
 
   return (
     <AnimatedScreen entrance="fade" style={StyleSheet.flatten([styles.container, { backgroundColor: colors.background }])}>
@@ -67,9 +80,14 @@ export default function PrescriptionsScreen() {
                   </View>
                 </View>
 
-                <TouchableOpacity style={[styles.downloadBtn, { backgroundColor: colors.accent + '10' }]}>
-                  <Download size={18} color={colors.accent} />
-                  <Text style={[styles.downloadText, { color: colors.accent }]}>Download PDF</Text>
+                <TouchableOpacity
+                  style={[styles.downloadBtn, { backgroundColor: colors.accent + '10' }]}
+                  onPress={() => handleExport(script)}
+                  disabled={exportingId === script.id}
+                  accessibilityLabel={`Download PDF for ${script.doctorName}`}
+                >
+                  {exportingId === script.id ? <ActivityIndicator size="small" color={colors.accent} /> : <Download size={18} color={colors.accent} />}
+                  <Text style={[styles.downloadText, { color: colors.accent }]}>{exportingId === script.id ? 'Creating PDF…' : 'Download PDF'}</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -79,11 +97,6 @@ export default function PrescriptionsScreen() {
     </AnimatedScreen>
   );
 }
-
-// Minimal missing icon mock since Package wasn't imported from lucide
-const Package = ({ size, color }: any) => (
-  <View style={{ width: size, height: size, backgroundColor: color, borderRadius: 2 }} />
-);
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

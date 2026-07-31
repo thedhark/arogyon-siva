@@ -1,13 +1,18 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft, CreditCard, Plus, Smartphone, Star, Wallet, History, Download, ArrowUpRight, ArrowDownLeft } from 'lucide-react-native';
+import { ArrowLeft, CreditCard, Plus, Smartphone, Star, Wallet, History, Download, ArrowUpRight, ArrowDownLeft, Receipt, ShieldCheck } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import { useProfileStore } from '@/hooks/useProfileStore';
+import { useBookingStore, Appointment } from '@/hooks/useBookingStore';
 import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
 import PaymentForm from '@/components/profile/PaymentForm';
+import PaymentStatsHeader from '@/components/payments/PaymentStatsHeader';
+import BookingPaymentFilter, { PaymentFilterType } from '@/components/payments/BookingPaymentFilter';
+import BookingPaymentCard from '@/components/payments/BookingPaymentCard';
+import PaymentInvoiceModal from '@/components/payments/PaymentInvoiceModal';
 import { formatDisplayDate } from '@/utils';
 
 export default function PaymentsScreen() {
@@ -15,12 +20,19 @@ export default function PaymentsScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   
+  const [activeTab, setActiveTab] = useState<'bookings' | 'wallet'>('bookings');
+  const [activeFilter, setActiveFilter] = useState<PaymentFilterType>('all');
+  const [selectedInvoice, setSelectedInvoice] = useState<Appointment | null>(null);
+
+  const appointments = useBookingStore(state => state.appointments);
   const paymentMethods = useProfileStore(state => state.paymentMethods);
   const setPrimaryPayment = useProfileStore(state => state.setPrimaryPayment);
   const walletBalance = useProfileStore(state => state.walletBalance);
   const transactions = useProfileStore(state => state.transactions);
   const addFunds = useProfileStore(state => state.addFunds);
-  const bottomSheetRef = useRef<ActionBottomSheetRef>(null);
+  
+  const cardSheetRef = useRef<ActionBottomSheetRef>(null);
+  const invoiceSheetRef = useRef<ActionBottomSheetRef>(null);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -30,138 +42,238 @@ export default function PaymentsScreen() {
     }).format(amount);
   };
 
+  // Compute metrics
+  const paidAppointments = appointments.filter(a => a.paymentStatus !== 'refunded' && a.status !== 'cancelled');
+  const totalSpent = paidAppointments.reduce((acc, curr) => acc + (curr.totalPaid || parseFloat(curr.fee) || 699), 0);
+  const totalSavings = paidAppointments.reduce((acc, curr) => acc + (curr.discount || 50), 0);
+
+  // Filtered Appointments
+  const filteredAppointments = appointments.filter(a => {
+    if (activeFilter === 'paid') return a.paymentStatus === 'paid' && a.status !== 'cancelled';
+    if (activeFilter === 'refunded') return a.paymentStatus === 'refunded' || a.status === 'cancelled';
+    if (activeFilter === 'upcoming') return a.status === 'upcoming';
+    return true;
+  });
+
+  const filterCounts: Record<PaymentFilterType, number> = {
+    all: appointments.length,
+    paid: appointments.filter(a => a.paymentStatus === 'paid' && a.status !== 'cancelled').length,
+    upcoming: appointments.filter(a => a.status === 'upcoming').length,
+    refunded: appointments.filter(a => a.paymentStatus === 'refunded' || a.status === 'cancelled').length,
+  };
+
+  const handleOpenInvoice = (appointment: Appointment) => {
+    setSelectedInvoice(appointment);
+    invoiceSheetRef.current?.present();
+  };
+
   return (
     <AnimatedScreen entrance="fade" style={StyleSheet.flatten([styles.container, { backgroundColor: colors.background }])}>
       <Stack.Screen options={{ headerShown: false }} />
+      
+      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: colors.background }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Payments & Wallet</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Payments & Receipts</Text>
       </View>
-      
-      <ScrollView contentContainerStyle={styles.content}>
-        
-        {/* Arogyon Wallet Card */}
-        <View style={[styles.walletCard, { backgroundColor: isDark ? '#1E1E1E' : '#10B981' }]}>
-          <View style={styles.walletHeader}>
-            <View style={styles.walletTitleRow}>
-              <Wallet size={20} color="#FFFFFF" />
-              <Text style={styles.walletTitle}>Arogyon Wallet</Text>
-            </View>
-            <Text style={styles.walletSubtitle}>Available Balance</Text>
-          </View>
-          <Text style={styles.walletBalance}>{formatCurrency(walletBalance)}</Text>
-          
+
+      {/* Segment Control */}
+      <View style={styles.segmentContainer}>
+        <View style={[styles.segmentBg, { backgroundColor: isDark ? '#1E1E1E' : '#F1F5F9' }]}>
           <TouchableOpacity 
-            style={styles.addFundsBtn}
-            onPress={() => {
-              // Simulate adding funds
-              addFunds(1000);
-            }}
+            style={[styles.segmentBtn, activeTab === 'bookings' && { backgroundColor: colors.background, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }]}
+            onPress={() => setActiveTab('bookings')}
+            activeOpacity={0.8}
           >
-            <Plus size={18} color={isDark ? '#FFFFFF' : '#10B981'} />
-            <Text style={[styles.addFundsText, { color: isDark ? '#FFFFFF' : '#10B981' }]}>Add Funds</Text>
+            <Receipt size={16} color={activeTab === 'bookings' ? colors.accent : colors.textSecondary} />
+            <Text style={[styles.segmentText, { color: activeTab === 'bookings' ? colors.accent : colors.textSecondary, fontWeight: activeTab === 'bookings' ? '700' : '600' }]}>
+              Booking Receipts
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.segmentBtn, activeTab === 'wallet' && { backgroundColor: colors.background, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }]}
+            onPress={() => setActiveTab('wallet')}
+            activeOpacity={0.8}
+          >
+            <Wallet size={16} color={activeTab === 'wallet' ? colors.accent : colors.textSecondary} />
+            <Text style={[styles.segmentText, { color: activeTab === 'wallet' ? colors.accent : colors.textSecondary, fontWeight: activeTab === 'wallet' ? '700' : '600' }]}>
+              Wallet & Methods
+            </Text>
           </TouchableOpacity>
         </View>
+      </View>
+      
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {activeTab === 'bookings' ? (
+          <>
+            {/* Spending Statistics Header */}
+            <PaymentStatsHeader 
+              totalSpent={totalSpent}
+              totalSavings={totalSavings}
+              paidCount={paidAppointments.length}
+            />
 
-        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>Payment Methods</Text>
-        
-        {paymentMethods.length === 0 ? (
-          <View style={[styles.emptyState, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
-            <View style={styles.iconCircle}>
-              <CreditCard size={32} color="#10B981" />
-            </View>
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Payment Methods</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
-              Add a card or UPI ID for faster checkouts when booking appointments.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.list}>
-            {paymentMethods.map(method => (
-              <TouchableOpacity 
-                key={method.id} 
-                style={[
-                  styles.card, 
-                  { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: method.isPrimary ? colors.accent : (isDark ? '#333' : '#F0F0F0') },
-                  method.isPrimary && { borderWidth: 2 }
-                ]}
-                onPress={() => setPrimaryPayment(method.id)}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={styles.methodIcon}>
-                    {method.type === 'card' ? (
-                      <CreditCard size={24} color={colors.text} />
-                    ) : (
-                      <Smartphone size={24} color={colors.text} />
-                    )}
-                  </View>
-                  <View style={styles.methodInfo}>
-                    <Text style={[styles.methodDetails, { color: colors.text }]}>{method.details}</Text>
-                    <Text style={[styles.methodType, { color: colors.textSecondary }]}>
-                      {method.type === 'card' ? 'Credit/Debit Card' : 'UPI ID'}
-                    </Text>
-                  </View>
-                  {method.isPrimary && (
-                    <View style={[styles.primaryBadge, { backgroundColor: colors.accent + '20' }]}>
-                      <Star size={14} color={colors.accent} fill={colors.accent} />
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+            {/* Filter Bar */}
+            <BookingPaymentFilter 
+              activeFilter={activeFilter}
+              onSelectFilter={setActiveFilter}
+              counts={filterCounts}
+            />
 
-        <Pressable 
-          style={[styles.addCard, { borderColor: colors.accent, borderStyle: 'dashed' }]}
-          onPress={() => bottomSheetRef.current?.present()}
-        >
-          <View style={[styles.addIconWrap, { backgroundColor: colors.accent + '15' }]}>
-            <Plus size={24} color={colors.accent} />
-          </View>
-          <Text style={[styles.addText, { color: colors.accent }]}>Add Payment Method</Text>
-        </Pressable>
-
-        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 32 }]}>Recent Transactions</Text>
-        
-        <View style={styles.transactionsList}>
-          {transactions.length === 0 ? (
-             <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>No recent transactions.</Text>
-          ) : (
-            transactions.map((tx) => (
-              <View key={tx.id} style={[styles.transactionItem, { borderBottomColor: isDark ? '#333' : '#F0F0F0' }]}>
-                <View style={[styles.txIconWrap, { backgroundColor: tx.type === 'credit' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-                  {tx.type === 'credit' ? (
-                    <ArrowDownLeft size={20} color="#10B981" />
-                  ) : (
-                    <ArrowUpRight size={20} color="#EF4444" />
-                  )}
+            {/* Payment Cards List */}
+            {filteredAppointments.length === 0 ? (
+              <View style={[styles.emptyState, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
+                <View style={styles.iconCircle}>
+                  <Receipt size={32} color="#10B981" />
                 </View>
-                <View style={styles.txInfo}>
-                  <Text style={[styles.txTitle, { color: colors.text }]} numberOfLines={1}>{tx.title}</Text>
-                  <Text style={[styles.txDate, { color: colors.textSecondary }]}>
-                    {formatDisplayDate(tx.date)}
-                  </Text>
-                </View>
-                <View style={styles.txRight}>
-                  <Text style={[styles.txAmount, { color: tx.type === 'credit' ? '#10B981' : colors.text }]}>
-                    {tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
-                  </Text>
-                  <TouchableOpacity style={styles.downloadBtn}>
-                    <Download size={16} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>No Receipts Found</Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
+                  When you book appointments or lab tests, payment receipts will appear here.
+                </Text>
               </View>
-            ))
-          )}
-        </View>
+            ) : (
+              filteredAppointments.map((app) => (
+                <BookingPaymentCard 
+                  key={app.id}
+                  appointment={app}
+                  onViewInvoice={handleOpenInvoice}
+                />
+              ))
+            )}
+          </>
+        ) : (
+          <>
+            {/* Arogyon Wallet Card */}
+            <View style={[styles.walletCard, { backgroundColor: isDark ? '#1E1E1E' : '#10B981' }]}>
+              <View style={styles.walletHeader}>
+                <View style={styles.walletTitleRow}>
+                  <Wallet size={20} color="#FFFFFF" />
+                  <Text style={styles.walletTitle}>Arogyon Wallet</Text>
+                </View>
+                <Text style={styles.walletSubtitle}>Available Balance</Text>
+              </View>
+              <Text style={styles.walletBalance}>{formatCurrency(walletBalance)}</Text>
+              
+              <TouchableOpacity 
+                style={styles.addFundsBtn}
+                onPress={() => addFunds(1000)}
+                activeOpacity={0.8}
+              >
+                <Plus size={18} color={isDark ? '#FFFFFF' : '#10B981'} />
+                <Text style={[styles.addFundsText, { color: isDark ? '#FFFFFF' : '#10B981' }]}>Add Funds (+₹1,000)</Text>
+              </TouchableOpacity>
+            </View>
 
+            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>Saved Payment Methods</Text>
+            
+            {paymentMethods.length === 0 ? (
+              <View style={[styles.emptyState, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
+                <View style={styles.iconCircle}>
+                  <CreditCard size={32} color="#10B981" />
+                </View>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>No Payment Methods</Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
+                  Add a card or UPI ID for faster checkouts when booking appointments.
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.list}>
+                {paymentMethods.map(method => (
+                  <TouchableOpacity 
+                    key={method.id} 
+                    style={[
+                      styles.card, 
+                      { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: method.isPrimary ? colors.accent : (isDark ? '#333' : '#F0F0F0') },
+                      method.isPrimary && { borderWidth: 2 }
+                    ]}
+                    onPress={() => setPrimaryPayment(method.id)}
+                  >
+                    <View style={styles.cardHeader}>
+                      <View style={styles.methodIcon}>
+                        {method.type === 'card' ? (
+                          <CreditCard size={24} color={colors.text} />
+                        ) : (
+                          <Smartphone size={24} color={colors.text} />
+                        )}
+                      </View>
+                      <View style={styles.methodInfo}>
+                        <Text style={[styles.methodDetails, { color: colors.text }]}>{method.details}</Text>
+                        <Text style={[styles.methodType, { color: colors.textSecondary }]}>
+                          {method.type === 'card' ? 'Credit/Debit Card' : 'UPI ID'}
+                        </Text>
+                      </View>
+                      {method.isPrimary && (
+                        <View style={[styles.primaryBadge, { backgroundColor: colors.accent + '20' }]}>
+                          <Star size={14} color={colors.accent} fill={colors.accent} />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            <Pressable 
+              style={[styles.addCard, { borderColor: colors.accent, borderStyle: 'dashed' }]}
+              onPress={() => cardSheetRef.current?.present()}
+            >
+              <View style={[styles.addIconWrap, { backgroundColor: colors.accent + '15' }]}>
+                <Plus size={24} color={colors.accent} />
+              </View>
+              <Text style={[styles.addText, { color: colors.accent }]}>Add New Payment Method</Text>
+            </Pressable>
+
+            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 32 }]}>Wallet Activity Log</Text>
+            
+            <View style={styles.transactionsList}>
+              {transactions.length === 0 ? (
+                 <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>No wallet activity recorded.</Text>
+              ) : (
+                transactions.map((tx) => (
+                  <View key={tx.id} style={[styles.transactionItem, { borderBottomColor: isDark ? '#333' : '#F0F0F0' }]}>
+                    <View style={[styles.txIconWrap, { backgroundColor: tx.type === 'credit' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+                      {tx.type === 'credit' ? (
+                        <ArrowDownLeft size={20} color="#10B981" />
+                      ) : (
+                        <ArrowUpRight size={20} color="#EF4444" />
+                      )}
+                    </View>
+                    <View style={styles.txInfo}>
+                      <Text style={[styles.txTitle, { color: colors.text }]} numberOfLines={1}>{tx.title}</Text>
+                      <Text style={[styles.txDate, { color: colors.textSecondary }]}>
+                        {formatDisplayDate(tx.date)}
+                      </Text>
+                    </View>
+                    <View style={styles.txRight}>
+                      <Text style={[styles.txAmount, { color: tx.type === 'credit' ? '#10B981' : colors.text }]}>
+                        {tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
+                      </Text>
+                      <TouchableOpacity style={styles.downloadBtn}>
+                        <Download size={16} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
 
-      <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
-        <PaymentForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
+      {/* Add Payment Method Bottom Sheet */}
+      <ActionBottomSheet ref={cardSheetRef} snapPoints={['88%']}>
+        <PaymentForm onSuccess={() => cardSheetRef.current?.dismiss()} />
+      </ActionBottomSheet>
+
+      {/* Digital Tax Invoice Bottom Sheet */}
+      <ActionBottomSheet ref={invoiceSheetRef} snapPoints={['82%']}>
+        <PaymentInvoiceModal 
+          appointment={selectedInvoice}
+          onClose={() => invoiceSheetRef.current?.dismiss()}
+        />
       </ActionBottomSheet>
     </AnimatedScreen>
   );
@@ -169,11 +281,37 @@ export default function PaymentsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    paddingBottom: 12,
+  },
   backBtn: { paddingRight: 16 },
-  headerTitle: { fontSize: 22, fontWeight: '700' },
-  content: { padding: 20 },
-  emptyState: { alignItems: 'center', justifyContent: 'center', padding: 32, borderRadius: 24, marginTop: 20, marginBottom: 20 },
+  headerTitle: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+  segmentContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  segmentBg: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 16,
+  },
+  segmentBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  segmentText: {
+    fontSize: 13,
+  },
+  content: { padding: 20, paddingBottom: 60 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', padding: 32, borderRadius: 24, marginTop: 10, marginBottom: 20 },
   iconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(16, 185, 129, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
   emptySubtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20 },

@@ -1,10 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageSourcePropType, Platform } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate, Extrapolation } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { SITUATION_ILLUSTRATIONS } from '@/constants/medical-theme-assets';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
+import AndroidGlassView from '@/components/AndroidGlassView';
+import {
+  SITUATION_ILLUSTRATIONS,
+  SPECIALTY_ILLUSTRATIONS,
+} from '@/constants/medical-theme-assets';
 
 type CategoryItem = {
   id: number;
@@ -13,24 +19,24 @@ type CategoryItem = {
 };
 
 const SPECIALITIES: CategoryItem[] = [
-  { id: 1, name: 'General Physician', image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=200' },
-  { id: 2, name: 'Cardiology', image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=200' },
-  { id: 3, name: 'Ophthalmology', image: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=200' },
-  { id: 4, name: 'Dentistry', image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=200' },
-  { id: 5, name: 'General Surgery', image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?q=80&w=200' },
-  { id: 6, name: 'Oncology', image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=200' },
-  { id: 7, name: 'Pediatrics', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200' },
-  { id: 8, name: 'Orthopedics', image: 'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?q=80&w=200' },
-  { id: 9, name: 'Gynecology', image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?q=80&w=200' },
-  { id: 10, name: 'Neurology', image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?q=80&w=200' },
-  { id: 17, name: 'Urology', image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=200' },
-  { id: 18, name: 'Dermatology', image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=200' },
-  { id: 19, name: 'ENT Care', image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=200' },
-  { id: 20, name: 'Psychiatry', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200' },
-  { id: 21, name: 'Diabetology', image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?q=80&w=200' },
-  { id: 22, name: 'Gastroenterology', image: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?q=80&w=200' },
-  { id: 23, name: 'Pulmonology', image: 'https://images.unsplash.com/photo-1584061803517-5e8c1e6c98dc?q=80&w=200' },
-  { id: 24, name: 'Nephrology', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=200' },
+  { id: 1, name: 'General Physician', image: SPECIALTY_ILLUSTRATIONS.generalPhysician },
+  { id: 2, name: 'Cardiology', image: SPECIALTY_ILLUSTRATIONS.cardiology },
+  { id: 3, name: 'Ophthalmology', image: SPECIALTY_ILLUSTRATIONS.ophthalmology },
+  { id: 4, name: 'Dentistry', image: SPECIALTY_ILLUSTRATIONS.dentistry },
+  { id: 5, name: 'General Surgery', image: SPECIALTY_ILLUSTRATIONS.generalSurgery },
+  { id: 6, name: 'Oncology', image: SPECIALTY_ILLUSTRATIONS.oncology },
+  { id: 7, name: 'Pediatrics', image: SPECIALTY_ILLUSTRATIONS.pediatrics },
+  { id: 8, name: 'Orthopedics', image: SPECIALTY_ILLUSTRATIONS.orthopedics },
+  { id: 9, name: 'Gynecology', image: SPECIALTY_ILLUSTRATIONS.gynecology },
+  { id: 10, name: 'Neurology', image: SPECIALTY_ILLUSTRATIONS.neurology },
+  { id: 17, name: 'Urology', image: SPECIALTY_ILLUSTRATIONS.urology },
+  { id: 18, name: 'Dermatology', image: SPECIALTY_ILLUSTRATIONS.dermatology },
+  { id: 19, name: 'ENT Care', image: SPECIALTY_ILLUSTRATIONS.entCare },
+  { id: 20, name: 'Psychiatry', image: SPECIALTY_ILLUSTRATIONS.psychiatry },
+  { id: 21, name: 'Diabetology', image: SPECIALTY_ILLUSTRATIONS.diabetology },
+  { id: 22, name: 'Gastroenterology', image: SPECIALTY_ILLUSTRATIONS.gastroenterology },
+  { id: 23, name: 'Pulmonology', image: SPECIALTY_ILLUSTRATIONS.pulmonology },
+  { id: 24, name: 'Nephrology', image: SPECIALTY_ILLUSTRATIONS.nephrology },
 ];
 
 const SITUATIONS: CategoryItem[] = [
@@ -69,11 +75,17 @@ export default function CategoryGrid() {
   const rightEdge = useSharedValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
 
+  const supportsLiquidGlass = Platform.OS === 'ios' && typeof isLiquidGlassAvailable === 'function' && isLiquidGlassAvailable();
+
   const activeCategories = activeTab === 0 ? SPECIALITIES : SITUATIONS;
 
   const handleTabPress = (index: number) => {
     if (activeTab !== index) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (Platform.OS === 'ios') {
+        Haptics.selectionAsync();
+      } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
       setActiveTab(index);
       
       // Reset scroll position when swapping categories so it doesn't get stuck
@@ -100,9 +112,18 @@ export default function CategoryGrid() {
   const animatedCapsuleStyle = useAnimatedStyle(() => {
     const width = containerWidth || 300; 
     
+    // Stretch differential between leading and trailing edges
+    const stretch = Math.abs(rightEdge.value - leftEdge.value);
+    
+    // Vertical squash scale (compress height slightly during high-speed stretch)
+    const scaleY = interpolate(stretch, [0, 0.4], [1, 0.86], Extrapolation.CLAMP);
+
     return {
-      left: leftEdge.value * (width / 2) + 2,
-      right: (1 - rightEdge.value) * (width / 2) + 2,
+      left: leftEdge.value * (width / 2) + 3,
+      right: (1 - rightEdge.value) * (width / 2) + 3,
+      transform: [
+        { scaleY },
+      ],
     };
   });
 
@@ -119,13 +140,44 @@ export default function CategoryGrid() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View 
-          style={[styles.segmentContainer, { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7' }]}
+          style={[
+            styles.segmentContainer, 
+            { 
+              backgroundColor: isDark ? 'rgba(28,28,30,0.65)' : 'rgba(238,238,242,0.75)',
+              borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+            }
+          ]}
           onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
         >
+          {supportsLiquidGlass ? (
+            <GlassView 
+              glassEffectStyle="regular"
+              isInteractive={true}
+              style={StyleSheet.absoluteFillObject}
+            />
+          ) : Platform.OS === 'ios' ? (
+            <BlurView 
+              tint={isDark ? 'dark' : 'light'} 
+              intensity={40} 
+              style={StyleSheet.absoluteFillObject} 
+            />
+          ) : (
+            <AndroidGlassView style={StyleSheet.absoluteFillObject} />
+          )}
+
           {containerWidth > 0 && (
             <Animated.View style={[
               styles.capsule, 
-              { backgroundColor: isDark ? '#3A3A3C' : '#FFFFFF' }, 
+              { 
+                backgroundColor: isDark ? 'rgba(60,60,65,0.95)' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.9)',
+                borderWidth: StyleSheet.hairlineWidth,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: isDark ? 0.35 : 0.16,
+                shadowRadius: 6,
+                elevation: 4,
+              }, 
               animatedCapsuleStyle
             ]} />
           )}
@@ -228,22 +280,23 @@ const styles = StyleSheet.create({
   },
   segmentContainer: {
     flexDirection: 'row',
-    height: 40,
-    borderRadius: 20,
-    padding: 2,
+    height: 42,
+    borderRadius: 21,
+    padding: 3,
     position: 'relative',
     marginBottom: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
   },
   capsule: {
     position: 'absolute',
-    top: 2,
-    bottom: 2,
+    top: 3,
+    bottom: 3,
     borderRadius: 18,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 3,
   },
   segmentButton: {
     flex: 1,

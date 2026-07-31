@@ -369,13 +369,12 @@ export default function PaymentGatewayModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
   modalSheet: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: '88%',
+    flex: 1,
+    height: '100%',
+    paddingTop: Platform.OS === 'ios' ? 44 : 16,
     paddingBottom: Platform.OS === 'ios' ? 36 : 24,
   },
   header: {

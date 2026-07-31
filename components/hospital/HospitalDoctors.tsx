@@ -11,6 +11,7 @@ interface Props {
   toggleDocLike: (id: string) => void;
   colors: any;
   isDark: boolean;
+  searchQuery?: string;
 }
 
 const PRIMARY_SPECIALTIES = [
@@ -37,10 +38,9 @@ const ALL_SPECIALTIES = [
   { id: 'General Physician', name: 'General Medicine' },
 ];
 
-export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, colors, isDark }: Props) {
+export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, colors, isDark, searchQuery: externalSearchQuery = '' }: Props) {
   const router = useRouter();
   const [selectedSpec, setSelectedSpec] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const storeDoctors = useBookingStore(state => state.doctors);
 
@@ -48,6 +48,7 @@ export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, col
   const listToRender = (doctors && doctors.length > 0) ? doctors : allStoreDoctors;
 
   const filteredDoctors = useMemo(() => {
+    const query = (externalSearchQuery || '').trim().toLowerCase();
     return listToRender.filter(d => {
       const matchSpec =
         selectedSpec === 'All' ||
@@ -58,30 +59,16 @@ export default function HospitalDoctors({ doctors, likedDocs, toggleDocLike, col
         (selectedSpec === 'Dermatologist' && d.speciality?.toLowerCase().includes('derma'));
 
       const matchQuery =
-        !searchQuery.trim() ||
-        (d.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (d.speciality || '').toLowerCase().includes(searchQuery.toLowerCase());
+        !query ||
+        (d.name || '').toLowerCase().includes(query) ||
+        (d.speciality || '').toLowerCase().includes(query);
 
       return matchSpec && matchQuery;
     });
-  }, [listToRender, selectedSpec, searchQuery]);
+  }, [listToRender, selectedSpec, externalSearchQuery]);
 
   return (
     <View style={styles.tabContent}>
-      {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF', borderColor: isDark ? '#3F3F46' : '#E2E8F0' }]}>
-        <Search size={16} color={isDark ? '#9CA3AF' : '#64748B'} style={{ marginRight: 8 }} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search doctor, specialty or condition..."
-          placeholderTextColor={isDark ? '#6B7280' : '#94A3B8'}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <TouchableOpacity style={styles.filterBtn} activeOpacity={0.7} onPress={() => setShowCategoryModal(true)}>
-          <SlidersHorizontal size={16} color={isDark ? '#9CA3AF' : '#334155'} />
-        </TouchableOpacity>
-      </View>
 
       {/* Sleek, Compact Specialty Filter Scroll Pills */}
       <ScrollView

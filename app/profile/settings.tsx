@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft, Bell, Shield, CircleHelp, LogOut, Activity, RefreshCw, Smartphone, ChevronRight, FileText, Star, Lock } from 'lucide-react-native';
+import { ArrowLeft, Bell, Shield, CircleHelp, LogOut, Activity, RefreshCw, Smartphone, ChevronRight, FileText, Star, Lock, Trash2 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import { useProfileStore } from '@/hooks/useProfileStore';
+import { PremiumSwitch } from '@/components/PremiumSwitch';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -47,10 +48,9 @@ export default function SettingsScreen() {
               <Text style={[styles.toggleTitle, { color: colors.text }]}>Appointment Reminders</Text>
               <Text style={[styles.toggleSub, { color: colors.textMuted }]}>Push alerts 1 hour before booking</Text>
             </View>
-            <Switch
+            <PremiumSwitch
               value={settings.appointmentReminders}
               onValueChange={(val) => updateSettings({ appointmentReminders: val })}
-              trackColor={{ false: '#767577', true: colors.accent }}
             />
           </View>
 
@@ -59,10 +59,9 @@ export default function SettingsScreen() {
               <Text style={[styles.toggleTitle, { color: colors.text }]}>Lab Test Report Alerts</Text>
               <Text style={[styles.toggleSub, { color: colors.textMuted }]}>Notify when lab results are ready</Text>
             </View>
-            <Switch
+            <PremiumSwitch
               value={settings.labReportAlerts}
               onValueChange={(val) => updateSettings({ labReportAlerts: val })}
-              trackColor={{ false: '#767577', true: colors.accent }}
             />
           </View>
 
@@ -71,10 +70,9 @@ export default function SettingsScreen() {
               <Text style={[styles.toggleTitle, { color: colors.text }]}>Medication Pill Reminders</Text>
               <Text style={[styles.toggleSub, { color: colors.textMuted }]}>Timely alerts for daily dosages</Text>
             </View>
-            <Switch
+            <PremiumSwitch
               value={settings.pillReminders}
               onValueChange={(val) => updateSettings({ pillReminders: val })}
-              trackColor={{ false: '#767577', true: colors.accent }}
             />
           </View>
         </View>
@@ -87,10 +85,9 @@ export default function SettingsScreen() {
               <Text style={[styles.toggleTitle, { color: colors.text }]}>Biometric Screen Lock</Text>
               <Text style={[styles.toggleSub, { color: colors.textMuted }]}>Require FaceID / Fingerprint to open app</Text>
             </View>
-            <Switch
+            <PremiumSwitch
               value={settings.biometricSecurity}
               onValueChange={(val) => updateSettings({ biometricSecurity: val })}
-              trackColor={{ false: '#767577', true: colors.accent }}
             />
           </View>
         </View>
@@ -114,6 +111,41 @@ export default function SettingsScreen() {
           <TouchableOpacity style={[styles.navRow, { borderTopWidth: 1, borderTopColor: isDark ? '#333' : '#F0F0F0' }]} onPress={() => Alert.alert('Rate Arogyon', 'Thank you for rating Arogyon on App Store / Play Store!')}>
             <Star size={20} color="#F59E0B" style={{ marginRight: 12 }} />
             <Text style={[styles.navText, { color: colors.text }]}>Rate App on App Store / Play Store</Text>
+            <ChevronRight size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Account & Data Management */}
+        <Text style={[styles.sectionHeading, { color: colors.text, marginTop: 24 }]}>Account & Data</Text>
+        <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0', padding: 0 }]}>
+          <TouchableOpacity 
+            style={styles.navRow} 
+            onPress={() => {
+              Alert.alert(
+                'Delete Account & Data',
+                'Are you sure you want to permanently delete your Arogyon account? All your medical profiles, lab records, appointment history, and family data will be erased immediately. This action cannot be undone.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { 
+                    text: 'Delete Account', 
+                    style: 'destructive',
+                    onPress: () => {
+                      Alert.alert(
+                        'Account Deleted', 
+                        'Your account and associated health data have been permanently removed.',
+                        [{ text: 'OK', onPress: () => router.replace('/auth/login') }]
+                      );
+                    }
+                  }
+                ]
+              );
+            }}
+          >
+            <Trash2 size={20} color="#DC2626" style={{ marginRight: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.navText, { color: '#DC2626', fontWeight: '700' }]}>Delete Account & Data</Text>
+              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>Permanently erase your account and health records</Text>
+            </View>
             <ChevronRight size={20} color={colors.textMuted} />
           </TouchableOpacity>
         </View>

@@ -47,6 +47,7 @@
       "fallbackToCacheTimeout": 0
     },
     "extra": {
+      "appVariant": "patient",
       "router": {}
     },
     "owner": "bhalaladev"

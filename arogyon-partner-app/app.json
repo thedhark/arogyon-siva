@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Arogyon Partner",
+    "slug": "arogyon-partner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "arogyon-partner",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.arogyon.partner",
+      "adaptiveIcon": {
+        "backgroundColor": "#0F172A",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.arogyon.partner"
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

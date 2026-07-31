@@ -28,12 +28,15 @@ import {
   X,
   UserCheck,
   FileText,
+  ArrowRight,
+  Percent,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
 
 import PaymentGatewayModal, { PaymentDetails } from '@/components/booking/PaymentGatewayModal';
 import CouponOverlay from '@/components/packages/CouponOverlay';
+import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
 
 export interface PatientMember {
   id: string;
@@ -43,6 +46,60 @@ export interface PatientMember {
   gender: string;
   notes?: string;
 }
+
+export interface AddOnPackage {
+  id: string;
+  title: string;
+  price: number;
+  originalPrice: number;
+  discount: string;
+  image: string;
+  summary: string;
+  badge: string;
+}
+
+const ADD_ON_PACKAGES: AddOnPackage[] = [
+  {
+    id: 'addon-full-body',
+    title: 'Full Body Vitamin & CBC Screening',
+    price: 499,
+    originalPrice: 1200,
+    discount: '58% OFF',
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400',
+    summary: '60+ Vital Tests including Vitamin D, B12, Thyroid, Blood Count & Sugar',
+    badge: 'Popular Add-on'
+  },
+  {
+    id: 'addon-diabetes',
+    title: 'HbA1c & Fasting Glucose Screening',
+    price: 299,
+    originalPrice: 650,
+    discount: '54% OFF',
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=400',
+    summary: 'Comprehensive 3-month average blood sugar & lipid profile assessment',
+    badge: 'Essential'
+  },
+  {
+    id: 'addon-cardiac',
+    title: 'ECG & Lipid Profile Heart Care',
+    price: 599,
+    originalPrice: 1400,
+    discount: '57% OFF',
+    image: 'https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?q=80&w=400',
+    summary: 'Resting ECG test with cholesterol, HDL/LDL & cardiac risk markers',
+    badge: 'Top Rated'
+  },
+  {
+    id: 'addon-derma',
+    title: 'Clinical Skin & Hydration Check',
+    price: 399,
+    originalPrice: 890,
+    discount: '55% OFF',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400',
+    summary: 'Dermatology patch test, skin moisture barrier check & consult',
+    badge: 'Wellness'
+  }
+];
 
 const INITIAL_PATIENTS: PatientMember[] = [
   { id: 'p1', name: 'John Doe', relation: 'Self', age: '28', gender: 'Male', notes: '' },
@@ -62,6 +119,7 @@ export default function CheckoutScreen() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCouponOverlay, setShowCouponOverlay] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [selectedAddOns, setSelectedAddOns] = useState<AddOnPackage[]>([]);
 
   // Patient / Family Member State
   const [patients, setPatients] = useState<PatientMember[]>(INITIAL_PATIENTS);
@@ -95,8 +153,41 @@ export default function CheckoutScreen() {
   const platformFee = 20;
   const taxes = Math.round(consultationFee * 0.05); // 5% tax mock
 
+  const addOnsTotal = selectedAddOns.reduce((sum, p) => sum + p.price, 0);
   const discount = appliedCoupon ? appliedCoupon.discount : 0;
-  const totalPayable = Math.max(0, consultationFee + platformFee + taxes - discount);
+  const totalPayable = Math.max(0, consultationFee + platformFee + taxes + addOnsTotal - discount);
+
+  const toggleAddOn = (pkg: AddOnPackage) => {
+    if (selectedAddOns.some(p => p.id === pkg.id)) {
+      setSelectedAddOns(prev => prev.filter(p => p.id !== pkg.id));
+    } else {
+      setSelectedAddOns(prev => [...prev, pkg]);
+    }
+  };
+
+  const handleProceedToPayment = () => {
+    router.push({
+      pathname: '/booking/payment',
+      params: {
+        totalPayable: totalPayable.toString(),
+        consultationFee: consultationFee.toString(),
+        platformFee: platformFee.toString(),
+        taxes: taxes.toString(),
+        discount: discount.toString(),
+        addOnsCount: selectedAddOns.length.toString(),
+        doctorId: doctorData.id,
+        doctorName: doctorData.name,
+        speciality: doctorData.speciality,
+        hospitalName: hospitalData?.name || doctorData.location,
+        location: doctorData.location,
+        date: (date as string) || 'Today',
+        time: (time as string) || '10:00 AM',
+        type: (type as string) || 'In-Clinic',
+        doctorImage: doctorData.image,
+        patientName: selectedPatient.name,
+      }
+    });
+  };
 
   const handleApplyCoupon = (code: string) => {
     let disc = 50;
@@ -241,6 +332,77 @@ export default function CheckoutScreen() {
           <ChevronRight size={20} color="#9CA3AF" />
         </TouchableOpacity>
 
+        {/* Add Health Packages & Care Plans Carousel (Left to Right Scroll) */}
+        <View style={styles.packagesHeaderRow}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 0, marginBottom: 4 }]}>
+            ADD HEALTH PACKAGES & CARE PLANS
+          </Text>
+          <Text style={styles.packagesSubheader}>Save up to 60% on add-on lab screenings</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.packagesHorizontalRow}
+        >
+          {ADD_ON_PACKAGES.map((pkg) => {
+            const isAdded = selectedAddOns.some(p => p.id === pkg.id);
+            return (
+              <View
+                key={pkg.id}
+                style={[
+                  styles.packageCarouselCard,
+                  { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isAdded ? '#10B981' : (isDark ? '#333' : '#E5E7EB') }
+                ]}
+              >
+                <View style={styles.packageImageContainer}>
+                  <Image source={{ uri: pkg.image }} style={styles.packageImage} />
+                  <View style={styles.packageBadge}>
+                    <Text style={styles.packageBadgeText}>{pkg.discount}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.packageCardBody}>
+                  <Text style={[styles.packageCardTitle, { color: colors.text }]} numberOfLines={1}>
+                    {pkg.title}
+                  </Text>
+                  <Text style={styles.packageCardSummary} numberOfLines={2}>
+                    {pkg.summary}
+                  </Text>
+
+                  <View style={styles.packagePriceRow}>
+                    <View>
+                      <Text style={[styles.packagePrice, { color: colors.text }]}>₹{pkg.price}</Text>
+                      <Text style={styles.packageOriginalPrice}>₹{pkg.originalPrice}</Text>
+                    </View>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.addPackageBtn,
+                        isAdded && { backgroundColor: '#ECFDF5', borderColor: '#10B981' }
+                      ]}
+                      onPress={() => toggleAddOn(pkg)}
+                      activeOpacity={0.8}
+                    >
+                      {isAdded ? (
+                        <>
+                          <CheckCircle2 size={13} color="#10B981" />
+                          <Text style={[styles.addPackageBtnText, { color: '#10B981' }]}>Added</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={13} color="#F43F5E" />
+                          <Text style={[styles.addPackageBtnText, { color: '#F43F5E' }]}>Add</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+
         {/* Coupon Section */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Apply Coupon</Text>
         <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
@@ -293,6 +455,17 @@ export default function CheckoutScreen() {
             <Text style={[styles.paymentValue, { color: colors.text }]}>₹{taxes}</Text>
           </View>
 
+          {selectedAddOns.length > 0 && (
+            <View style={styles.paymentRow}>
+              <Text style={[styles.paymentLabel, { color: '#3B82F6', fontWeight: '600' }]}>
+                Add-on Packages ({selectedAddOns.length})
+              </Text>
+              <Text style={[styles.paymentValue, { color: '#3B82F6', fontWeight: '700' }]}>
+                + ₹{addOnsTotal}
+              </Text>
+            </View>
+          )}
+
           {appliedCoupon && (
             <View style={styles.paymentRow}>
               <Text style={[styles.paymentLabel, { color: '#10B981', fontWeight: '700' }]}>
@@ -316,21 +489,16 @@ export default function CheckoutScreen() {
         </View>
       </ScrollView>
 
-      {/* Footer Action Bar */}
-      <View style={[styles.footerBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderTopColor: isDark ? '#333' : '#E5E7EB' }]}>
-        <View style={styles.availabilityCol}>
-          <Text style={styles.totalPayableLabel}>Total Payable</Text>
-          <Text style={[styles.consultationFeeLabel, { color: colors.text }]}>₹{totalPayable}</Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.bookButton}
-          onPress={() => setShowPaymentModal(true)}
-        >
-          <CheckCircle2 size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
-          <Text style={styles.videoBookText}>Pay & Confirm</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Sticky Booking Payment Action Bar matching reference design */}
+      <StickyBookingPaymentBar
+        priceDropText={appliedCoupon ? `Unlocked ₹${appliedCoupon.discount} Coupon OFF` : "Price dropped by ₹167"}
+        price={totalPayable}
+        originalPrice={totalPayable + 500}
+        discountText="55% Off"
+        ctaText="Proceed to Pay"
+        ctaIcon="shield"
+        onPressCTA={() => setShowPaymentModal(true)}
+      />
 
       {/* Patient / Family Member Modal */}
       <Modal visible={showPatientModal} transparent animationType="slide" onRequestClose={() => setShowPatientModal(false)}>
@@ -511,7 +679,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 150,
   },
   sectionTitle: {
     fontSize: 15,
@@ -890,5 +1058,190 @@ const styles = StyleSheet.create({
   saveBtnText: {
     fontWeight: '800',
     color: '#FFFFFF',
+  },
+  // Packages Carousel Styles
+  packagesHeaderRow: {
+    marginTop: 20,
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  packagesSubheader: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  packagesHorizontalRow: {
+    gap: 12,
+    paddingRight: 16,
+    paddingBottom: 4,
+  },
+  packageCarouselCard: {
+    width: 240,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  packageImageContainer: {
+    width: '100%',
+    height: 100,
+    position: 'relative',
+    backgroundColor: '#E5E7EB',
+  },
+  packageImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  packageBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#F43F5E',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  packageBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  packageCardBody: {
+    padding: 12,
+  },
+  packageCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  packageCardSummary: {
+    fontSize: 11.5,
+    color: '#6B7280',
+    lineHeight: 16,
+    marginBottom: 10,
+    height: 32,
+  },
+  packagePriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  packagePrice: {
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  packageOriginalPrice: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    textDecorationLine: 'line-through',
+  },
+  addPackageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F43F5E',
+    backgroundColor: '#FFF1F2',
+  },
+  addPackageBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  // Bottom Sticky Container (Offer Banner + Coral Floating Capsule - Reference Image 1)
+  bottomFixedContainer: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 24 : 14,
+    left: 14,
+    right: 14,
+    gap: 8,
+  },
+  unlockedOfferBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+    gap: 10,
+  },
+  percentBadgeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  offerBannerTextCol: {
+    flex: 1,
+  },
+  offerBannerTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#2563EB',
+  },
+  offerBannerSubtext: {
+    fontSize: 11.5,
+    color: '#4B5563',
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  coralCapsuleBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F43F5E',
+    borderRadius: 28,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: '#F43F5E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  capsuleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  capsuleAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    backgroundColor: '#E5E7EB',
+  },
+  capsuleItemsText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    flex: 1,
+  },
+  capsuleRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  capsuleContinueText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
   },
 });

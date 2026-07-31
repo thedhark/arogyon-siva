@@ -31,6 +31,7 @@ export default function RootLayout() {
           <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="care/service/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="hospital/info" options={{ headerShown: false }} />
           <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
           <Stack.Screen name="booking/success" options={{ headerShown: false }} />
           <Stack.Screen name="packages/category/[id]" options={{ headerShown: false }} />

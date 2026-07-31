@@ -248,7 +248,14 @@ export default function FitnessScreen() {
 
               {/* View Full Menu Button */}
               <View style={styles.fullMenuBtnWrapper}>
-                <TouchableOpacity style={styles.fullMenuBtn}>
+                <TouchableOpacity 
+                  style={styles.fullMenuBtn}
+                  onPress={() => {
+                    const targetHospId = hospital.id === 'h2' ? 'hosp-1' : 'hosp-1';
+                    router.push(`/hospital/${targetHospId}?tab=Packages` as any);
+                  }}
+                  activeOpacity={0.8}
+                >
                   <Text style={styles.fullMenuText}>View full menu</Text>
                   <ChevronRight size={16} color="#1A1A1A" />
                 </TouchableOpacity>

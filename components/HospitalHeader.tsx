@@ -1,39 +1,91 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { ChevronLeft, Share2, PhoneCall, Info } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { ChevronLeft, Search, MoreVertical } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
 
 interface HospitalHeaderProps {
   onBackPress: () => void;
-  onSharePress?: () => void;
-  onCallPress?: () => void;
-  onInfoPress?: () => void;
+  onSearchChange?: (text: string) => void;
+  onMorePress?: () => void;
+  isDark?: boolean;
 }
 
 export default function HospitalHeader({
   onBackPress,
-  onSharePress,
-  onCallPress,
-  onInfoPress,
+  onSearchChange,
+  onMorePress,
+  isDark = true,
 }: HospitalHeaderProps) {
+  const insets = useSafeAreaInsets();
+  const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleTextChange = (text: string) => {
+    setSearchQuery(text);
+    if (onSearchChange) onSearchChange(text);
+  };
+
+  const glassBg = 'rgba(0, 0, 0, 0.12)';
+  const borderCol = 'rgba(255, 255, 255, 0.32)';
+  const iconCol = '#FFFFFF';
+  const placeholderCol = 'rgba(255, 255, 255, 0.8)';
+
+  const topInset = Math.max(insets.top + (Platform.OS === 'ios' ? 4 : 8), 36);
+
   return (
-    <View style={styles.headerAbsolute}>
-      {/* Back Button */}
-      <TouchableOpacity onPress={onBackPress} style={styles.whiteCircleBtn} activeOpacity={0.8}>
-        <ChevronLeft color="#0F172A" size={22} />
+    <View style={[styles.headerContainer, { top: topInset }]}>
+      {/* Transparent Circular Back Button */}
+      <TouchableOpacity
+        onPress={onBackPress}
+        style={styles.circleBtnWrapper}
+        activeOpacity={0.8}
+      >
+        <View style={[styles.circleBtn, { backgroundColor: glassBg, borderColor: borderCol }]}>
+          {supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 19, overflow: 'hidden' }]} />
+          ) : Platform.OS === 'ios' ? (
+            <BlurView intensity={25} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 19, overflow: 'hidden' }]} />
+          ) : null}
+          <ChevronLeft color={iconCol} size={20} strokeWidth={2.2} />
+        </View>
       </TouchableOpacity>
 
-      {/* Floating Action Pill Bar */}
-      <View style={styles.actionPillBar}>
-        <TouchableOpacity style={styles.actionBtn} onPress={onSharePress} activeOpacity={0.7}>
-          <Share2 color="#1E293B" size={20} />
-        </TouchableOpacity>
+      {/* Right Action Group */}
+      <View style={styles.rightGroup}>
+        {/* Transparent Search Capsule */}
+        <View style={[styles.searchCapsule, { backgroundColor: glassBg, borderColor: borderCol }]}>
+          {supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 19, overflow: 'hidden' }]} />
+          ) : Platform.OS === 'ios' ? (
+            <BlurView intensity={25} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 19, overflow: 'hidden' }]} />
+          ) : null}
 
-        <TouchableOpacity style={styles.actionBtn} onPress={onCallPress} activeOpacity={0.7}>
-          <PhoneCall color="#1E293B" size={20} />
-        </TouchableOpacity>
+          <Search size={15} color={iconCol} strokeWidth={2.2} style={styles.searchIcon} />
+          <TextInput
+            style={[styles.searchInput, { color: iconCol }]}
+            placeholder="Search"
+            placeholderTextColor={placeholderCol}
+            value={searchQuery}
+            onChangeText={handleTextChange}
+          />
+        </View>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={onInfoPress} activeOpacity={0.7}>
-          <Info color="#1E293B" size={20} />
+        {/* Transparent Circular Options Button */}
+        <TouchableOpacity
+          onPress={onMorePress}
+          style={styles.circleBtnWrapper}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.circleBtn, { backgroundColor: glassBg, borderColor: borderCol }]}>
+            {supportsLiquidGlass ? (
+              <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 19, overflow: 'hidden' }]} />
+            ) : Platform.OS === 'ios' ? (
+              <BlurView intensity={25} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 19, overflow: 'hidden' }]} />
+            ) : null}
+            <MoreVertical color={iconCol} size={18} strokeWidth={2.2} />
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -41,45 +93,52 @@ export default function HospitalHeader({
 }
 
 const styles = StyleSheet.create({
-  headerAbsolute: {
+  headerContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 36,
     left: 16,
     right: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    zIndex: 20,
+    zIndex: 25,
   },
-  whiteCircleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#FFFFFF',
+  circleBtnWrapper: {
+    borderRadius: 19,
+    overflow: 'hidden',
+  },
+  circleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 4,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
-  actionPillBar: {
+  rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    gap: 8,
   },
-  actionBtn: {
+  searchCapsule: {
+    width: 135,
+    height: 38,
+    borderRadius: 19,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  searchIcon: {
+    marginRight: 6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13.5,
+    fontWeight: '500',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
 });
+
