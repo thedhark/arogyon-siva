@@ -47,11 +47,21 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
     setLoadingLocation(false);
   };
 
+  const [flatNo, setFlatNo] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [phone, setPhone] = useState('');
+
   const handleSubmit = () => {
     if (!addressLine) return;
+    const fullAddressStr = [flatNo, addressLine, landmark, pincode].filter(Boolean).join(', ');
     addAddress({
       type,
-      address: addressLine,
+      address: fullAddressStr || addressLine,
+      flatNo,
+      landmark,
+      pincode,
+      phone,
       isDefault: false,
       latitude: location?.latitude,
       longitude: location?.longitude,
@@ -113,14 +123,61 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
         ))}
       </View>
 
+      <View style={styles.formGroupRow}>
+        <View style={[styles.smallInputWrap, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
+          <TextInput
+            style={[styles.singleInput, { color: colors.text }]}
+            placeholder="Flat / House / Building No"
+            placeholderTextColor={colors.textMuted}
+            value={flatNo}
+            onChangeText={setFlatNo}
+          />
+        </View>
+      </View>
+
       <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
         <TextInput
           style={[styles.input, { color: colors.text }]}
-          placeholder="Complete Address (House No, Street, City)"
+          placeholder="Street Address / Area / Locality"
           placeholderTextColor={colors.textMuted}
           value={addressLine}
           onChangeText={setAddressLine}
           multiline
+        />
+      </View>
+
+      <View style={styles.formGroupRow}>
+        <View style={[styles.smallInputWrap, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', flex: 1, marginRight: 8 }]}>
+          <TextInput
+            style={[styles.singleInput, { color: colors.text }]}
+            placeholder="Landmark (Optional)"
+            placeholderTextColor={colors.textMuted}
+            value={landmark}
+            onChangeText={setLandmark}
+          />
+        </View>
+
+        <View style={[styles.smallInputWrap, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', width: 120 }]}>
+          <TextInput
+            style={[styles.singleInput, { color: colors.text }]}
+            placeholder="Pincode"
+            placeholderTextColor={colors.textMuted}
+            value={pincode}
+            onChangeText={setPincode}
+            keyboardType="numeric"
+            maxLength={6}
+          />
+        </View>
+      </View>
+
+      <View style={[styles.smallInputWrap, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', marginBottom: 20 }]}>
+        <TextInput
+          style={[styles.singleInput, { color: colors.text }]}
+          placeholder="Receiver Phone Number"
+          placeholderTextColor={colors.textMuted}
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
         />
       </View>
 
@@ -184,15 +241,29 @@ const styles = StyleSheet.create({
   },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12 },
   tabText: { fontSize: 15, fontWeight: '700' },
-  inputWrapper: { borderRadius: 16, padding: 4, marginBottom: 24 },
+  inputWrapper: { borderRadius: 16, padding: 4, marginBottom: 12 },
   input: { 
-    minHeight: 100, 
+    minHeight: 80, 
     paddingHorizontal: 16, 
-    paddingTop: 16,
-    fontSize: 16,
+    paddingTop: 14,
+    fontSize: 15,
     fontWeight: '500',
     textAlignVertical: 'top'
   },
-  submitButton: { height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
-  submitText: { color: '#FFF', fontSize: 18, fontWeight: '700' }
+  formGroupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  smallInputWrap: {
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  singleInput: {
+    fontSize: 14.5,
+    fontWeight: '500',
+  },
+  submitButton: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  submitText: { color: '#FFF', fontSize: 17, fontWeight: '700' }
 });

@@ -5,7 +5,7 @@ export default function StandardMaternityCareScreen() {
   return (
     <RedesignedPackageDetailView
       packageId="standard-maternity-care"
-      title="1 x Standard Maternity Care"
+      title="Standard Maternity Care"
       price="₹ 18,999"
       originalPrice="₹ 26,000"
       discount="26% OFF"

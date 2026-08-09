@@ -66,6 +66,8 @@ export default function HospitalInfoModal({
     }).catch(() => {});
   };
 
+  if (!visible) return null;
+
   return (
     <Modal
       visible={visible}

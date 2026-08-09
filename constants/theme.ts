@@ -68,6 +68,21 @@ export const Radius = {
   full: 9999,
 };
 
+export const AspectRatios = {
+  facilityHero: 16 / 9,      // Tier 1: Hospitals & Diagnostic Labs landscape photos
+  specializedHub: 4 / 3,     // Tier 2: Eye Care, Dental, Specialized Care featured banners
+  specialtySquare: 1 / 1,    // Tier 3: Medical Specialties 3D/vector icons
+  symptomSquare: 1 / 1,      // Tier 4: Acute Symptoms & Treatments icons
+  bannerWide: 3 / 1,         // Promotional horizontal banners
+};
+
+export const LayoutDimensions = {
+  tier1Facility: { minWidth: 280, height: 180, borderRadius: 20 },
+  tier2Specialized: { width: 160, height: 140, borderRadius: 16 },
+  tier3Specialty: { width: 88, height: 104, iconSize: 48, borderRadius: 16 },
+  tier4Symptom: { width: 76, height: 84, iconSize: 36, borderRadius: 14 },
+};
+
 export const Typography = {
   hero: { fontSize: 36, fontWeight: '900' as const, letterSpacing: -0.5 },
   title: { fontSize: 28, fontWeight: '800' as const, letterSpacing: -0.25 },
@@ -77,3 +92,4 @@ export const Typography = {
   caption: { fontSize: 14, fontWeight: '500' as const, letterSpacing: 0.25 },
   micro: { fontSize: 12, fontWeight: '600' as const, letterSpacing: 0.5 },
 };
+

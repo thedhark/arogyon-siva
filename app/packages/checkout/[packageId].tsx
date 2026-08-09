@@ -3,79 +3,172 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platfo
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, User, Users, Tag, CreditCard, ShieldCheck, CheckCircle2 } from 'lucide-react-native';
+import { ChevronLeft, User, Users, Tag, CreditCard, ShieldCheck, CheckCircle2, Calendar, Clock, MapPin, Sparkles, Building2 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import CouponOverlay from '@/components/packages/CouponOverlay';
-import PaymentGatewayModal, { PaymentDetails } from '@/components/booking/PaymentGatewayModal';
+import PaymentGatewayModal from '@/components/booking/PaymentGatewayModal';
+import { getPackageById } from '@/constants/package-data';
+import { useBookingStore } from '@/hooks/useBookingStore';
+import { getUpcomingDates } from '@/utils/dateFormatter';
 
 export default function CheckoutScreen() {
-  const { packageId } = useLocalSearchParams();
+  const { packageId, mode } = useLocalSearchParams<{ packageId: string; mode?: string }>();
   const { colors, isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  
+  const bookPackage = useBookingStore(state => state.bookPackage);
+
+  const pkg = getPackageById((packageId as string) || 'default-package');
+  const availableDates = getUpcomingDates(5);
+
   const [bookingFor, setBookingFor] = useState<'self' | 'family'>('self');
-  const [patientName, setPatientName] = useState('');
-  const [patientPhone, setPatientPhone] = useState('');
-  const [useInsurance, setUseInsurance] = useState(false);
+  const [patientName, setPatientName] = useState('Rahul Sharma');
+  const [patientPhone, setPatientPhone] = useState('9876543210');
+  
+  // Preferred Consultation Slot
+  const [selectedDate, setSelectedDate] = useState(availableDates[0]?.date || 'Aug 7');
+  const [selectedSlot, setSelectedSlot] = useState('10:00 AM');
+
+  // Flexible Payment Mode: 'token' | 'full'
+  const initialMode = mode === 'full' ? 'full' : 'token';
+  const [paymentMode, setPaymentMode] = useState<'token' | 'full'>(initialMode);
+
   const [couponCode, setCouponCode] = useState<string | null>(null);
   const [showCouponOverlay, setShowCouponOverlay] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Mock package data
-  const packagePrice = 24999;
+  // Price calculations
+  const rawPrice = parseInt(pkg.price.replace(/[^0-9]/g, '')) || 24999;
   const discount = couponCode ? 2000 : 0;
-  const totalAmount = packagePrice - discount;
+  const onlineFullDiscount = paymentMode === 'full' ? 500 : 0;
+  const netPackageTotal = rawPrice - discount - onlineFullDiscount;
+  
+  const tokenAmount = 499;
+  const amountToPayNow = paymentMode === 'token' ? tokenAmount : netPackageTotal;
 
   const handleApplyCoupon = (code: string) => {
     setCouponCode(code);
   };
 
+  const handleConfirmPackageBooking = () => {
+    setShowPaymentModal(true);
+  };
+
+  const executeStoreBooking = (paidNow: number) => {
+    const bookingId = bookPackage({
+      packageId: pkg.id,
+      packageTitle: pkg.title,
+      hospitalName: pkg.hospitalName,
+      patientName: patientName || 'Patient',
+      patientPhone: patientPhone || '9876543210',
+      scheduledDate: selectedDate,
+      scheduledTime: selectedSlot,
+      paymentMode,
+      totalAmount: netPackageTotal,
+      amountPaid: paidNow,
+      paymentStatus: 'paid',
+    });
+
+    router.replace({
+      pathname: '/booking/success',
+      params: { appointmentId: bookingId },
+    });
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView edges={['top']} style={styles.headerBar}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+      <SafeAreaView edges={['top']} style={[styles.headerBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerIconBtn}>
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Checkout</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Package Booking</Text>
         <View style={{ width: 44 }} />
       </SafeAreaView>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* Package Summary & Details */}
+        {/* 1. Package Summary & Details */}
         <Animated.View entering={FadeInDown.delay(100)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Complete Pregnancy Package</Text>
-          <Text style={styles.cardSubtitle}>Cloudnine Hospitals • HSR Layout</Text>
-          
-          <View style={styles.inclusionsBox}>
-            <View style={styles.inclusionItem}>
-              <CheckCircle2 size={14} color="#4CAF50" />
-              <Text style={[styles.inclusionText, { color: colors.text }]}>40 Weeks Consultation</Text>
+          <View style={styles.packageHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>{pkg.title}</Text>
+              <View style={styles.hospitalRow}>
+                <Building2 size={14} color="#6527BE" />
+                <Text style={styles.hospitalText}>{pkg.hospitalName} • {pkg.hospitalLocation}</Text>
+              </View>
             </View>
-            <View style={styles.inclusionItem}>
-              <CheckCircle2 size={14} color="#4CAF50" />
-              <Text style={[styles.inclusionText, { color: colors.text }]}>30+ Tests & Scans</Text>
-            </View>
-            <View style={styles.inclusionItem}>
-              <CheckCircle2 size={14} color="#4CAF50" />
-              <Text style={[styles.inclusionText, { color: colors.text }]}>Delivery (Normal/C-Section)</Text>
-            </View>
-            <View style={styles.inclusionItem}>
-              <CheckCircle2 size={14} color="#4CAF50" />
-              <Text style={[styles.inclusionText, { color: colors.text }]}>2-4 Days Private Room Stay</Text>
+            <View style={styles.priceTagBox}>
+              <Text style={styles.priceTagText}>{pkg.price}</Text>
+              {pkg.originalPrice && <Text style={styles.originalPriceText}>{pkg.originalPrice}</Text>}
             </View>
           </View>
-
-          <View style={styles.divider} />
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Package Price</Text>
-            <Text style={[styles.priceValue, { color: colors.text }]}>₹{packagePrice.toLocaleString()}</Text>
+          
+          <View style={styles.inclusionsBox}>
+            {pkg.inclusions.slice(0, 3).map((inc, i) => (
+              <View key={i} style={styles.inclusionItem}>
+                <CheckCircle2 size={14} color="#00A981" />
+                <Text style={[styles.inclusionText, { color: colors.text }]} numberOfLines={1}>{inc}</Text>
+              </View>
+            ))}
           </View>
         </Animated.View>
 
-        {/* Patient Details */}
-        <Animated.View entering={FadeInDown.delay(150)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        {/* 2. Choose Initial Consultation / Checkup Slot */}
+        <Animated.View entering={FadeInDown.delay(130)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+          <View style={styles.sectionHeaderRow}>
+            <Calendar size={18} color="#6527BE" />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>1st Consultation / Assessment Slot</Text>
+          </View>
+          <Text style={styles.sectionSub}>Select preferred date & time for your package kickoff visit</Text>
+          
+          {/* Dates Carousel */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.datesRow}>
+            {availableDates.map((item) => {
+              const isSelected = selectedDate === item.date;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.dateCard,
+                    isSelected
+                      ? { backgroundColor: '#6527BE', borderColor: '#6527BE' }
+                      : { backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5', borderColor: 'transparent' },
+                  ]}
+                  onPress={() => setSelectedDate(item.date)}
+                >
+                  <Text style={[styles.dateDayName, { color: isSelected ? '#FFF' : '#888' }]}>{item.day}</Text>
+                  <Text style={[styles.dateDayNum, { color: isSelected ? '#FFF' : colors.text }]}>{item.rawDate.getDate()}</Text>
+                  <Text style={[styles.dateMonth, { color: isSelected ? '#DDD6FE' : '#888' }]}>{item.date.split(' ')[0]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* Time Slots */}
+          <View style={styles.slotsRow}>
+            {['09:30 AM', '11:00 AM', '02:30 PM', '05:00 PM'].map((slot) => {
+              const isSelected = selectedSlot === slot;
+              return (
+                <TouchableOpacity
+                  key={slot}
+                  style={[
+                    styles.slotPill,
+                    isSelected
+                      ? { backgroundColor: isDark ? '#3B1D58' : '#F3E8FF', borderColor: '#6527BE' }
+                      : { backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5', borderColor: 'transparent' },
+                  ]}
+                  onPress={() => setSelectedSlot(slot)}
+                >
+                  <Clock size={12} color={isSelected ? '#6527BE' : '#888'} />
+                  <Text style={[styles.slotText, { color: isSelected ? '#6527BE' : colors.text }]}>{slot}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        {/* 3. Patient Details */}
+        <Animated.View entering={FadeInDown.delay(160)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Patient Details</Text>
           
           <View style={styles.bookingForContainer}>
@@ -83,7 +176,7 @@ export default function CheckoutScreen() {
               style={[styles.bookingForBtn, bookingFor === 'self' && styles.bookingForBtnActive]}
               onPress={() => setBookingFor('self')}
             >
-              <User size={16} color={bookingFor === 'self' ? '#E91E63' : '#666'} />
+              <User size={16} color={bookingFor === 'self' ? '#6527BE' : '#666'} />
               <Text style={[styles.bookingForText, bookingFor === 'self' && styles.bookingForTextActive]}>Self</Text>
             </TouchableOpacity>
             
@@ -91,7 +184,7 @@ export default function CheckoutScreen() {
               style={[styles.bookingForBtn, bookingFor === 'family' && styles.bookingForBtnActive]}
               onPress={() => setBookingFor('family')}
             >
-              <Users size={16} color={bookingFor === 'family' ? '#E91E63' : '#666'} />
+              <Users size={16} color={bookingFor === 'family' ? '#6527BE' : '#666'} />
               <Text style={[styles.bookingForText, bookingFor === 'family' && styles.bookingForTextActive]}>Family Member</Text>
             </TouchableOpacity>
           </View>
@@ -120,15 +213,70 @@ export default function CheckoutScreen() {
           </View>
         </Animated.View>
 
-        {/* Offers & Coupons */}
+        {/* 4. Flexible Payment Mode Selection */}
         <Animated.View entering={FadeInDown.delay(200)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+          <View style={styles.sectionHeaderRow}>
+            <CreditCard size={18} color="#6527BE" />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose How You Want to Pay</Text>
+          </View>
+          <Text style={styles.sectionSub}>Flexible healthcare payment options tailored for you</Text>
+
+          {/* Option A: Token Advance (₹499) */}
+          <TouchableOpacity
+            style={[
+              styles.paymentOptionCard,
+              paymentMode === 'token' && styles.paymentOptionCardSelected,
+              { backgroundColor: isDark ? '#232328' : '#FAFAFA' },
+            ]}
+            onPress={() => setPaymentMode('token')}
+          >
+            <View style={styles.radioCircle}>
+              {paymentMode === 'token' && <View style={styles.radioDot} />}
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.optionTitleRow}>
+                <Text style={[styles.optionTitle, { color: colors.text }]}>Reserve with ₹499 Token</Text>
+                <View style={styles.recommendedBadge}>
+                  <Text style={styles.recommendedText}>MOST POPULAR</Text>
+                </View>
+              </View>
+              <Text style={styles.optionDesc}>Pay ₹499 online deposit to lock package discount & slot. Pay balance at hospital desk.</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option B: Pay Full Amount Online */}
+          <TouchableOpacity
+            style={[
+              styles.paymentOptionCard,
+              paymentMode === 'full' && styles.paymentOptionCardSelected,
+              { backgroundColor: isDark ? '#232328' : '#FAFAFA' },
+            ]}
+            onPress={() => setPaymentMode('full')}
+          >
+            <View style={styles.radioCircle}>
+              {paymentMode === 'full' && <View style={styles.radioDot} />}
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.optionTitleRow}>
+                <Text style={[styles.optionTitle, { color: colors.text }]}>Pay Full Amount Online</Text>
+                <View style={[styles.recommendedBadge, { backgroundColor: '#E6F6F2' }]}>
+                  <Text style={[styles.recommendedText, { color: '#00A981' }]}>EXTRA ₹500 OFF</Text>
+                </View>
+              </View>
+              <Text style={styles.optionDesc}>Complete 100% payment online now for instant cashback and priority doctor desk access.</Text>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* 5. Offers & Coupons */}
+        <Animated.View entering={FadeInDown.delay(240)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <TouchableOpacity 
             style={styles.couponBtn}
             onPress={() => setShowCouponOverlay(true)}
           >
             <View style={styles.couponLeft}>
               <View style={styles.couponIconBox}>
-                <Tag size={20} color="#E91E63" />
+                <Tag size={20} color="#6527BE" />
               </View>
               <View>
                 {couponCode ? (
@@ -138,8 +286,8 @@ export default function CheckoutScreen() {
                   </>
                 ) : (
                   <>
-                    <Text style={[styles.couponTitle, { color: colors.text }]}>Apply Coupon</Text>
-                    <Text style={styles.couponSubtitle}>Check available offers</Text>
+                    <Text style={[styles.couponTitle, { color: colors.text }]}>Apply Coupon Code</Text>
+                    <Text style={styles.couponSubtitle}>Check available discount offers</Text>
                   </>
                 )}
               </View>
@@ -154,32 +302,13 @@ export default function CheckoutScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Payment / Insurance */}
-        <Animated.View entering={FadeInDown.delay(250)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
-          <View style={styles.insuranceRow}>
-            <View style={styles.insuranceLeft}>
-              <ShieldCheck size={24} color="#4CAF50" />
-              <View style={{ marginLeft: 12 }}>
-                <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 2 }]}>Pay via Insurance</Text>
-                <Text style={styles.cardSubtitle}>Check if your policy covers this</Text>
-              </View>
-            </View>
-            <Switch
-              value={useInsurance}
-              onValueChange={setUseInsurance}
-              trackColor={{ false: '#d3d3d3', true: '#F48FB1' }}
-              thumbColor={useInsurance ? '#E91E63' : '#f4f3f4'}
-            />
-          </View>
-        </Animated.View>
-
-        {/* Bill Details */}
-        <Animated.View entering={FadeInDown.delay(300)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Bill Details</Text>
+        {/* 6. Bill Details */}
+        <Animated.View entering={FadeInDown.delay(280)} style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Bill Breakup</Text>
           
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Package Price</Text>
-            <Text style={[styles.billValue, { color: colors.text }]}>₹{packagePrice.toLocaleString()}</Text>
+            <Text style={[styles.billValue, { color: colors.text }]}>₹{rawPrice.toLocaleString()}</Text>
           </View>
           
           {couponCode && (
@@ -189,11 +318,23 @@ export default function CheckoutScreen() {
             </View>
           )}
 
+          {paymentMode === 'full' && (
+            <View style={styles.billRow}>
+              <Text style={styles.billLabelDiscount}>Full Payment Bonus</Text>
+              <Text style={styles.billValueDiscount}>- ₹500</Text>
+            </View>
+          )}
+
           <View style={[styles.divider, { marginVertical: 12 }]} />
           
           <View style={styles.billRow}>
-            <Text style={[styles.billTotalLabel, { color: colors.text }]}>Total Amount</Text>
-            <Text style={[styles.billTotalValue, { color: colors.text }]}>₹{totalAmount.toLocaleString()}</Text>
+            <Text style={[styles.billTotalLabel, { color: colors.text }]}>Total Package Value</Text>
+            <Text style={[styles.billTotalValue, { color: colors.text }]}>₹{netPackageTotal.toLocaleString()}</Text>
+          </View>
+
+          <View style={styles.paymentSummaryBox}>
+            <Text style={styles.dueTodayLabel}>Due Online Today:</Text>
+            <Text style={styles.dueTodayValue}>₹{amountToPayNow.toLocaleString()}</Text>
           </View>
         </Animated.View>
 
@@ -203,14 +344,16 @@ export default function CheckoutScreen() {
       <View style={[styles.bottomBar, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.bottomBarContent}>
           <View>
-            <Text style={styles.bottomTotalLabel}>Total Payable</Text>
-            <Text style={[styles.bottomTotalValue, { color: colors.text }]}>₹{totalAmount.toLocaleString()}</Text>
+            <Text style={styles.bottomTotalLabel}>Due Today</Text>
+            <Text style={[styles.bottomTotalValue, { color: colors.text }]}>₹{amountToPayNow.toLocaleString()}</Text>
           </View>
           <TouchableOpacity 
             style={styles.payBtn}
-            onPress={() => setShowPaymentModal(true)}
+            onPress={handleConfirmPackageBooking}
           >
-            <Text style={styles.payBtnText}>Pay & Confirm</Text>
+            <Text style={styles.payBtnText}>
+              {paymentMode === 'token' ? 'Pay ₹499 & Reserve' : `Pay ₹${amountToPayNow.toLocaleString()} & Book`}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -223,15 +366,12 @@ export default function CheckoutScreen() {
 
       <PaymentGatewayModal
         visible={showPaymentModal}
-        amount={totalAmount}
-        title="Package Booking Payment"
+        amount={amountToPayNow}
+        title={`${pkg.title} - ${paymentMode === 'token' ? 'Token Advance' : 'Full Payment'}`}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={(payment) => {
           setShowPaymentModal(false);
-          router.replace({
-            pathname: '/booking/success',
-            params: { appointmentId: payment.paymentId },
-          });
+          executeStoreBooking(amountToPayNow);
         }}
       />
     </View>
@@ -248,100 +388,161 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingVertical: 8,
-    backgroundColor: 'transparent',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   headerIconBtn: {
     width: 44,
     height: 44,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 150, // Space for bottom bar
+    paddingBottom: 110,
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
   },
+  packageHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     marginBottom: 4,
   },
-  cardSubtitle: {
-    fontSize: 13,
+  hospitalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  hospitalText: {
+    fontSize: 12,
     color: '#666',
+    fontWeight: '500',
+  },
+  priceTagBox: {
+    alignItems: 'flex-end',
+  },
+  priceTagText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#6527BE',
+  },
+  originalPriceText: {
+    fontSize: 12,
+    color: '#999',
+    textDecorationLine: 'line-through',
   },
   inclusionsBox: {
-    backgroundColor: 'rgba(0,0,0,0.02)',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 12,
-    gap: 8,
+    gap: 6,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   inclusionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   inclusionText: {
     fontSize: 13,
     fontWeight: '500',
   },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginVertical: 16,
-  },
-  priceRow: {
+  sectionHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  priceValue: {
-    fontSize: 18,
-    fontWeight: '800',
+    gap: 8,
+    marginBottom: 2,
   },
   sectionTitle: {
     fontSize: 16,
+    fontWeight: '700',
+  },
+  sectionSub: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 12,
+  },
+  datesRow: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  dateCard: {
+    width: 64,
+    height: 70,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateDayName: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  dateDayNum: {
+    fontSize: 18,
     fontWeight: '800',
-    marginBottom: 16,
+    marginVertical: 1,
+  },
+  dateMonth: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  slotsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  slotPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  slotText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   bookingForContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 14,
+    marginTop: 8,
   },
   bookingForBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
     gap: 8,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   bookingForBtnActive: {
-    borderColor: '#E91E63',
-    backgroundColor: '#FCE4EC',
+    backgroundColor: '#F3E8FF',
+    borderColor: '#6527BE',
   },
   bookingForText: {
     fontSize: 13,
@@ -349,23 +550,81 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   bookingForTextActive: {
-    color: '#E91E63',
+    color: '#6527BE',
+    fontWeight: '700',
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   inputLabel: {
     fontSize: 12,
     color: '#666',
-    fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
+    fontWeight: '500',
   },
   input: {
-    height: 50,
+    height: 44,
     borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 15,
+    paddingHorizontal: 14,
+    fontSize: 14,
     fontWeight: '500',
+  },
+  paymentOptionCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    marginBottom: 8,
+    gap: 10,
+  },
+  paymentOptionCardSelected: {
+    borderColor: '#6527BE',
+    backgroundColor: '#F3E8FF20',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#6527BE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#6527BE',
+  },
+  optionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  optionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  optionDesc: {
+    fontSize: 11.5,
+    color: '#666',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  recommendedBadge: {
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  recommendedText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#6527BE',
   },
   couponBtn: {
     flexDirection: 'row',
@@ -375,114 +634,120 @@ const styles = StyleSheet.create({
   couponLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   couponIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FCE4EC',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F3E8FF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
   couponTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    marginBottom: 2,
   },
   couponSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
   },
   couponSaved: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#00A981',
     fontWeight: '600',
   },
   removeCouponText: {
-    color: '#E91E63',
-    fontWeight: '700',
     fontSize: 13,
-  },
-  insuranceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  insuranceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+    color: '#EF4444',
+    fontWeight: '600',
   },
   billRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   billLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
   },
   billValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   billLabelDiscount: {
-    fontSize: 14,
-    color: '#4CAF50',
+    fontSize: 13,
+    color: '#00A981',
   },
   billValueDiscount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4CAF50',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#00A981',
   },
   billTotalLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
   },
   billTotalValue: {
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  paymentSummaryBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F3E8FF',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  dueTodayLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6527BE',
+  },
+  dueTodayValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#6527BE',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: 16,
-    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
   },
   bottomBarContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   bottomTotalLabel: {
     fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
+    color: '#888',
   },
   bottomTotalValue: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: 18,
+    fontWeight: '800',
   },
   payBtn: {
-    backgroundColor: '#E91E63',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    alignItems: 'center',
+    backgroundColor: '#6527BE',
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 14,
   },
   payBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

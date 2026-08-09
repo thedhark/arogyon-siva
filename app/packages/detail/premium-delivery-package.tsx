@@ -5,7 +5,7 @@ export default function PremiumDeliveryPackageScreen() {
   return (
     <RedesignedPackageDetailView
       packageId="premium-delivery-package"
-      title="1 x Premium Delivery & Maternity Suite Package"
+      title="Premium Delivery & Maternity Suite Package"
       price="₹ 75,999"
       originalPrice="₹ 90,000"
       discount="15% OFF"

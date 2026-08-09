@@ -76,6 +76,7 @@ export default function ExpertsScreen() {
             <PremiumSearchBar />
           </Animated.View>
 
+          {/* Instagram Reels Style Scrollable Banner Carousel */}
           <Animated.View entering={FadeInDown.delay(220)}>
             <ExpertCareModule colors={colors} isDark={isDark} onSpecialityPress={setActiveFilter} />
           </Animated.View>
@@ -125,8 +126,8 @@ export default function ExpertsScreen() {
             </ScrollView>
           </Animated.View>
 
-          {/* Doctor Cards */}
-          <Animated.View entering={FadeInDown.delay(500)} style={styles.doctorList}>
+          {/* Doctor Cards List */}
+          <Animated.View entering={FadeInDown.delay(400)} style={styles.doctorList}>
             {filteredDoctors.map((doc) => {
               const mapped = mapDoctor(doc);
               return (

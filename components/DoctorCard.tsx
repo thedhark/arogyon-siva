@@ -142,7 +142,7 @@ export default function DoctorCard({ doc, isDark: isDarkProp, colors: colorsProp
 
 const styles = StyleSheet.create({
   docCard: {
-    borderRadius: 16,
+    borderRadius: 10,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#F3F4F6',
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   bookGradientBtn: {
-    borderRadius: 24, // Fully rounded pill
+    borderRadius: 10, // Refined sleek border radius
     marginLeft: 12,
   },
   bookBtnInner: {

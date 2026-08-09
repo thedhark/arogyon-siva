@@ -39,7 +39,7 @@ export default function PackageFaqSection({ isDark, colors }: Props) {
         styles.card,
         {
           backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-          borderColor: isDark ? '#333' : '#EBF0F5',
+          borderColor: 'transparent',
         },
       ]}
     >
@@ -56,7 +56,7 @@ export default function PackageFaqSection({ isDark, colors }: Props) {
               key={idx}
               style={[
                 styles.faqItem,
-                { borderColor: isDark ? '#333' : '#F3F4F6' },
+                { backgroundColor: isDark ? '#27272A' : '#F8FAFC', borderColor: 'transparent' },
               ]}
             >
               <TouchableOpacity
@@ -88,14 +88,14 @@ export default function PackageFaqSection({ isDark, colors }: Props) {
 const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 18,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   header: {
     flexDirection: 'row',
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   faqItem: {
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 12,
     padding: 12,
     overflow: 'hidden',

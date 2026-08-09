@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { User, Calendar, Check, ArrowRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
@@ -42,6 +42,13 @@ export default function OnboardingScreen() {
         
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
+            <View style={styles.freeImageWrapper}>
+              <Image
+                source={require('@/assets/images/onboarding_hands.png')}
+                style={styles.freeOnboardingImage}
+                resizeMode="cover"
+              />
+            </View>
             <Text style={[styles.title, { color: colors.text }]}>Let's get to know you</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Help us personalize your healthcare experience
@@ -231,5 +238,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
-  }
+  },
+  freeImageWrapper: {
+    width: '100%',
+    height: 180,
+    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  freeOnboardingImage: {
+    width: '100%',
+    height: '100%',
+  },
 });

@@ -5,7 +5,7 @@ export default function CompleteMaternityCareScreen() {
   return (
     <RedesignedPackageDetailView
       packageId="complete-maternity-care"
-      title="1 x Complete Maternity Care"
+      title="Complete Maternity Care"
       price="₹ 24,999"
       originalPrice="₹ 35,000"
       discount="28% OFF"

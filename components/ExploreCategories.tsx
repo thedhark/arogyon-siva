@@ -13,7 +13,6 @@ import * as Haptics from 'expo-haptics';
 
 export const EXPLORE_CATEGORIES = [
   { id: 'Hospitals', label: 'Hospitals', image: MEDICAL_ILLUSTRATIONS.hospital },
-  { id: 'Labs', label: 'Labs', image: MEDICAL_ILLUSTRATIONS.labs },
   { id: 'Eye Care', label: 'Eye Care', image: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=200' },
   { id: 'Dental Care', label: 'Dental Care', image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=200' },
   { id: 'Skin & Hair', label: 'Skin & Hair', image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=200' },
@@ -98,7 +97,7 @@ export default function ExploreCategories({ activeTab, onTabChange, style }: { a
                   { backgroundColor: isDark ? '#252528' : '#F3F4F6' }
                 ]}>
                   <Image 
-                    source={{ uri: cat.image }} 
+                    source={typeof cat.image === 'string' ? { uri: cat.image } : cat.image} 
                     style={styles.categoryImage} 
                     resizeMode="cover"
                   />

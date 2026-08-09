@@ -60,11 +60,14 @@ export default function HospitalPackageCard({
     <Pressable 
       style={({ pressed }) => [
         styles.cardContainer,
-        { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' },
+        {
+          backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+        },
         pressed && Platform.OS === 'ios' && { transform: [{ scale: 0.98 }], opacity: 0.9 }
       ]}
-      android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-      onPress={() => router.push(`/packages/provider/${id}` as any)}
+      android_ripple={{ color: 'rgba(0,0,0,0.06)', borderless: false }}
+      onPress={() => router.push(`/packages/detail/${id}` as any)}
     >
       <View style={styles.cardContent}>
         {/* Left Side: Image */}
@@ -155,8 +158,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderWidth: 0,
   },
   cardContent: {
     flexDirection: 'row',

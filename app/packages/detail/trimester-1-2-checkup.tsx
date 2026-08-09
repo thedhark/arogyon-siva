@@ -5,7 +5,7 @@ export default function Trimester1And2CheckupScreen() {
   return (
     <RedesignedPackageDetailView
       packageId="trimester-1-2-checkup"
-      title="1 x Trimester 1 & 2 Complete Fetal Care"
+      title="Trimester 1 & 2 Complete Fetal Care"
       price="₹ 15,999"
       originalPrice="₹ 22,000"
       discount="27% OFF"

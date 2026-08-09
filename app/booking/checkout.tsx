@@ -37,6 +37,8 @@ import { useBookingStore } from '@/hooks/useBookingStore';
 import PaymentGatewayModal, { PaymentDetails } from '@/components/booking/PaymentGatewayModal';
 import CouponOverlay from '@/components/packages/CouponOverlay';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
+import AddOnPackageCard from '@/components/packages/cards/AddOnPackageCard';
+import { PackageItem, getAddOnScreeningPackages } from '@/constants/package-data';
 
 export interface PatientMember {
   id: string;
@@ -46,60 +48,6 @@ export interface PatientMember {
   gender: string;
   notes?: string;
 }
-
-export interface AddOnPackage {
-  id: string;
-  title: string;
-  price: number;
-  originalPrice: number;
-  discount: string;
-  image: string;
-  summary: string;
-  badge: string;
-}
-
-const ADD_ON_PACKAGES: AddOnPackage[] = [
-  {
-    id: 'addon-full-body',
-    title: 'Full Body Vitamin & CBC Screening',
-    price: 499,
-    originalPrice: 1200,
-    discount: '58% OFF',
-    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400',
-    summary: '60+ Vital Tests including Vitamin D, B12, Thyroid, Blood Count & Sugar',
-    badge: 'Popular Add-on'
-  },
-  {
-    id: 'addon-diabetes',
-    title: 'HbA1c & Fasting Glucose Screening',
-    price: 299,
-    originalPrice: 650,
-    discount: '54% OFF',
-    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=400',
-    summary: 'Comprehensive 3-month average blood sugar & lipid profile assessment',
-    badge: 'Essential'
-  },
-  {
-    id: 'addon-cardiac',
-    title: 'ECG & Lipid Profile Heart Care',
-    price: 599,
-    originalPrice: 1400,
-    discount: '57% OFF',
-    image: 'https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?q=80&w=400',
-    summary: 'Resting ECG test with cholesterol, HDL/LDL & cardiac risk markers',
-    badge: 'Top Rated'
-  },
-  {
-    id: 'addon-derma',
-    title: 'Clinical Skin & Hydration Check',
-    price: 399,
-    originalPrice: 890,
-    discount: '55% OFF',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400',
-    summary: 'Dermatology patch test, skin moisture barrier check & consult',
-    badge: 'Wellness'
-  }
-];
 
 const INITIAL_PATIENTS: PatientMember[] = [
   { id: 'p1', name: 'John Doe', relation: 'Self', age: '28', gender: 'Male', notes: '' },
@@ -116,10 +64,12 @@ export default function CheckoutScreen() {
   const getHospital = useBookingStore(state => state.getHospital);
   const bookAppointment = useBookingStore(state => state.bookAppointment);
 
+  const addOnPackages = getAddOnScreeningPackages();
+
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCouponOverlay, setShowCouponOverlay] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
-  const [selectedAddOns, setSelectedAddOns] = useState<AddOnPackage[]>([]);
+  const [selectedAddOns, setSelectedAddOns] = useState<PackageItem[]>([]);
 
   // Patient / Family Member State
   const [patients, setPatients] = useState<PatientMember[]>(INITIAL_PATIENTS);
@@ -153,11 +103,11 @@ export default function CheckoutScreen() {
   const platformFee = 20;
   const taxes = Math.round(consultationFee * 0.05); // 5% tax mock
 
-  const addOnsTotal = selectedAddOns.reduce((sum, p) => sum + p.price, 0);
+  const addOnsTotal = selectedAddOns.reduce((sum, p) => sum + (parseInt(p.price.replace(/[^0-9]/g, '')) || 0), 0);
   const discount = appliedCoupon ? appliedCoupon.discount : 0;
   const totalPayable = Math.max(0, consultationFee + platformFee + taxes + addOnsTotal - discount);
 
-  const toggleAddOn = (pkg: AddOnPackage) => {
+  const toggleAddOn = (pkg: PackageItem) => {
     if (selectedAddOns.some(p => p.id === pkg.id)) {
       setSelectedAddOns(prev => prev.filter(p => p.id !== pkg.id));
     } else {
@@ -345,62 +295,14 @@ export default function CheckoutScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.packagesHorizontalRow}
         >
-          {ADD_ON_PACKAGES.map((pkg) => {
-            const isAdded = selectedAddOns.some(p => p.id === pkg.id);
-            return (
-              <View
-                key={pkg.id}
-                style={[
-                  styles.packageCarouselCard,
-                  { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isAdded ? '#10B981' : (isDark ? '#333' : '#E5E7EB') }
-                ]}
-              >
-                <View style={styles.packageImageContainer}>
-                  <Image source={{ uri: pkg.image }} style={styles.packageImage} />
-                  <View style={styles.packageBadge}>
-                    <Text style={styles.packageBadgeText}>{pkg.discount}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.packageCardBody}>
-                  <Text style={[styles.packageCardTitle, { color: colors.text }]} numberOfLines={1}>
-                    {pkg.title}
-                  </Text>
-                  <Text style={styles.packageCardSummary} numberOfLines={2}>
-                    {pkg.summary}
-                  </Text>
-
-                  <View style={styles.packagePriceRow}>
-                    <View>
-                      <Text style={[styles.packagePrice, { color: colors.text }]}>₹{pkg.price}</Text>
-                      <Text style={styles.packageOriginalPrice}>₹{pkg.originalPrice}</Text>
-                    </View>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.addPackageBtn,
-                        isAdded && { backgroundColor: '#ECFDF5', borderColor: '#10B981' }
-                      ]}
-                      onPress={() => toggleAddOn(pkg)}
-                      activeOpacity={0.8}
-                    >
-                      {isAdded ? (
-                        <>
-                          <CheckCircle2 size={13} color="#10B981" />
-                          <Text style={[styles.addPackageBtnText, { color: '#10B981' }]}>Added</Text>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={13} color="#F43F5E" />
-                          <Text style={[styles.addPackageBtnText, { color: '#F43F5E' }]}>Add</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            );
-          })}
+          {addOnPackages.map((pkg) => (
+            <AddOnPackageCard
+              key={pkg.id}
+              item={pkg}
+              isAdded={selectedAddOns.some(p => p.id === pkg.id)}
+              onToggle={toggleAddOn}
+            />
+          ))}
         </ScrollView>
 
         {/* Coupon Section */}

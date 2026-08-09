@@ -49,7 +49,8 @@ export default function FamilyScreen() {
 
           <View style={styles.list}>
             {familyMembers.map((member, index) => {
-              const displayAge = member.age || (member.dob ? 2024 - parseInt(member.dob.split('-')[0], 10) : 35);
+              const currentYear = new Date().getFullYear();
+              const displayAge = member.age || (member.dob ? currentYear - parseInt(member.dob.split('-')[0], 10) : 35);
               return (
                 <Animated.View key={member.id} entering={FadeInDown.delay(200 + index * 100)}>
                   <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
@@ -97,7 +98,7 @@ export default function FamilyScreen() {
                       
                       <TouchableOpacity 
                         style={[styles.actionBtn, styles.primaryActionBtn, { backgroundColor: colors.accent }]}
-                        onPress={() => router.push('/category/doctor')}
+                        onPress={() => router.push(`/category/doctor?patientId=${member.id}` as any)}
                       >
                         <CalendarPlus size={16} color="#FFFFFF" />
                         <Text style={[styles.actionBtnText, { color: '#FFFFFF' }]}>Book Appointment</Text>

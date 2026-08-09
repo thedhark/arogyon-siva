@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   headerBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   heroCard: {
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.92)',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 14,
+    borderRadius: 8,
   },
   verifiedBadgeText: {
     color: '#FFFFFF',
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    borderRadius: 14,
+    borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderWidth: 1,

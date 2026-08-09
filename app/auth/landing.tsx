@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,31 +9,53 @@ import {
   Platform,
   Dimensions,
   KeyboardAvoidingView,
+  Image,
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Heart,
-  ShieldCheck,
-  Sparkles,
-  Phone,
-  ArrowRight,
-  ChevronRight,
-  Globe,
-  Activity,
-  CheckCircle2,
-} from 'lucide-react-native';
+import { ChevronDown, Mail, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const CAROUSEL_ITEMS = [
+  {
+    id: 1,
+    titleUpper: "INDIA'S #1 HEALTHCARE",
+    titleLower: "ECOSYSTEM",
+    tagline: "Top Doctors · Instant Lab Tests · Digital Records",
+  },
+  {
+    id: 2,
+    titleUpper: "24/7 EXPERT DOCTOR",
+    titleLower: "CONSULTATIONS",
+    tagline: "Connect with verified specialists in under 10 minutes",
+  },
+  {
+    id: 3,
+    titleUpper: "NABL VERIFIED LABS",
+    titleLower: "FREE HOME SAMPLE",
+    tagline: "Accurate diagnostics delivered right to your doorstep",
+  },
+];
 
 export default function LandingScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  // Auto advance carousel slides
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % CAROUSEL_ITEMS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handlePhoneSubmit = () => {
     if (phoneNumber.length >= 10) {
@@ -42,239 +64,253 @@ export default function LandingScreen() {
     }
   };
 
-  const handleSocialLogin = (provider: 'google' | 'apple') => {
+  const handleSocialLogin = (provider: 'google' | 'apple' | 'email') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.replace('/(tabs)');
+    if (provider === 'email') {
+      router.push('/auth/onboarding');
+    } else {
+      router.replace('/(tabs)');
+    }
   };
 
-  const handleGuestAccess = () => {
+  const handleSkip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.replace('/(tabs)');
   };
+
+  const currentItem = CAROUSEL_ITEMS[activeSlide];
 
   return (
     <AnimatedScreen entrance="fade">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={styles.container}
       >
-        <LinearGradient
-          colors={
-            isDark
-              ? ['#0A121A', '#0F1A24', '#060B10']
-              : ['#ECFDF5', '#F0FDF4', '#FFFFFF']
-          }
-          style={StyleSheet.absoluteFill}
-        />
+        {/* Top Hero Area with Light Green Background */}
+        <View style={styles.topHeroSection}>
+          <LinearGradient
+            colors={isDark ? ['#081812', '#0C2D20', '#061912'] : ['#FFFFFF', '#F0FDF4', '#DCFCE7']}
+            style={StyleSheet.absoluteFill}
+          />
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Top Brand Hero Banner */}
-          <Animated.View entering={FadeInDown.delay(100)} style={styles.heroSection}>
-            <View style={styles.brandBadgeRow}>
-              <View style={[styles.brandIconCircle, { backgroundColor: '#10B981' }]}>
-                <Activity size={24} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <View style={[styles.livePill, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' }]}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveText}>India's Premium Healthcare</Text>
-              </View>
-            </View>
+          {/* Top Bar with Skip Pill */}
+          <View style={styles.topBar}>
+            <View />
+            <TouchableOpacity 
+              style={[
+                styles.skipButton,
+                { 
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(6, 78, 59, 0.1)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(6, 78, 59, 0.2)',
+                }
+              ]}
+              onPress={handleSkip}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.skipText, { color: isDark ? '#FFFFFF' : '#064E3B' }]}>Skip</Text>
+            </TouchableOpacity>
+          </View>
 
-            <Text style={[styles.brandTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-              Arogyon
+          {/* Headline Section */}
+          <Animated.View entering={FadeInDown.delay(100)} style={styles.headlineContainer}>
+            <Text style={[styles.mainHeadingUpper, { color: isDark ? '#F8FAFC' : '#064E3B' }]}>
+              {currentItem.titleUpper}
             </Text>
-            <Text style={[styles.tagline, { color: isDark ? '#94A3B8' : '#475569' }]}>
-              Your complete digital health ecosystem. Book top doctors, lab tests, and track records seamlessly.
+            <Text style={[styles.mainHeadingLower, { color: isDark ? '#F8FAFC' : '#064E3B' }]}>
+              {currentItem.titleLower}
             </Text>
 
-            {/* Feature Highlights Pill Badges */}
-            <View style={styles.featuresRow}>
-              <View style={[styles.featurePill, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF' }]}>
-                <ShieldCheck size={14} color="#10B981" />
-                <Text style={[styles.featureText, { color: isDark ? '#E2E8F0' : '#334155' }]}>
-                  ABDM Verified
-                </Text>
-              </View>
-              <View style={[styles.featurePill, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF' }]}>
-                <Sparkles size={14} color="#F59E0B" />
-                <Text style={[styles.featureText, { color: isDark ? '#E2E8F0' : '#334155' }]}>
-                  AI Assistant
-                </Text>
-              </View>
-              <View style={[styles.featurePill, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF' }]}>
-                <CheckCircle2 size={14} color="#3B82F6" />
-                <Text style={[styles.featureText, { color: isDark ? '#E2E8F0' : '#334155' }]}>
-                  Instant Video Call
-                </Text>
+            {/* Brand Highlight Badge */}
+            <View style={styles.brandBadgeContainer}>
+              <View style={styles.brandBadgeBrush}>
+                <Text style={styles.brandBadgeText}>arogyon</Text>
               </View>
             </View>
           </Animated.View>
 
-          {/* Unified Onboarding & Get Started Card */}
-          <Animated.View entering={FadeInUp.delay(250)} style={styles.cardContainer}>
-            <View
-              style={[
-                styles.glassCard,
-                {
-                  backgroundColor: isDark ? '#141E26' : '#FFFFFF',
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
-                },
-              ]}
-            >
-              <Text style={[styles.cardHeaderTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                Get Started
-              </Text>
-              <Text style={[styles.cardHeaderSub, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-                Enter your phone number to sign in or create an account
-              </Text>
+          {/* Free-Floating Reaching Hands Image Stretched Edge-to-Edge */}
+          <Animated.View entering={FadeInDown.delay(200)} style={styles.freeHeroVisualWrapper}>
+            <Image
+              source={require('@/assets/images/onboarding_hands.png')}
+              style={styles.freeFullWidthImage}
+              resizeMode="cover"
+            />
+          </Animated.View>
 
-              {/* Mobile Input Field (+91 India Format) */}
-              <View
+          {/* Carousel Pagination Dots Indicator */}
+          <View style={styles.paginationRow}>
+            {CAROUSEL_ITEMS.map((_, idx) => (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setActiveSlide(idx);
+                }}
                 style={[
-                  styles.phoneInputWrapper,
-                  {
-                    backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
-                    borderColor: isDark ? '#334155' : '#E2E8F0',
-                  },
+                  styles.dot,
+                  activeSlide === idx 
+                    ? [styles.activeDotBar, { backgroundColor: isDark ? '#FFFFFF' : '#10B981' }] 
+                    : [styles.inactiveDot, { backgroundColor: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(16,185,129,0.25)' }],
+                ]}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Bottom Drawer Card (Login / Sign Up Drawer) */}
+        <Animated.View 
+          entering={FadeInUp.delay(300)} 
+          style={[
+            styles.bottomSheet,
+            { backgroundColor: isDark ? '#141E28' : '#FFFFFF' }
+          ]}
+        >
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.bottomSheetContent}
+          >
+            {/* Drawer Title */}
+            <Text style={[styles.drawerTitle, { color: isDark ? '#FFFFFF' : '#1E293B' }]}>
+              Log in or sign up
+            </Text>
+
+            {/* Zomato-Style Phone Input Row (Separate Flag & Phone Box) */}
+            <View style={styles.phoneRowContainer}>
+              {/* Left Country Picker Button */}
+              <TouchableOpacity 
+                style={[
+                  styles.countryPickerBtn,
+                  { 
+                    backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                    borderColor: isDark ? '#334155' : '#E2E8F0'
+                  }
+                ]}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.flagEmoji}>🇮🇳</Text>
+                <ChevronDown size={14} color={isDark ? '#94A3B8' : '#64748B'} style={styles.caretIcon} />
+              </TouchableOpacity>
+
+              {/* Right Phone Input Box */}
+              <View 
+                style={[
+                  styles.phoneInputBox,
+                  { 
+                    backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                    borderColor: isDark ? '#334155' : '#E2E8F0'
+                  }
                 ]}
               >
-                <View style={styles.flagBox}>
-                  <Text style={styles.flagEmoji}>🇮🇳</Text>
-                  <Text style={[styles.countryCodeText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    +91
-                  </Text>
-                </View>
+                <Text style={[styles.codePrefix, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                  +91
+                </Text>
                 <TextInput
                   style={[styles.phoneInput, { color: isDark ? '#FFFFFF' : '#0F172A' }]}
-                  placeholder="Enter 10-digit mobile number"
+                  placeholder="Enter Mobile Number"
                   placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="phone-pad"
                   maxLength={10}
                   value={phoneNumber}
                   onChangeText={setPhoneNumber}
                 />
-                {phoneNumber.length >= 10 && (
-                  <Pressable
-                    style={styles.inlineGoBtn}
-                    onPress={handlePhoneSubmit}
-                  >
-                    <ArrowRight size={18} color="#FFFFFF" />
-                  </Pressable>
-                )}
               </View>
-
-              {/* Primary Phone Continue Action */}
-              <Pressable
-                style={[
-                  styles.primaryBtn,
-                  {
-                    backgroundColor:
-                      phoneNumber.length >= 10
-                        ? '#10B981'
-                        : isDark
-                        ? '#1E293B'
-                        : '#E2E8F0',
-                  },
-                ]}
-                onPress={handlePhoneSubmit}
-                disabled={phoneNumber.length < 10}
-              >
-                <Phone size={18} color={phoneNumber.length >= 10 ? '#FFFFFF' : '#94A3B8'} />
-                <Text
-                  style={[
-                    styles.primaryBtnText,
-                    {
-                      color:
-                        phoneNumber.length >= 10
-                          ? '#FFFFFF'
-                          : isDark
-                          ? '#64748B'
-                          : '#94A3B8',
-                    },
-                  ]}
-                >
-                  Continue with Mobile Number
-                </Text>
-                <ChevronRight
-                  size={18}
-                  color={phoneNumber.length >= 10 ? '#FFFFFF' : '#94A3B8'}
-                />
-              </Pressable>
-
-              {/* Divider */}
-              <View style={styles.dividerRow}>
-                <View style={[styles.dividerLine, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]} />
-                <Text style={[styles.dividerText, { color: isDark ? '#64748B' : '#94A3B8' }]}>
-                  OR SIGN IN WITH
-                </Text>
-                <View style={[styles.dividerLine, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]} />
-              </View>
-
-              {/* Platform Social Login Options */}
-              <View style={styles.socialButtonsRow}>
-                {/* Google Sign In (Android / Universal) */}
-                <Pressable
-                  style={[
-                    styles.socialBtn,
-                    {
-                      backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
-                      borderColor: isDark ? '#334155' : '#E2E8F0',
-                    },
-                  ]}
-                  onPress={() => handleSocialLogin('google')}
-                >
-                  <View style={styles.googleIconBadge}>
-                    <Text style={styles.googleIconText}>G</Text>
-                  </View>
-                  <Text style={[styles.socialBtnText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    Google
-                  </Text>
-                </Pressable>
-
-                {/* Apple Sign In (iOS) */}
-                {Platform.OS === 'ios' && (
-                  <Pressable
-                    style={[
-                      styles.socialBtn,
-                      {
-                        backgroundColor: isDark ? '#1E293B' : '#000000',
-                        borderColor: isDark ? '#334155' : '#000000',
-                      },
-                    ]}
-                    onPress={() => handleSocialLogin('apple')}
-                  >
-                    <Text style={styles.appleIconText}></Text>
-                    <Text style={[styles.socialBtnText, { color: '#FFFFFF' }]}>
-                      Apple
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-
-              {/* Guest / Direct Explorer Option */}
-              <Pressable
-                style={styles.guestLink}
-                onPress={handleGuestAccess}
-              >
-                <Text style={[styles.guestLinkText, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-                  Explore App as Guest
-                </Text>
-                <ArrowRight size={14} color={isDark ? '#94A3B8' : '#64748B'} />
-              </Pressable>
             </View>
-          </Animated.View>
 
-          {/* Bottom Legal Note */}
-          <Animated.View entering={FadeInUp.delay(350)} style={styles.footerNote}>
-            <Text style={[styles.footerText, { color: isDark ? '#64748B' : '#94A3B8' }]}>
-              By proceeding, you agree to Arogyon's Terms of Service & Privacy Policy.
-            </Text>
-          </Animated.View>
-        </ScrollView>
+            {/* Primary Continue Button */}
+            <TouchableOpacity
+              style={[
+                styles.continueBtn,
+                {
+                  backgroundColor: phoneNumber.length >= 10 
+                    ? '#10B981' 
+                    : (isDark ? 'rgba(16, 185, 129, 0.35)' : '#A7F3D0'),
+                }
+              ]}
+              onPress={handlePhoneSubmit}
+              disabled={phoneNumber.length < 10}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.continueBtnText}>Continue</Text>
+            </TouchableOpacity>
+
+            {/* Social Options Row (3 Icons: Google, Apple, Mail) */}
+            <View style={styles.socialIconsRow}>
+              {/* Google Button */}
+              <TouchableOpacity
+                style={[
+                  styles.socialCircleBtn,
+                  { 
+                    backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                    borderColor: isDark ? '#334155' : '#F1F5F9' 
+                  }
+                ]}
+                onPress={() => handleSocialLogin('google')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.googleIconBadge}>
+                  <Text style={styles.googleIconText}>G</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Apple Button */}
+              <TouchableOpacity
+                style={[
+                  styles.socialCircleBtn,
+                  { 
+                    backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                    borderColor: isDark ? '#334155' : '#F1F5F9' 
+                  }
+                ]}
+                onPress={() => handleSocialLogin('apple')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.appleIconText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}></Text>
+              </TouchableOpacity>
+
+              {/* Email / Mail Button */}
+              <TouchableOpacity
+                style={[
+                  styles.socialCircleBtn,
+                  { 
+                    backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                    borderColor: isDark ? '#334155' : '#F1F5F9' 
+                  }
+                ]}
+                onPress={() => handleSocialLogin('email')}
+                activeOpacity={0.8}
+              >
+                <Mail size={20} color="#10B981" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Footer Terms & Legal Disclaimer */}
+            <View style={styles.legalFooter}>
+              <Text style={[styles.legalText, { color: isDark ? '#94A3B8' : '#64748B' }]}>
+                By continuing, you agree to our
+              </Text>
+              <View style={styles.legalLinksRow}>
+                <TouchableOpacity onPress={() => router.push('/auth/onboarding')}>
+                  <Text style={[styles.legalLink, { color: isDark ? '#CBD5E1' : '#475569' }]}>
+                    Terms of Service
+                  </Text>
+                </TouchableOpacity>
+                <Text style={[styles.legalDot, { color: isDark ? '#64748B' : '#94A3B8' }]}> · </Text>
+                <TouchableOpacity onPress={() => router.push('/auth/onboarding')}>
+                  <Text style={[styles.legalLink, { color: isDark ? '#CBD5E1' : '#475569' }]}>
+                    Privacy Policy
+                  </Text>
+                </TouchableOpacity>
+                <Text style={[styles.legalDot, { color: isDark ? '#64748B' : '#94A3B8' }]}> · </Text>
+                <TouchableOpacity onPress={() => router.push('/auth/onboarding')}>
+                  <Text style={[styles.legalLink, { color: isDark ? '#CBD5E1' : '#475569' }]}>
+                    Content Policies
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </Animated.View>
       </KeyboardAvoidingView>
     </AnimatedScreen>
   );
@@ -283,227 +319,254 @@ export default function LandingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ECFDF5',
   },
-  scrollContent: {
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 30,
-  },
-  heroSection: {
+  topHeroSection: {
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 52 : 36,
     alignItems: 'center',
-    marginBottom: 24,
+    justifyContent: 'space-between',
+    paddingBottom: 24,
   },
-  brandBadgeRow: {
+  topBar: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    height: 40,
   },
-  brandIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  skipButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  skipText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+  },
+  headlineContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 4,
+    paddingHorizontal: 16,
+  },
+  mainHeadingUpper: {
+    fontSize: 25,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  mainHeadingLower: {
+    fontSize: 25,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  brandBadgeContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  brandBadgeBrush: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 22,
+    paddingVertical: 5,
+    borderRadius: 10,
+    transform: [{ rotate: '-1.5deg' }],
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 5,
   },
-  livePill: {
+  brandBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    fontStyle: 'italic',
+  },
+  freeHeroVisualWrapper: {
+    width: SCREEN_WIDTH,
+    height: 260,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+    overflow: 'hidden',
+  },
+  freeFullWidthImage: {
+    width: SCREEN_WIDTH,
+    height: '100%',
+  },
+  paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#10B981',
-  },
-  liveText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#10B981',
-  },
-  brandTitle: {
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 6,
-  },
-  tagline: {
-    fontSize: 14.5,
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 16,
-    marginBottom: 18,
-  },
-  featuresRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 8,
+    marginBottom: 8,
   },
-  featurePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+  dot: {
+    height: 6,
+    borderRadius: 3,
   },
-  featureText: {
-    fontSize: 12.5,
-    fontWeight: '600',
+  activeDotBar: {
+    width: 28,
+    backgroundColor: '#FFFFFF',
   },
-  cardContainer: {
-    width: '100%',
+  inactiveDot: {
+    width: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
   },
-  glassCard: {
-    borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
+  bottomSheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 10,
   },
-  cardHeaderTitle: {
-    fontSize: 22,
+  bottomSheetContent: {
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    alignItems: 'center',
+  },
+  drawerTitle: {
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 4,
-  },
-  cardHeaderSub: {
-    fontSize: 13.5,
-    lineHeight: 20,
     marginBottom: 20,
+    textAlign: 'center',
   },
-  phoneInputWrapper: {
+  phoneRowContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 56,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 14,
+    width: '100%',
     marginBottom: 16,
   },
-  flagBox: {
+  countryPickerBtn: {
+    width: 72,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 10,
-    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   flagEmoji: {
-    fontSize: 18,
+    fontSize: 20,
   },
-  countryCodeText: {
+  caretIcon: {
+    marginLeft: 4,
+  },
+  phoneInputBox: {
+    flex: 1,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  codePrefix: {
     fontSize: 16,
     fontWeight: '700',
+    marginRight: 10,
   },
   phoneInput: {
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
   },
-  inlineGoBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#10B981',
+  continueBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 22,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  primaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 54,
-    borderRadius: 27,
-    gap: 10,
-  },
-  primaryBtnText: {
-    fontSize: 15.5,
+  continueBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16.5,
     fontWeight: '700',
   },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-  },
-  socialButtonsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  socialBtn: {
-    flex: 1,
+  socialIconsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 14,
+    width: '100%',
+    marginBottom: 22,
+  },
+  socialCircleBtn: {
+    flex: 1,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 14,
     borderWidth: 1,
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   googleIconBadge: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EA4335',
+    backgroundColor: '#4285F4',
     alignItems: 'center',
     justifyContent: 'center',
   },
   googleIconText: {
     color: '#FFFFFF',
-    fontWeight: '900',
     fontSize: 14,
+    fontWeight: '900',
   },
   appleIconText: {
-    fontSize: 18,
-    color: '#FFFFFF',
+    fontSize: 22,
     fontWeight: '700',
   },
-  socialBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
+  legalFooter: {
+    alignItems: 'center',
   },
-  guestLink: {
+  legalText: {
+    fontSize: 11.5,
+    marginBottom: 4,
+  },
+  legalLinksRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    paddingVertical: 10,
-    gap: 6,
   },
-  guestLinkText: {
-    fontSize: 14,
+  legalLink: {
+    fontSize: 11,
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
-  footerNote: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 11.5,
-    textAlign: 'center',
-    lineHeight: 18,
+  legalDot: {
+    fontSize: 11,
   },
 });

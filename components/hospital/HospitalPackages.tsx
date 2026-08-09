@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronRight, Search, SlidersHorizontal, X, CheckCircle2, HeartPulse, Stethoscope, Activity } from 'lucide-react-native';
+import PackageItemCard from '@/components/packages/cards/PackageItemCard';
 
 interface Props {
   colors: any;
@@ -49,7 +50,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-preg-1',
     category: 'Pregnancy Care',
     categorySlug: 'pregnancy',
-    title: '1 x Complete Maternity Care Package',
+    title: 'Complete Maternity Care Package',
     subtitle: 'Full pregnancy cover, trimesters 1-3, scans & delivery',
     price: '₹45,000',
     originalPrice: '₹60,000',
@@ -61,7 +62,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-preg-2',
     category: 'Pregnancy Care',
     categorySlug: 'pregnancy',
-    title: '1 x Premium Delivery Suite Package',
+    title: 'Premium Delivery Suite Package',
     subtitle: 'Private luxury suite delivery & pediatrician cover',
     price: '₹75,999',
     originalPrice: '₹90,000',
@@ -73,7 +74,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-cardiac-1',
     category: 'Cardiac Care',
     categorySlug: 'cardiac',
-    title: '1 x Comprehensive Heart Checkup & Echo',
+    title: 'Comprehensive Heart Checkup & Echo',
     subtitle: 'ECG, TMT, 2D Echo, Lipid profile & Cardiac consult',
     price: '₹4,999',
     originalPrice: '₹8,500',
@@ -85,7 +86,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-knee-1',
     category: 'Knee & Joint Recovery',
     categorySlug: 'knee',
-    title: '1 x 3D Robot-Assisted Knee Surgery',
+    title: '3D Robot-Assisted Knee Surgery',
     subtitle: 'Robotic knee replacement, implant & 10 physio sessions',
     price: '₹1,85,000',
     originalPrice: '₹2,20,000',
@@ -97,7 +98,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-diab-1',
     category: 'Diabetes & Metabolism',
     categorySlug: 'diabetes',
-    title: '1 x Annual Diabetes Reversal Plan',
+    title: 'Annual Diabetes Reversal Plan',
     subtitle: 'HbA1c quarterly tests & continuous glucose monitor',
     price: '₹12,499',
     originalPrice: '₹16,000',
@@ -109,7 +110,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-gastro-1',
     category: 'Gastro & Digestive',
     categorySlug: 'gastro',
-    title: '1 x Advanced Endoscopy & Gut Wellness',
+    title: 'Advanced Endoscopy & Gut Wellness',
     subtitle: 'Upper GI endoscopy, LFT & gastroenterology consult',
     price: '₹8,999',
     originalPrice: '₹12,000',
@@ -121,7 +122,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
     id: 'pkg-hernia-1',
     category: 'Hernia Repair',
     categorySlug: 'hernia',
-    title: '1 x Laparoscopic 3D Mesh Hernia Surgery',
+    title: 'Laparoscopic 3D Mesh Hernia Surgery',
     subtitle: 'Keyhole hernia repair, 3D mesh implant & 1-day stay',
     price: '₹55,000',
     originalPrice: '₹70,000',
@@ -264,48 +265,12 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
               </View>
 
               {group.packages.map((pkg) => (
-                <View 
-                  key={pkg.id} 
-                  style={[
-                    styles.verticalPackageCard,
-                    { 
-                      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                      borderColor: isDark ? '#333333' : '#E5E5E5' 
-                    }
-                  ]}
-                >
-                  <View style={styles.cardRow}>
-                    {/* Image */}
-                    <Image source={{ uri: pkg.image }} style={styles.verticalPackageImage} resizeMode="cover" />
-
-                    {/* Content */}
-                    <View style={styles.verticalPackageContent}>
-                      <Text style={[styles.packageTitle, { color: colors.text }]} numberOfLines={2}>
-                        {pkg.title}
-                      </Text>
-
-                      {/* Price & View Package Action Row */}
-                      <View style={styles.priceAndActionRow}>
-                        <View style={styles.priceLeft}>
-                          <Text style={[styles.currentPrice, { color: colors.text }]}>{pkg.price}</Text>
-                          <Text style={[styles.originalPrice, { color: isDark ? '#9CA3AF' : '#999999' }]}>{pkg.originalPrice}</Text>
-                          <View style={[styles.discountBadge, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
-                            <Text style={styles.discountText}>{pkg.discount}</Text>
-                          </View>
-                        </View>
-
-                        <TouchableOpacity 
-                          style={styles.viewPackageBtn}
-                          onPress={() => handleViewPackage(pkg.id)}
-                          activeOpacity={0.8}
-                        >
-                          <Text style={styles.viewPackageText}>View package</Text>
-                          <ChevronRight size={14} color="#EF4444" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                </View>
+                <PackageItemCard
+                  key={pkg.id}
+                  item={pkg}
+                  layout="horizontal"
+                  onPress={handleViewPackage}
+                />
               ))}
             </View>
           ))
@@ -313,47 +278,49 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
       </View>
 
       {/* Category Selection Modal */}
-      <Modal visible={showCategoryModal} transparent animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Select Package Category</Text>
-              <TouchableOpacity onPress={() => setShowCategoryModal(false)} style={styles.closeBtn}>
-                <X size={20} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+      {showCategoryModal && (
+        <Modal visible={showCategoryModal} transparent animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalCard, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Select Package Category</Text>
+                <TouchableOpacity onPress={() => setShowCategoryModal(false)} style={styles.closeBtn}>
+                  <X size={20} color={colors.text} />
+                </TouchableOpacity>
+              </View>
 
-            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-              {ALL_PACKAGE_CATEGORIES.map((item) => {
-                const isSelected = activeCategory === item.id;
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.modalItemRow,
-                      isSelected && { backgroundColor: isDark ? '#2E1065' : '#F3E8FF' },
-                    ]}
-                    onPress={() => {
-                      handleCategoryPress(item.id);
-                      setShowCategoryModal(false);
-                    }}
-                  >
-                    <Text
+              <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+                {ALL_PACKAGE_CATEGORIES.map((item) => {
+                  const isSelected = activeCategory === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
                       style={[
-                        styles.modalItemText,
-                        { color: isSelected ? '#7C3AED' : colors.text, fontWeight: isSelected ? '800' : '600' },
+                        styles.modalItemRow,
+                        isSelected && { backgroundColor: isDark ? '#2E1065' : '#F3E8FF' },
                       ]}
+                      onPress={() => {
+                        handleCategoryPress(item.id);
+                        setShowCategoryModal(false);
+                      }}
                     >
-                      {item.name}
-                    </Text>
-                    {isSelected && <CheckCircle2 size={18} color="#7C3AED" />}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          { color: isSelected ? '#7C3AED' : colors.text, fontWeight: isSelected ? '800' : '600' },
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+                      {isSelected && <CheckCircle2 size={18} color="#7C3AED" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -367,7 +334,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 40,
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 14,
     marginBottom: 10,
@@ -445,11 +412,11 @@ const styles = StyleSheet.create({
   },
   verticalPackageCard: {
     borderRadius: 16,
-    borderWidth: 1,
-    padding: 12,
+    borderWidth: 0,
+    padding: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
   },
@@ -547,7 +514,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 25,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -568,7 +535,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 340,
-    borderRadius: 20,
+    borderRadius: 12,
     padding: 18,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },

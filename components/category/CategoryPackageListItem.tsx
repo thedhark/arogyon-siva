@@ -29,7 +29,7 @@ export default function CategoryPackageListItem({
         styles.verticalPackageCard,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: isDark ? '#333333' : '#E5E5E5',
+          borderColor: 'transparent',
         },
       ]}
     >
@@ -85,14 +85,14 @@ export default function CategoryPackageListItem({
 const styles = StyleSheet.create({
   verticalPackageCard: {
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 12,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   cardRow: {
     flexDirection: 'row',

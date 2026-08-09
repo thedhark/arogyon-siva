@@ -1,31 +1,15 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
 import { Image } from 'expo-image';
-import { ArrowRight, Crown } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowRight, Sparkles, Shield, HeartHandshake, Stethoscope, UserCheck } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-
-type IconComponent = React.ComponentType<{
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-}>;
-
-type FeatureCard = {
-  id: 'international' | 'surgery' | 'women' | 'preventive';
-  titlePrimary: string;
-  titleSecondary: string;
-  accent: string;
-  image: number;
-};
-
-type CompactCard = {
-  id: 'membership';
-  titlePrimary: string;
-  titleSecondary: string;
-  accent: string;
-  image: number;
-  icon: IconComponent;
-};
+import * as Haptics from 'expo-haptics';
 
 interface ExpertCareModuleProps {
   colors: any;
@@ -33,294 +17,266 @@ interface ExpertCareModuleProps {
   onSpecialityPress?: (speciality: string) => void;
 }
 
-const FEATURE_CARDS: FeatureCard[] = [
+export type ExpertBanner = {
+  id: string;
+  badge: string;
+  titlePrimary: string;
+  titleSecondary: string;
+  subtitle: string;
+  ctaText: string;
+  accent: string;
+  image: number;
+  icon: any;
+  actionType: 'surgery' | 'international' | 'preventive' | 'women' | 'men';
+};
+
+const EXPERT_BANNERS: ExpertBanner[] = [
   {
-    id: 'international',
+    id: 'banner-surgery',
+    badge: 'SENIOR SURGEONS',
+    titlePrimary: 'Planned Surgery',
+    titleSecondary: '& CLINICAL CARE',
+    subtitle: 'Consult top surgical specialists with 24/7 post-care assistance.',
+    ctaText: 'Consult Expert',
+    accent: '#3B82F6',
+    image: require('../assets/images/expert-module/planned-surgery.png'),
+    icon: Stethoscope,
+    actionType: 'surgery',
+  },
+  {
+    id: 'banner-international',
+    badge: 'GLOBAL OPINION',
     titlePrimary: 'International',
     titleSecondary: 'PATIENT CARE',
-    accent: '#155EEF',
+    subtitle: 'World-class medical tourism, tele-consults & multi-disciplinary care.',
+    ctaText: 'Get Medical Opinion',
+    accent: '#6366F1',
     image: require('../assets/images/expert-module/international-patient-care.png'),
+    icon: HeartHandshake,
+    actionType: 'international',
   },
   {
-    id: 'surgery',
-    titlePrimary: 'Planned',
-    titleSecondary: 'SURGERY',
-    accent: '#155EEF',
-    image: require('../assets/images/expert-module/planned-surgery.png'),
-  },
-  {
-    id: 'women',
-    titlePrimary: "Women's",
-    titleSecondary: 'HEALTH',
-    accent: '#F43F7F',
-    image: require('../assets/images/expert-module/womens-health.png'),
-  },
-  {
-    id: 'preventive',
-    titlePrimary: 'Preventive',
-    titleSecondary: 'CARE',
-    accent: '#2F9E44',
+    id: 'banner-preventive',
+    badge: 'FULL BODY CARE',
+    titlePrimary: 'Preventive Health',
+    titleSecondary: '& WELLNESS',
+    subtitle: 'Proactive diagnostic checkups paired with 1:1 expert guidance.',
+    ctaText: 'View Care Plans',
+    accent: '#10B981',
     image: require('../assets/images/expert-module/preventive-care.png'),
+    icon: Shield,
+    actionType: 'preventive',
   },
-];
-
-const COMPACT_CARDS: CompactCard[] = [
   {
-    id: 'membership',
-    titlePrimary: 'Arogyon',
-    titleSecondary: 'MEMBERSHIP',
-    accent: '#F59F00',
-    image: require('../assets/images/expert-module/membership.png'),
-    icon: Crown,
+    id: 'banner-women',
+    badge: 'TOP GYNECOLOGISTS',
+    titlePrimary: "Women's Health",
+    titleSecondary: '& MATERNITY CARE',
+    subtitle: 'Dedicated gynecologists, fertility experts & 40-week maternity plans.',
+    ctaText: 'Explore Experts',
+    accent: '#EC4899',
+    image: require('../assets/images/expert-module/womens-health.png'),
+    icon: Sparkles,
+    actionType: 'women',
+  },
+  {
+    id: 'banner-men',
+    badge: 'EXECUTIVE WELLNESS',
+    titlePrimary: "Men's Health",
+    titleSecondary: '& FITNESS CARE',
+    subtitle: 'Specialized prostate, hormonal, heart & lifestyle consultations.',
+    ctaText: 'Consult Specialist',
+    accent: '#8B5CF6',
+    image: require('../assets/images/expert-module/planned-surgery.png'),
+    icon: UserCheck,
+    actionType: 'men',
   },
 ];
 
 export default function ExpertCareModule({ colors, isDark, onSpecialityPress }: ExpertCareModuleProps) {
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isWide = width >= 760;
 
-  const openFeatureCard = (id: FeatureCard['id']) => {
-    if (id === 'surgery') {
+  const handleBannerPress = (banner: ExpertBanner) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (banner.actionType === 'surgery') {
       router.push({ pathname: '/care/service/[id]', params: { id: 'post-surgery' } });
-      return;
+    } else if (banner.actionType === 'international') {
+      router.push({ pathname: '/care/service/[id]', params: { id: 'international' } });
+    } else if (banner.actionType === 'women') {
+      router.push({ pathname: '/care/service/[id]', params: { id: 'women' } });
+    } else if (banner.actionType === 'preventive') {
+      router.push({ pathname: '/care/service/[id]', params: { id: 'preventive' } });
+    } else if (banner.actionType === 'men') {
+      router.push({ pathname: '/care/service/[id]', params: { id: 'men' } });
+    } else {
+      router.push('/search');
     }
-
-    if (id === 'women') {
-      onSpecialityPress?.('Gynaecologist');
-      return;
-    }
-
-    if (id === 'preventive') {
-      router.push({ pathname: '/packages/category/[id]', params: { id: 'fitness' } });
-      return;
-    }
-
-    router.push('/search');
-  };
-
-  const openCompactCard = (id: CompactCard['id']) => {
-    router.push('/profile');
   };
 
   return (
-    <View style={styles.module}>
-      <View style={[styles.featureGrid, isWide && styles.featureGridWide]}>
-        {FEATURE_CARDS.map((card) => (
+    <View style={styles.container}>
+      {EXPERT_BANNERS.map((banner) => {
+        const Icon = banner.icon;
+
+        return (
           <TouchableOpacity
-            key={card.id}
-            activeOpacity={0.9}
-            onPress={() => openFeatureCard(card.id)}
+            key={banner.id}
+            activeOpacity={0.92}
+            onPress={() => handleBannerPress(banner)}
             style={[
-              styles.featureCard,
-              isWide && styles.featureCardWide,
+              styles.bannerCard,
               {
-                backgroundColor: isDark ? '#16181D' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
+                backgroundColor: isDark ? '#1E1E24' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
               },
             ]}
           >
-            <Image 
-              source={card.image} 
-              style={styles.featureImage} 
-              contentFit="cover" 
-              transition={200} 
+            {/* Background Image - Full Bleed without any white spread */}
+            <Image
+              source={banner.image}
+              style={styles.backgroundImage}
+              contentFit="cover"
+              transition={200}
             />
 
-            <View style={styles.featureContent}>
-              <View style={styles.featureCopy}>
-                <Text style={[styles.titlePrimary, { color: colors.text }]}>{card.titlePrimary}</Text>
-                <Text style={[styles.titleSecondary, { color: card.accent }]}>{card.titleSecondary}</Text>
-                <View style={[styles.accentLine, { backgroundColor: card.accent }]} />
+            {/* Banner Foreground Content */}
+            <View style={styles.contentContainer}>
+              {/* Header Tag Badge */}
+              <View style={styles.badgeRow}>
+                <View style={[styles.iconPill, { backgroundColor: banner.accent }]}>
+                  <Icon size={12} color="#FFFFFF" />
+                </View>
+                <View style={styles.badgePill}>
+                  <Text style={styles.badgeText}>{banner.badge}</Text>
+                </View>
               </View>
 
-              <View 
-                style={[
-                  styles.roundAction, 
-                  { 
-                    borderColor: card.accent, 
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.75)',
-                    marginTop: 'auto'
-                  }
-                ]}
-              >
-                <ArrowRight size={22} color={card.accent} strokeWidth={2.4} />
+              {/* Title & Subtitle */}
+              <View style={styles.titleWrap}>
+                <Text style={styles.titlePrimary}>{banner.titlePrimary}</Text>
+                <Text style={[styles.titleSecondary, { color: banner.accent }]}>
+                  {banner.titleSecondary}
+                </Text>
+                <Text style={styles.subtitleText} numberOfLines={2}>
+                  {banner.subtitle}
+                </Text>
+              </View>
+
+              {/* Action CTA Button */}
+              <View style={styles.ctaRow}>
+                <View style={[styles.ctaButton, { backgroundColor: banner.accent }]}>
+                  <Text style={styles.ctaButtonText}>{banner.ctaText}</Text>
+                  <ArrowRight size={14} color="#FFFFFF" />
+                </View>
               </View>
             </View>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      {COMPACT_CARDS.length > 0 && (
-        <View style={[styles.compactGrid, isWide && styles.compactGridWide]}>
-          {COMPACT_CARDS.map((card) => {
-            const Icon = card.icon;
-            return (
-              <TouchableOpacity
-                key={card.id}
-                activeOpacity={0.9}
-                onPress={() => openCompactCard(card.id)}
-                style={[
-                  styles.compactCard,
-                  isWide && styles.compactCardWide,
-                  {
-                    backgroundColor: isDark ? '#16181D' : '#FFFFFF',
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
-                  },
-                ]}
-              >
-                <Image source={card.image} style={styles.compactImage} contentFit="cover" transition={200} />
-
-                <View style={styles.compactContent}>
-                  <View style={[styles.compactIcon, { borderColor: card.accent, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)' }]}>
-                    <Icon size={24} color={card.accent} strokeWidth={2.1} />
-                  </View>
-                  <View style={styles.compactTitleWrap}>
-                    <Text style={[styles.compactTitlePrimary, { color: colors.text }]}>{card.titlePrimary}</Text>
-                    <Text style={[styles.compactTitleSecondary, { color: card.accent }]}>{card.titleSecondary}</Text>
-                  </View>
-                  <View style={[styles.compactAccentLine, { backgroundColor: card.accent }]} />
-                  <View style={[styles.roundAction, { borderColor: card.accent, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)' }]}>
-                    <ArrowRight size={22} color={card.accent} strokeWidth={2.4} />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  module: {
-    gap: 12,
-    marginBottom: 20,
+  container: {
+    gap: 14,
+    marginVertical: 8,
   },
-  featureGrid: {
-    gap: 12,
-  },
-  featureGridWide: {
-    flexDirection: 'row',
-  },
-  featureCard: {
-    minHeight: 322,
-    borderRadius: 16,
-    borderCurve: 'continuous',
+  bannerCard: {
+    width: '100%',
+    height: 225,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
     overflow: 'hidden',
+    position: 'relative',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  featureCardWide: {
-    flex: 1,
-  },
-  featureImage: {
+  backgroundImage: {
     ...StyleSheet.absoluteFillObject,
   },
-  featureContent: {
+  contentContainer: {
     flex: 1,
+    padding: 20,
     justifyContent: 'space-between',
-    padding: 22,
+    width: '78%',
+    zIndex: 10,
   },
-  featureCopy: {
-    width: '68%',
-    minWidth: 170,
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
+  iconPill: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  titleWrap: {
+    gap: 3,
+    marginVertical: 4,
+  },
   titlePrimary: {
-    fontSize: 26,
-    lineHeight: 30,
+    color: '#FFFFFF',
+    fontSize: 23,
     fontWeight: '900',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
+    textShadowColor: 'rgba(0, 0, 0, 0.65)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   titleSecondary: {
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: 11.5,
     fontWeight: '800',
-    letterSpacing: 1.6,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
+    textShadowColor: 'rgba(0, 0, 0, 0.65)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  accentLine: {
-    width: 38,
-    height: 3,
-    borderRadius: 99,
+  subtitleText: {
+    color: '#F8FAFC',
+    fontSize: 12.5,
+    fontWeight: '600',
+    lineHeight: 17,
     marginTop: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.65)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  compactGrid: {
-    gap: 12,
-  },
-  compactGridWide: {
+  ctaRow: {
     flexDirection: 'row',
-  },
-  compactCard: {
-    minHeight: 180,
-    borderRadius: 16,
-    borderCurve: 'continuous',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  compactCardWide: {
-    flex: 1,
-  },
-  compactImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  compactContent: {
-    flex: 1,
-    width: '68%',
-    minWidth: 170,
-    padding: 20,
-    gap: 10,
-  },
-  compactIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.58)',
   },
-  compactTitleWrap: {
-    gap: 2,
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
-  compactTitlePrimary: {
-    fontSize: 22,
-    lineHeight: 25,
-    fontWeight: '900',
-    letterSpacing: -0.2,
-  },
-  compactTitleSecondary: {
-    fontSize: 11,
-    lineHeight: 14,
+  ctaButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
     fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  compactAccentLine: {
-    width: 32,
-    height: 2.5,
-    borderRadius: 99,
-  },
-  roundAction: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.65)',
   },
 });

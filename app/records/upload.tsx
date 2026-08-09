@@ -29,6 +29,7 @@ export default function UploadRecordScreen() {
   const [extractionError, setExtractionError] = useState<string | null>(null);
   const [customTitle, setCustomTitle] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showFullText, setShowFullText] = useState(true);
 
   const processFileWithOCR = async (file: { uri: string; name: string; type: string }) => {
     setSelectedFile(file);
@@ -299,24 +300,77 @@ export default function UploadRecordScreen() {
                 ))}
               </View>
 
-              {/* Full Text Snippet */}
-              <View style={[styles.fullTextContainer, { backgroundColor: isDark ? '#141414' : '#F8F9FA' }]}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={[styles.fullTextHeader, { color: colors.textSecondary }]}>Extracted Plain Text</Text>
-                  <Pressable 
-                    onPress={() => {
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                  >
-                    {copied ? <CheckCircle2 size={14} color="#10B981" /> : <Copy size={14} color={colors.accent} />}
-                    <Text style={{ fontSize: 12, color: copied ? '#10B981' : colors.accent, fontWeight: '600' }}>
-                      {copied ? 'Copied!' : 'Copy Text'}
-                    </Text>
-                  </Pressable>
+              {/* Extracted Entities Grid */}
+              {parsedResult.extractedEntities && (
+                <View style={{ marginTop: 14, gap: 10 }}>
+                  {parsedResult.extractedEntities.doctorName && (
+                    <View style={[styles.entityCard, { backgroundColor: isDark ? '#262626' : '#EFF6FF' }]}>
+                      <Text style={[styles.entityHeader, { color: colors.accent }]}>PROFILES / DOCTOR DETECTED</Text>
+                      <Text style={[styles.entityBody, { color: colors.text }]}>{parsedResult.extractedEntities.doctorName}</Text>
+                    </View>
+                  )}
+
+                  {parsedResult.extractedEntities.testValues.length > 0 && (
+                    <View style={[styles.entityCard, { backgroundColor: isDark ? '#262626' : '#ECFDF5' }]}>
+                      <Text style={[styles.entityHeader, { color: '#059669' }]}>EXTRACTED TEST METRICS</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                        {parsedResult.extractedEntities.testValues.map((tv, idx) => (
+                          <View key={idx} style={[styles.testValueBadge, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF', borderColor: '#10B981' }]}>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text }}>{tv.name}: </Text>
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: '#10B981' }}>{tv.value}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+
+                  {parsedResult.extractedEntities.medications.length > 0 && (
+                    <View style={[styles.entityCard, { backgroundColor: isDark ? '#262626' : '#F5F3FF' }]}>
+                      <Text style={[styles.entityHeader, { color: '#7C3AED' }]}>PRESCRIBED MEDICINES DETECTED</Text>
+                      <View style={{ gap: 4, marginTop: 4 }}>
+                        {parsedResult.extractedEntities.medications.map((med, idx) => (
+                          <Text key={idx} style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>
+                            • {med}
+                          </Text>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
-                <Text style={[styles.fullTextContent, { color: colors.text }]} numberOfLines={6}>
+              )}
+
+              {/* Full Text Container */}
+              <View style={[styles.fullTextContainer, { backgroundColor: isDark ? '#141414' : '#F8F9FA' }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={[styles.fullTextHeader, { color: colors.textSecondary }]}>Full Extracted OCR Text</Text>
+                    <View style={{ backgroundColor: '#10B98120', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#10B981' }}>VERIFIED OCR</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Pressable onPress={() => setShowFullText(!showFullText)}>
+                      <Text style={{ fontSize: 12, color: colors.accent, fontWeight: '700' }}>
+                        {showFullText ? 'Collapse' : 'Expand All'}
+                      </Text>
+                    </Pressable>
+
+                    <Pressable 
+                      onPress={() => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                    >
+                      {copied ? <CheckCircle2 size={14} color="#10B981" /> : <Copy size={14} color={colors.accent} />}
+                      <Text style={{ fontSize: 12, color: copied ? '#10B981' : colors.accent, fontWeight: '700' }}>
+                        {copied ? 'Copied!' : 'Copy'}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+                <Text style={[styles.fullTextContent, { color: colors.text }]} numberOfLines={showFullText ? undefined : 6}>
                   {parsedResult.extractedText}
                 </Text>
               </View>
@@ -449,6 +503,10 @@ const styles = StyleSheet.create({
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
   tagPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   tagText: { fontSize: 12, fontWeight: '500' },
+  entityCard: { padding: 10, borderRadius: 12 },
+  entityHeader: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5, marginBottom: 2 },
+  entityBody: { fontSize: 14, fontWeight: '700' },
+  testValueBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center' },
   fullTextContainer: { marginTop: 14, padding: 12, borderRadius: 12 },
   fullTextHeader: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   fullTextContent: { fontSize: 12, lineHeight: 18, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },

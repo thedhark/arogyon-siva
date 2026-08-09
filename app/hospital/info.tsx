@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   headerBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   cardSection: {
-    borderRadius: 20,
+    borderRadius: 12,
     padding: 18,
     borderWidth: 0,
     shadowColor: 'transparent',
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   feePill: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   feePillText: {
     fontSize: 12,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   mapCard: {
-    borderRadius: 16,
+    borderRadius: 10,
     borderWidth: 0,
     overflow: 'hidden',
     marginBottom: 16,

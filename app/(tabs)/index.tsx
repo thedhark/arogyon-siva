@@ -15,7 +15,7 @@ import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHan
 import HomeHeader from '@/components/HomeHeader';
 
 import RecommendedPlans from '@/components/RecommendedPlans';
-import WellnessForYou from '@/components/WellnessForYou';
+import LabsBanner from '@/components/LabsBanner';
 import ExploreCategories from '@/components/ExploreCategories';
 import ExploreFilters from '@/components/ExploreFilters';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -226,23 +226,23 @@ export default function HomeScreen() {
           {/* Index 2: Family Banner (Spotlight) */}
           <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Spotlight</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>SPOTLIGHT</Text>
             </View>
             <FamilyBanner />
           </Animated.View>
 
           {/* Index 3: Category Grid (Specialties) */}
-          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 16, marginBottom: 4 }}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>EXPLORE CATEGORIES</Text>
             </View>
             <CategoryGrid />
           </Animated.View>
 
-          {/* Index 4: Wellness For You */}
-          <View style={{ paddingHorizontal: 12 }}>
-            <WellnessForYou />
-          </View>
+          {/* Index 3.5: Arogyon Labs & Lenskart Banner (Matching FamilyBanner width) */}
+          <Animated.View entering={FadeInDown.delay(400)} style={{ paddingHorizontal: 12, marginBottom: 16 }}>
+            <LabsBanner />
+          </Animated.View>
 
           {/* Index 5: Sticky Explore Categories & Filters */}
           <View
@@ -307,7 +307,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
   },
 });

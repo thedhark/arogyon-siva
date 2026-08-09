@@ -29,12 +29,22 @@ export default function RootLayout() {
           <Stack.Screen name="location" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="doctor/[id]" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="care/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="care/service/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="hospital/info" options={{ headerShown: false }} />
           <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
           <Stack.Screen name="booking/success" options={{ headerShown: false }} />
           <Stack.Screen name="packages/category/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/planned-surgery" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/surgery" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/international" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/women" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/womens" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/men" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/mens" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/preventive" options={{ headerShown: false }} />
+          <Stack.Screen name="packages/category/full-body" options={{ headerShown: false }} />
           <Stack.Screen name="packages/category/knee" options={{ headerShown: false }} />
           <Stack.Screen name="packages/category/senior" options={{ headerShown: false }} />
           <Stack.Screen name="packages/category/cardiac" options={{ headerShown: false }} />

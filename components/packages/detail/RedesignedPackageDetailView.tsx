@@ -7,6 +7,7 @@ import { ChevronLeft, Share2, Heart, ShieldCheck } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import PackageHeroBanner from '@/components/packages/detail/PackageHeroBanner';
+import PackagePricingCard from '@/components/packages/detail/PackagePricingCard';
 import PackageCategoryNav from '@/components/packages/detail/PackageCategoryNav';
 import PackageAboutCard from '@/components/packages/detail/PackageAboutCard';
 import PackageInclusionsCard from '@/components/packages/detail/PackageInclusionsCard';
@@ -65,118 +66,106 @@ export default function RedesignedPackageDetailView({
     }
   };
 
-  const handleBookNow = () => {
-    router.push(`/packages/checkout/${packageId}` as any);
+  const handleReserveToken = () => {
+    router.push(`/packages/checkout/${packageId}?mode=token` as any);
+  };
+
+  const handleBookFull = () => {
+    router.push(`/packages/checkout/${packageId}?mode=full` as any);
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
-      {/* Top Navigation Bar */}
-      <View style={[styles.headerBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-          <ChevronLeft size={22} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-          {hospitalName || 'Cloudnine Hospitals'}
-        </Text>
-        <View style={styles.headerRightActions}>
-          <TouchableOpacity onPress={() => setIsBookmarked(!isBookmarked)} style={styles.iconBtn}>
-            <Heart
-              size={20}
-              color={isBookmarked ? '#EF4444' : colors.text}
-              fill={isBookmarked ? '#EF4444' : 'none'}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleShare} style={styles.iconBtn}>
-            <Share2 size={18} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* 1. Professional Hero Image Banner */}
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#0D0E11' : '#F4F6F8' }]} edges={['bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
+        {/* 1. Edge-to-Edge Scenic Hero Image Banner matching Image 2 */}
         <Animated.View entering={FadeInDown.delay(50)}>
           <PackageHeroBanner
             image={image}
             title={title}
+            hospitalName={hospitalName || 'Arogyan Partner Hospital'}
+            isDark={isDark}
+            colors={colors}
+            onBackPress={() => router.back()}
+            onSharePress={handleShare}
+            onBookmarkPress={() => setIsBookmarked(!isBookmarked)}
+            isBookmarked={isBookmarked}
+          />
+        </Animated.View>
+
+        {/* 1.5 Floating White Pricing Card & 4-Column Feature Grid matching Image 2 */}
+        <Animated.View entering={FadeInDown.delay(75)}>
+          <PackagePricingCard
+            price={price}
+            originalPrice={originalPrice}
             discount={discount}
-            rating={rating}
-            bookedCount={bookedCount}
-            isDark={isDark}
-            colors={colors}
+            tokenPrice="₹499"
           />
         </Animated.View>
 
-        {/* 2. Category Icon Carousel */}
-        <Animated.View entering={FadeInDown.delay(100)}>
-          <PackageCategoryNav
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            isDark={isDark}
-            colors={colors}
-          />
-        </Animated.View>
+        {/* Body Content Sections Container with Padding */}
+        <View style={styles.bodySectionsContainer}>
+          {/* 2. About this plan Card */}
+          <Animated.View entering={FadeInDown.delay(150)}>
+            <PackageAboutCard
+              title="About this plan"
+              description={summary}
+              isDark={isDark}
+              colors={colors}
+            />
+          </Animated.View>
 
-        {/* 3. About this plan Card */}
-        <Animated.View entering={FadeInDown.delay(150)}>
-          <PackageAboutCard
-            title="About this plan"
-            description={summary}
-            isDark={isDark}
-            colors={colors}
-          />
-        </Animated.View>
+          {/* 3. What's included Card */}
+          <Animated.View entering={FadeInDown.delay(200)}>
+            <PackageInclusionsCard
+              inclusions={inclusions}
+              isDark={isDark}
+              colors={colors}
+            />
+          </Animated.View>
 
-        {/* 4. What's included Card */}
-        <Animated.View entering={FadeInDown.delay(200)}>
-          <PackageInclusionsCard
-            inclusions={inclusions}
-            isDark={isDark}
-            colors={colors}
-          />
-        </Animated.View>
+          {/* 4. Hospitals with Similar Packages Carousel */}
+          <Animated.View entering={FadeInDown.delay(250)}>
+            <SimilarPackagesCard
+              isDark={isDark}
+              colors={colors}
+            />
+          </Animated.View>
 
-        {/* 5. Hospitals with Similar Packages Carousel */}
-        <Animated.View entering={FadeInDown.delay(250)}>
-          <SimilarPackagesCard
-            isDark={isDark}
-            colors={colors}
-          />
-        </Animated.View>
-
-
-        {/* 7. Arogyon Assurance Promise */}
-        <Animated.View
-          entering={FadeInDown.delay(350)}
-          style={[
-            styles.promiseCard,
-            {
-              backgroundColor: isDark ? '#1F192E' : '#F5F3FF',
-              borderColor: isDark ? '#4C1D95' : '#EDE9FE',
-            },
-          ]}
-        >
-          <ShieldCheck size={28} color="#6527BE" />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[styles.promiseTitle, { color: isDark ? '#DDD6FE' : '#6527BE' }]}>
-              100% Quality & Price Guarantee
-            </Text>
-            <Text style={[styles.promiseSub, { color: isDark ? '#A7F3D0' : '#4B5563' }]}>
-              NABH Accredited Hospital partners, verified specialist consults & zero hidden charges.
-            </Text>
-          </View>
-        </Animated.View>
+          {/* 5. Arogyon Assurance Promise */}
+          <Animated.View
+            entering={FadeInDown.delay(350)}
+            style={[
+              styles.promiseCard,
+              {
+                backgroundColor: isDark ? '#1F192E' : '#F5F3FF',
+                borderColor: 'transparent',
+              },
+            ]}
+          >
+            <ShieldCheck size={28} color="#6527BE" />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={[styles.promiseTitle, { color: isDark ? '#DDD6FE' : '#6527BE' }]}>
+                100% Quality & Price Guarantee
+              </Text>
+              <Text style={[styles.promiseSub, { color: isDark ? '#A7F3D0' : '#4B5563' }]}>
+                NABH Accredited Hospital partners, verified specialist consults & zero hidden charges.
+              </Text>
+            </View>
+          </Animated.View>
+        </View>
       </ScrollView>
 
-      {/* Sticky Bottom Booking Payment Action Bar */}
+      {/* Sticky Bottom Booking Payment Action Bar with Dual Buttons */}
       <StickyBookingPaymentBar
         priceDropText="Price dropped by ₹167"
         price={price}
         originalPrice={originalPrice}
         discountText={discount}
-        ctaText="Book Visit"
+        tokenCtaText="Reserve Slot (₹499)"
+        ctaText="Book Package"
         ctaIcon="bag"
-        onPressCTA={handleBookNow}
+        onPressTokenCTA={handleReserveToken}
+        onPressCTA={handleBookFull}
       />
     </SafeAreaView>
   );
@@ -211,14 +200,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   scrollContent: {
-    paddingHorizontal: 16,
     paddingBottom: 120,
+  },
+  bodySectionsContainer: {
+    paddingHorizontal: 16,
   },
   promiseCard: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 16,
     marginTop: 8,
     marginBottom: 16,

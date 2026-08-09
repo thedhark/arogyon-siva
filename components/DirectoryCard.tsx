@@ -133,7 +133,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   phcImageWrapper: {
-    height: 190,
+    height: 180,
+    aspectRatio: 16 / 9,
+    width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',

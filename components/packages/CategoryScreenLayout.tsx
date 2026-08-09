@@ -8,6 +8,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getCategoryById } from '@/constants/package-data';
+import PackageItemCard from '@/components/packages/cards/PackageItemCard';
 
 const MOCK_HOSPITALS = [
   {
@@ -49,7 +50,7 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
   const categoryData = getCategoryById(categorySlug);
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#0D0E11' : '#F4F6F8' }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
         
         {/* Hero Section */}
@@ -72,10 +73,19 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
           </View>
         </View>
 
+        {/* Framed Category Title Section */}
+        <View style={styles.titleSection}>
+          <View style={[styles.titleLine, { backgroundColor: isDark ? '#333' : '#E5E5E5' }]} />
+          <Text style={[styles.sectionTitle, { color: isDark ? '#FFF' : '#1A1A1A' }]}>
+            {categoryData.title || `${categorySlug.toUpperCase()} CARE PLANS`}
+          </Text>
+          <View style={[styles.titleLine, { backgroundColor: isDark ? '#333' : '#E5E5E5' }]} />
+        </View>
+
         {/* Filters */}
         <View style={styles.filtersWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScrollContent}>
-            <TouchableOpacity style={[styles.filterPill, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E5E5' }]}>
+            <TouchableOpacity style={[styles.filterPill, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF', borderColor: 'transparent' }]}>
               <SlidersHorizontal size={14} color={isDark ? '#FFF' : '#1A1A1A'} />
               <Text style={[styles.filterPillText, { color: isDark ? '#FFF' : '#1A1A1A' }]}>Filters</Text>
             </TouchableOpacity>
@@ -89,8 +99,8 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
                   style={[
                     styles.filterPill, 
                     isActive 
-                      ? { backgroundColor: '#005C4B', borderColor: '#005C4B' }
-                      : { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E5E5' }
+                      ? { backgroundColor: '#005C4B', borderColor: 'transparent' }
+                      : { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF', borderColor: 'transparent' }
                   ]}
                 >
                   <Text style={[
@@ -137,38 +147,12 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
               {/* Horizontal Scroll of Packages */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.packagesScrollContent}>
                 {categoryData.packages.map((pkg) => (
-                  <View key={pkg.id} style={[styles.packageCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E5E5' }]}>
-                    
-                    {/* Top Image */}
-                    <View style={styles.packageImageContainer}>
-                      <Image source={{ uri: pkg.image }} style={styles.packageImage} contentFit="cover" />
-                    </View>
-
-                    {/* Content */}
-                    <View style={styles.packageContent}>
-                      <View style={styles.typeIconRow}>
-                        <Text style={[styles.packageTitle, { color: isDark ? '#FFF' : '#1A1A1A' }]} numberOfLines={1}>{pkg.title}</Text>
-                      </View>
-
-                      {/* Price & Action Row */}
-                      <View style={styles.priceAndActionRow}>
-                        <View style={styles.priceLeft}>
-                          <Text style={[styles.currentPrice, { color: isDark ? '#FFF' : '#1A1A1A' }]}>{pkg.price}</Text>
-                          <Text style={styles.originalPrice}>{pkg.originalPrice}</Text>
-                          <View style={styles.discountBadge}>
-                            <Text style={styles.discountText}>{pkg.discount}</Text>
-                          </View>
-                        </View>
-
-                        <TouchableOpacity 
-                          style={styles.viewPackageBtn}
-                          onPress={() => router.push(`/packages/detail/${pkg.id}` as any)}
-                        >
-                          <Text style={styles.viewPackageText}>View package</Text>
-                          <ChevronRight size={14} color="#EF4444" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
+                  <View key={pkg.id} style={{ width: 295, marginRight: 12 }}>
+                    <PackageItemCard
+                      item={pkg}
+                      layout="vertical"
+                      onPress={(id) => router.push(`/packages/detail/${id}` as any)}
+                    />
                   </View>
                 ))}
               </ScrollView>
@@ -176,7 +160,7 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
               {/* View Full Menu Button */}
               <View style={styles.fullMenuBtnWrapper}>
                 <TouchableOpacity 
-                  style={[styles.fullMenuBtn, { backgroundColor: isDark ? '#2A2A2A' : '#FFF', borderColor: isDark ? '#444' : '#E5E5E5' }]}
+                  style={[styles.fullMenuBtn, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF', borderColor: 'transparent' }]}
                   onPress={() => {
                     const targetHospId = hospital.id === 'h2' ? 'hosp-1' : 'hosp-1';
                     router.push(`/hospital/${targetHospId}?tab=Packages` as any);
@@ -188,7 +172,7 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
                 </TouchableOpacity>
               </View>
 
-              {/* Section Divider */}
+              {/* Clean Section Spacing (Zero Border Lines) */}
               <View style={styles.sectionDivider} />
 
             </Animated.View>
@@ -462,21 +446,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    borderWidth: 1,
+    borderWidth: 0,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   fullMenuText: {
     fontSize: 13,
     fontWeight: '700',
   },
   sectionDivider: {
-    height: 1,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: '#CCC',
-    marginBottom: 24,
+    height: 16,
+    marginBottom: 8,
     width: '100%',
   }
 });

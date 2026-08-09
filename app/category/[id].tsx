@@ -15,6 +15,12 @@ import { HOSPITALS_DATA } from '@/constants/directory-data';
 import { doctors as HEALTH_DOCTORS } from '@/constants/health';
 import { CATEGORY_INDEX_REGISTRY } from '@/constants/package-data';
 
+import PlannedSurgeryCare from '@/components/care/PlannedSurgeryCare';
+import InternationalPatientCare from '@/components/care/InternationalPatientCare';
+import WomensHealthCare from '@/components/care/WomensHealthCare';
+import MensHealthCare from '@/components/care/MensHealthCare';
+import PreventiveHealthCare from '@/components/care/PreventiveHealthCare';
+
 const TABS = ['Recommended', 'Doctors', 'Hospitals', 'Packages'];
 
 const CATEGORY_META: Record<string, { title: string; subtitle: string; icon: string }> = {
@@ -43,6 +49,11 @@ const CATEGORY_META: Record<string, { title: string; subtitle: string; icon: str
     subtitle: 'Maternity packages, 40-week screening & specialist consults',
     icon: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200',
   },
+  labs: {
+    title: 'Arogyon Labs & Diagnostic Tests',
+    subtitle: 'Book NABL certified lab tests, full body checkups & home sample collection',
+    icon: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=400',
+  },
 };
 
 export default function CategoryScreen() {
@@ -50,7 +61,30 @@ export default function CategoryScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
-  const categoryId = (id || 'knee').toLowerCase();
+  const rawSlug = (typeof id === 'string' ? id : '').toLowerCase().trim();
+  const normalizedId = rawSlug.replace(/[-_]/g, '');
+
+  if (['postsurgery', 'plannedsurgery', 'surgery', 'generalsurgery', '5'].includes(normalizedId)) {
+    return <PlannedSurgeryCare colors={colors} isDark={isDark} />;
+  }
+
+  if (['international', 'internationalcare', 'internationalpatientcare', 'medicaltourism', 'globalcare'].includes(normalizedId)) {
+    return <InternationalPatientCare colors={colors} isDark={isDark} />;
+  }
+
+  if (['women', 'womens', 'womenshealth', 'gynaecologist', 'gynecology', 'maternity', 'maternitycare', '9'].includes(normalizedId)) {
+    return <WomensHealthCare colors={colors} isDark={isDark} />;
+  }
+
+  if (['men', 'mens', 'menshealth', 'executivewellness'].includes(normalizedId)) {
+    return <MensHealthCare colors={colors} isDark={isDark} />;
+  }
+
+  if (['preventive', 'preventivehealth', 'fitness', 'fullbody', 'wellness', 'wellnesscare'].includes(normalizedId)) {
+    return <PreventiveHealthCare colors={colors} isDark={isDark} />;
+  }
+
+  const categoryId = rawSlug || 'knee';
   const meta = CATEGORY_META[categoryId] ?? {
     title: `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1)} Care`,
     subtitle: `Find the best care and specialists for ${categoryId}`,

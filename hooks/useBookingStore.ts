@@ -56,15 +56,35 @@ export interface Appointment {
   transactionDate?: string;
 }
 
+export interface PackageBooking {
+  id: string;
+  packageId: string;
+  packageTitle: string;
+  hospitalName: string;
+  patientName: string;
+  patientPhone: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  paymentMode: 'token' | 'full';
+  totalAmount: number;
+  amountPaid: number;
+  paymentStatus: 'paid' | 'pending';
+  careManagerName?: string;
+  careManagerPhone?: string;
+  bookingDate: string;
+}
+
 interface BookingState {
   doctors: Record<string, Doctor>;
   hospitals: Record<string, Hospital>;
   appointments: Appointment[];
+  packageBookings: PackageBooking[];
   
   getDoctor: (id: string) => Doctor | undefined;
   getHospital: (id: string) => Hospital | undefined;
   getHospitalDoctors: (hospitalId: string) => Doctor[];
   bookAppointment: (details: Omit<Appointment, 'id' | 'status'> & Partial<Appointment>) => string;
+  bookPackage: (details: Omit<PackageBooking, 'id' | 'bookingDate'>) => string;
   cancelAppointment: (id: string) => void;
   getAppointment: (id: string) => Appointment | undefined;
 }
@@ -262,6 +282,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   doctors: initialDoctors,
   hospitals: initialHospitals,
   appointments: initialAppointments,
+  packageBookings: [],
 
   getDoctor: (id) => {
     const docs = get().doctors;
@@ -300,6 +321,47 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       appointments: [newAppointment, ...state.appointments]
     }));
     
+    return id;
+  },
+
+  bookPackage: (details) => {
+    const id = `PKG-ORD-${Date.now().toString().slice(-6)}`;
+    const newPackageBooking: PackageBooking = {
+      ...details,
+      id,
+      bookingDate: new Date().toISOString(),
+      careManagerName: 'Anita Sharma (Senior Care Manager)',
+      careManagerPhone: '+91 98765 43210',
+    };
+
+    // Also create a linked appointment entry for seamless view in appointments tab
+    const linkedAppId = `app-pkg-${Date.now()}`;
+    const linkedAppointment: Appointment = {
+      id: linkedAppId,
+      doctorId: 'doc-2',
+      doctorName: `${details.packageTitle} (Initial Consultation)`,
+      speciality: 'Package Assessment',
+      hospitalName: details.hospitalName,
+      location: 'Main Branch',
+      date: details.scheduledDate,
+      time: details.scheduledTime,
+      status: 'upcoming',
+      confirmationStatus: 'confirmed',
+      fee: details.totalAmount.toString(),
+      type: 'In-Clinic',
+      image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800',
+      paymentId: id,
+      paymentMethod: details.paymentMode === 'token' ? 'Token Advance (₹499)' : 'Full Payment (UPI)',
+      paymentStatus: details.paymentStatus === 'paid' ? 'paid' : 'pending',
+      category: 'consultation',
+      totalPaid: details.amountPaid,
+    };
+
+    set((state) => ({
+      packageBookings: [newPackageBooking, ...state.packageBookings],
+      appointments: [linkedAppointment, ...state.appointments],
+    }));
+
     return id;
   },
 

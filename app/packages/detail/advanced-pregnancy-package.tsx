@@ -5,7 +5,7 @@ export default function AdvancedPregnancyPackageScreen() {
   return (
     <RedesignedPackageDetailView
       packageId="advanced-pregnancy-package"
-      title="1 x Advanced Pregnancy Package"
+      title="Advanced Pregnancy Package"
       price="₹ 32,999"
       originalPrice="₹ 45,000"
       discount="27% OFF"

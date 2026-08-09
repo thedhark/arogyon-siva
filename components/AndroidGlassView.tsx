@@ -36,7 +36,7 @@ export default function AndroidGlassView({
     // Return a solid fallback during the 150ms reload window to prevent the hardware crash
     return (
       <Animated.View 
-        style={[style, { backgroundColor: isDark ? 'rgba(18,18,18,0.85)' : 'rgba(253,253,253,0.85)' }]} 
+        style={[{ backgroundColor: isDark ? 'rgba(18,18,18,0.85)' : 'rgba(253,253,253,0.85)' }, style]} 
       />
     );
   }

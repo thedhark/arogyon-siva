@@ -4,6 +4,10 @@ export interface Address {
   id: string;
   type: string;
   address: string;
+  flatNo?: string;
+  landmark?: string;
+  pincode?: string;
+  city?: string;
   phone?: string;
   distance?: string;
   isDefault: boolean;

@@ -12,7 +12,7 @@ export default function RecommendedPlans() {
   return (
     <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Plans</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>RECOMMENDED PLANS</Text>
         <TouchableOpacity onPress={() => router.push('/(tabs)/package' as any)}>
           <Text style={[styles.seeAll, { color: '#2FA882' }]}>See All</Text>
         </TouchableOpacity>
@@ -62,8 +62,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
   },
   seeAll: {
     fontSize: 14,

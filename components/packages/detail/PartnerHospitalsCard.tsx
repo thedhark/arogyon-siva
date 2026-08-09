@@ -70,7 +70,7 @@ export default function PartnerHospitalsCard({ count = 15, isDark, colors }: Pro
               styles.hospitalCard,
               {
                 backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                borderColor: isDark ? '#2E2E2E' : '#F1F5F9',
+                borderColor: 'transparent',
               },
             ]}
           >
@@ -98,7 +98,7 @@ export default function PartnerHospitalsCard({ count = 15, isDark, colors }: Pro
             styles.moreCard,
             {
               backgroundColor: isDark ? '#2E1065' : '#F5F3FF',
-              borderColor: isDark ? '#4C1D95' : '#EDE9FE',
+              borderColor: 'transparent',
             },
           ]}
         >
@@ -139,15 +139,15 @@ const styles = StyleSheet.create({
     width: 106,
     height: 110,
     borderRadius: 18,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   logoWrapper: {
     width: 50,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     width: 106,
     height: 110,
     borderRadius: 18,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },

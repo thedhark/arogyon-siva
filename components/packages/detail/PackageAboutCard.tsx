@@ -20,7 +20,7 @@ export default function PackageAboutCard({
         styles.card,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: isDark ? '#2E2E2E' : '#F1F5F9',
+          borderColor: 'transparent',
         },
       ]}
     >
@@ -35,14 +35,14 @@ export default function PackageAboutCard({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 16,
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 1,
+    elevation: 2,
   },
   title: {
     fontSize: 18,

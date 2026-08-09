@@ -92,6 +92,34 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Display & Language Preferences */}
+        <Text style={[styles.sectionHeading, { color: colors.text, marginTop: 24 }]}>Preferences & Region</Text>
+        <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0', padding: 0 }]}>
+          <TouchableOpacity 
+            style={styles.navRow}
+            onPress={() => Alert.alert('App Language', 'Select your preferred language:\n\n• English (Default)\n• Hindi (हिंदी)\n• Telugu (తెలుగు)\n• Tamil (தமிழ்)', [{ text: 'OK' }])}
+          >
+            <Smartphone size={20} color={colors.accent} style={{ marginRight: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.navText, { color: colors.text }]}>App Language</Text>
+              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>English (United States)</Text>
+            </View>
+            <ChevronRight size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.navRow, { borderTopWidth: 1, borderTopColor: isDark ? '#333' : '#F0F0F0' }]}
+            onPress={() => Alert.alert('ABHA Health ID Sync', 'ABHA (Ayushman Bharat Digital Health Account) status: Connected & Verified.', [{ text: 'OK' }])}
+          >
+            <Shield size={20} color="#10B981" style={{ marginRight: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.navText, { color: colors.text }]}>ABHA Digital Health Sync</Text>
+              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>Linked: 91-8729-****-2091</Text>
+            </View>
+            <ChevronRight size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* Help, FAQs & Terms */}
         <Text style={[styles.sectionHeading, { color: colors.text, marginTop: 24 }]}>Support & Legal</Text>
         <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0', padding: 0 }]}>
@@ -133,7 +161,7 @@ export default function SettingsScreen() {
                       Alert.alert(
                         'Account Deleted', 
                         'Your account and associated health data have been permanently removed.',
-                        [{ text: 'OK', onPress: () => router.replace('/auth/login') }]
+                        [{ text: 'OK', onPress: () => router.replace('/auth/landing') }]
                       );
                     }
                   }
@@ -162,7 +190,7 @@ export default function SettingsScreen() {
                 { 
                   text: 'Log Out', 
                   style: 'destructive',
-                  onPress: () => router.replace('/auth/login')
+                  onPress: () => router.replace('/auth/landing')
                 }
               ]
             );

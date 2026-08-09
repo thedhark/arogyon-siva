@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { FileText, File, Eye } from 'lucide-react-native';
+import { FileText, File, Eye, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { MedicalRecord } from '@/hooks/useRecordsStore';
 
@@ -28,9 +28,17 @@ export default function RecordItemCard({ file, onPress }: RecordItemCardProps) {
         )}
       </View>
       <View style={styles.fileDetails}>
-        <Text style={[styles.fileName, { color: colors.text }]} numberOfLines={1}>{file.title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={[styles.fileName, { color: colors.text, flex: 1 }]} numberOfLines={1}>{file.title}</Text>
+          {file.extractedText && (
+            <View style={{ backgroundColor: '#10B98115', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <Sparkles size={10} color="#10B981" />
+              <Text style={{ fontSize: 10, fontWeight: '800', color: '#10B981' }}>OCR</Text>
+            </View>
+          )}
+        </View>
         <Text style={[styles.fileMeta, { color: colors.textSecondary }]} numberOfLines={1}>
-          {file.date} • {file.category}
+          {file.date} • {file.category} {file.patientName ? `• ${file.patientName}` : ''}
         </Text>
         {file.summary && (
           <Text style={[styles.fileSummarySnippet, { color: colors.textMuted }]} numberOfLines={1}>

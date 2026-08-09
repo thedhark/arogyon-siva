@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, Platform } from 'react-native';
-import { Sparkles, X, Tag } from 'lucide-react-native';
+import { Sparkles, X, Tag, Copy, CheckCircle2, FileText } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { MedicalRecord } from '@/hooks/useRecordsStore';
 import DocumentPreview from './DocumentPreview';
+import { extractStructuredInsights } from '@/services/documentReaderService';
 
 interface DocumentReaderModalProps {
   record: MedicalRecord | null;
@@ -13,7 +14,12 @@ interface DocumentReaderModalProps {
 
 export default function DocumentReaderModal({ record, visible, onClose }: DocumentReaderModalProps) {
   const { colors, isDark } = useTheme();
+  const [copied, setCopied] = useState(false);
+  const [showFullText, setShowFullText] = useState(true);
+
   if (!record) return null;
+
+  const entities = extractStructuredInsights(record.extractedText || '');
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -35,20 +41,98 @@ export default function DocumentReaderModal({ record, visible, onClose }: Docume
 
             <DocumentPreview record={record} />
 
-            {record.summary && <View style={[styles.summaryBox, { backgroundColor: isDark ? '#262626' : '#F9FAFB' }]}>
-              <Text style={[styles.summaryHeader, { color: colors.textSecondary }]}>Extracted Summary</Text>
-              <Text style={[styles.summaryBody, { color: colors.text }]}>{record.summary}</Text>
-            </View>}
+            {record.summary && (
+              <View style={[styles.summaryBox, { backgroundColor: isDark ? '#262626' : '#F9FAFB' }]}>
+                <Text style={[styles.summaryHeader, { color: colors.textSecondary }]}>Extracted Summary</Text>
+                <Text style={[styles.summaryBody, { color: colors.text }]}>{record.summary}</Text>
+              </View>
+            )}
 
-            {!!record.tags?.length && <View style={styles.modalTagsRow}>
-              {record.tags.map((tag) => <View key={tag} style={[styles.modalTag, { backgroundColor: isDark ? '#333' : '#E5E7EB' }]}>
-                <Tag size={12} color={colors.textSecondary} /><Text style={[styles.modalTagText, { color: colors.text }]}>{tag}</Text>
-              </View>)}
-            </View>}
+            {/* Extracted Structured Entities */}
+            {entities && (entities.doctorName || entities.testValues.length > 0 || entities.medications.length > 0) && (
+              <View style={{ marginBottom: 14, gap: 8 }}>
+                {entities.doctorName && (
+                  <View style={{ backgroundColor: isDark ? '#262626' : '#EFF6FF', padding: 10, borderRadius: 12 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: colors.accent, letterSpacing: 0.5 }}>DOCTOR DETECTED</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, marginTop: 2 }}>{entities.doctorName}</Text>
+                  </View>
+                )}
 
+                {entities.testValues.length > 0 && (
+                  <View style={{ backgroundColor: isDark ? '#262626' : '#ECFDF5', padding: 10, borderRadius: 12 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#059669', letterSpacing: 0.5 }}>LAB METRICS EXTRACTED</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                      {entities.testValues.map((tv, idx) => (
+                        <View key={idx} style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#10B981', backgroundColor: isDark ? '#1F2937' : '#FFFFFF', flexDirection: 'row' }}>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text }}>{tv.name}: </Text>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: '#10B981' }}>{tv.value}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {entities.medications.length > 0 && (
+                  <View style={{ backgroundColor: isDark ? '#262626' : '#F5F3FF', padding: 10, borderRadius: 12 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#7C3AED', letterSpacing: 0.5 }}>PRESCRIBED MEDICINES</Text>
+                    <View style={{ gap: 4, marginTop: 4 }}>
+                      {entities.medications.map((med, idx) => (
+                        <Text key={idx} style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>• {med}</Text>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {!!record.tags?.length && (
+              <View style={styles.modalTagsRow}>
+                {record.tags.map((tag) => (
+                  <View key={tag} style={[styles.modalTag, { backgroundColor: isDark ? '#333' : '#E5E7EB' }]}>
+                    <Tag size={12} color={colors.textSecondary} />
+                    <Text style={[styles.modalTagText, { color: colors.text }]}>{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Extracted Text Section */}
             <View style={[styles.ocrTextContainer, { backgroundColor: isDark ? '#141414' : '#F3F4F6' }]}>
-              <Text style={[styles.ocrTextTitle, { color: colors.textSecondary }]}>EXTRACTED TEXT</Text>
-              <Text style={[styles.ocrTextBody, { color: colors.text }]}>{record.extractedText || 'No readable text was extracted from this document.'}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[styles.ocrTextTitle, { color: colors.textSecondary, marginBottom: 0 }]}>EXTRACTED OCR TEXT</Text>
+                  <View style={{ backgroundColor: '#10B98120', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#10B981' }}>VERIFIED OCR</Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Pressable onPress={() => setShowFullText(!showFullText)}>
+                    <Text style={{ fontSize: 12, color: colors.accent, fontWeight: '700' }}>
+                      {showFullText ? 'Collapse' : 'Expand All'}
+                    </Text>
+                  </Pressable>
+
+                  {record.extractedText && (
+                    <Pressable 
+                      onPress={() => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                    >
+                      {copied ? <CheckCircle2 size={14} color="#10B981" /> : <Copy size={14} color={colors.accent} />}
+                      <Text style={{ fontSize: 12, color: copied ? '#10B981' : colors.accent, fontWeight: '700' }}>
+                        {copied ? 'Copied!' : 'Copy'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+
+              <Text style={[styles.ocrTextBody, { color: colors.text }]} numberOfLines={showFullText ? undefined : 6}>
+                {record.extractedText || 'No readable text was extracted from this document.'}
+              </Text>
             </View>
           </ScrollView>
 

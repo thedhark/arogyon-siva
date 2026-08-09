@@ -5,7 +5,7 @@ export default function BasicDeliveryPackageScreen() {
   return (
     <RedesignedPackageDetailView
       packageId="basic-delivery-package"
-      title="1 x Basic Delivery Package"
+      title="Basic Delivery Package"
       price="₹ 14,999"
       originalPrice="₹ 20,000"
       discount="25% OFF"

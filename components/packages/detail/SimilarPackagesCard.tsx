@@ -85,7 +85,7 @@ export default function SimilarPackagesCard({ isDark, colors }: Props) {
               styles.card,
               {
                 backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                borderColor: isDark ? '#2E2E2E' : '#F1F5F9',
+                borderColor: 'transparent',
               },
             ]}
           >
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
     width: 144,
     padding: 12,
     borderRadius: 18,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    borderWidth: 0,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   logoWrapper: {
     width: 44,
