@@ -7,10 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import AndroidGlassView from '@/components/AndroidGlassView';
-import {
-  SITUATION_ILLUSTRATIONS,
-  SPECIALTY_ILLUSTRATIONS,
-} from '@/constants/medical-theme-assets';
+import { SPECIALTY_ILLUSTRATIONS } from '@/constants/medical-illustrations';
 
 type CategoryItem = {
   id: number;
@@ -18,48 +15,30 @@ type CategoryItem = {
   image: string | ImageSourcePropType;
 };
 
-const SPECIALITIES: CategoryItem[] = [
+const GENERAL_CARE: CategoryItem[] = [
   { id: 1, name: 'General Physician', image: SPECIALTY_ILLUSTRATIONS.generalPhysician },
-  { id: 2, name: 'Cardiology', image: SPECIALTY_ILLUSTRATIONS.cardiology },
-  { id: 3, name: 'Ophthalmology', image: SPECIALTY_ILLUSTRATIONS.ophthalmology },
-  { id: 4, name: 'Dentistry', image: SPECIALTY_ILLUSTRATIONS.dentistry },
-  { id: 5, name: 'General Surgery', image: SPECIALTY_ILLUSTRATIONS.generalSurgery },
-  { id: 6, name: 'Oncology', image: SPECIALTY_ILLUSTRATIONS.oncology },
-  { id: 7, name: 'Pediatrics', image: SPECIALTY_ILLUSTRATIONS.pediatrics },
-  { id: 8, name: 'Orthopedics', image: SPECIALTY_ILLUSTRATIONS.orthopedics },
-  { id: 9, name: 'Gynecology', image: SPECIALTY_ILLUSTRATIONS.gynecology },
-  { id: 10, name: 'Neurology', image: SPECIALTY_ILLUSTRATIONS.neurology },
-  { id: 17, name: 'Urology', image: SPECIALTY_ILLUSTRATIONS.urology },
-  { id: 18, name: 'Dermatology', image: SPECIALTY_ILLUSTRATIONS.dermatology },
-  { id: 19, name: 'ENT Care', image: SPECIALTY_ILLUSTRATIONS.entCare },
-  { id: 20, name: 'Psychiatry', image: SPECIALTY_ILLUSTRATIONS.psychiatry },
-  { id: 21, name: 'Diabetology', image: SPECIALTY_ILLUSTRATIONS.diabetology },
-  { id: 22, name: 'Gastroenterology', image: SPECIALTY_ILLUSTRATIONS.gastroenterology },
-  { id: 23, name: 'Pulmonology', image: SPECIALTY_ILLUSTRATIONS.pulmonology },
-  { id: 24, name: 'Nephrology', image: SPECIALTY_ILLUSTRATIONS.nephrology },
+  { id: 4, name: 'Dentist', image: SPECIALTY_ILLUSTRATIONS.dentistry },
+  { id: 9, name: "Women's Health", image: SPECIALTY_ILLUSTRATIONS.gynecology },
+  { id: 18, name: 'Skin Specialist', image: SPECIALTY_ILLUSTRATIONS.dermatology },
+  { id: 3, name: 'Eye Specialist', image: SPECIALTY_ILLUSTRATIONS.ophthalmology },
+  { id: 19, name: 'Ear, Nose & Throat', image: SPECIALTY_ILLUSTRATIONS.entCare },
+  { id: 7, name: 'Child Care', image: SPECIALTY_ILLUSTRATIONS.pediatrics },
+  { id: 20, name: 'Mental Wellness', image: SPECIALTY_ILLUSTRATIONS.psychiatry },
+  { id: 39, name: 'Veterinary', image: SPECIALTY_ILLUSTRATIONS.veterinary },
+  { id: 33, name: "Men's Health", image: SPECIALTY_ILLUSTRATIONS.sexualHealth },
 ];
 
-const SITUATIONS: CategoryItem[] = [
-  { id: 11, name: 'Accident', image: SITUATION_ILLUSTRATIONS.accident },
-  { id: 12, name: 'Fever', image: SITUATION_ILLUSTRATIONS.fever },
-  { id: 13, name: 'Poisoning', image: SITUATION_ILLUSTRATIONS.poisoning },
-  { id: 14, name: 'Chest Pain', image: SITUATION_ILLUSTRATIONS.chestPain },
-  { id: 15, name: 'Breathing', image: SITUATION_ILLUSTRATIONS.breathing },
-  { id: 16, name: 'Stomach Ache', image: SITUATION_ILLUSTRATIONS.stomachAche },
-  { id: 25, name: 'Fracture', image: SITUATION_ILLUSTRATIONS.fracture },
-  { id: 26, name: 'Migraine', image: SITUATION_ILLUSTRATIONS.migraine },
-  { id: 27, name: 'Skin Burn', image: SITUATION_ILLUSTRATIONS.skinBurn },
-  { id: 28, name: 'Allergy', image: SITUATION_ILLUSTRATIONS.allergy },
-  { id: 29, name: 'BP Crisis', image: SITUATION_ILLUSTRATIONS.bpCrisis },
-  { id: 30, name: 'Animal Bite', image: SITUATION_ILLUSTRATIONS.animalBite },
-  { id: 31, name: 'Pimple & Acne', image: SITUATION_ILLUSTRATIONS.pimpleAcne },
-  { id: 32, name: 'Hair Loss', image: SITUATION_ILLUSTRATIONS.hairLoss },
-  { id: 33, name: 'Sexual Health', image: SITUATION_ILLUSTRATIONS.sexualHealth },
-  { id: 34, name: 'Period Pain', image: SITUATION_ILLUSTRATIONS.periodPain },
-  { id: 35, name: 'Weight Care', image: SITUATION_ILLUSTRATIONS.weightCare },
-  { id: 36, name: 'Stress & Anxiety', image: SITUATION_ILLUSTRATIONS.stressAnxiety },
-  { id: 37, name: 'Acidity & Gas', image: SITUATION_ILLUSTRATIONS.acidityGas },
-  { id: 38, name: 'Toothache', image: SITUATION_ILLUSTRATIONS.toothache },
+const ADVANCED_CARE: CategoryItem[] = [
+  { id: 8, name: 'Bones & Joints', image: SPECIALTY_ILLUSTRATIONS.orthopedics },
+  { id: 10, name: 'Brain & Nerves', image: SPECIALTY_ILLUSTRATIONS.neurology },
+  { id: 17, name: 'Urinary Issues', image: SPECIALTY_ILLUSTRATIONS.urology },
+  { id: 23, name: 'Lungs & Breathing', image: SPECIALTY_ILLUSTRATIONS.pulmonology },
+  { id: 2, name: 'Heart Specialist', image: SPECIALTY_ILLUSTRATIONS.cardiology },
+  { id: 22, name: 'Stomach & Digestion', image: SPECIALTY_ILLUSTRATIONS.gastroenterology },
+  { id: 21, name: 'Diabetes', image: SPECIALTY_ILLUSTRATIONS.diabetology },
+  { id: 6, name: 'Cancer Specialist', image: SPECIALTY_ILLUSTRATIONS.oncology },
+  { id: 40, name: 'Plastic Surgery', image: SPECIALTY_ILLUSTRATIONS.plasticSurgery },
+  { id: 41, name: 'Hair', image: SPECIALTY_ILLUSTRATIONS.hairPlantation },
 ];
 
 const getImageSource = (image: CategoryItem['image']) =>
@@ -70,14 +49,14 @@ export default function CategoryGrid() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [activeTab, setActiveTab] = useState(0); // 0 = Specialities, 1 = Situations
+  const [activeTab, setActiveTab] = useState(0); // 0 = General Care, 1 = Advanced Care
   const leftEdge = useSharedValue(0);
   const rightEdge = useSharedValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
 
   const supportsLiquidGlass = Platform.OS === 'ios' && typeof isLiquidGlassAvailable === 'function' && isLiquidGlassAvailable();
 
-  const activeCategories = activeTab === 0 ? SPECIALITIES : SITUATIONS;
+  const activeCategories = activeTab === 0 ? GENERAL_CARE : ADVANCED_CARE;
 
   const handleTabPress = (index: number) => {
     if (activeTab !== index) {
@@ -183,11 +162,11 @@ export default function CategoryGrid() {
           )}
           
           <TouchableOpacity style={styles.segmentButton} onPress={() => handleTabPress(0)} activeOpacity={0.8}>
-            <Text style={[styles.segmentText, activeTab === 0 ? (isDark ? styles.activeTextDark : styles.activeTextLight) : styles.inactiveText]}>Specialities</Text>
+            <Text style={[styles.segmentText, activeTab === 0 ? (isDark ? styles.activeTextDark : styles.activeTextLight) : styles.inactiveText]}>General Care</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.segmentButton} onPress={() => handleTabPress(1)} activeOpacity={0.8}>
-            <Text style={[styles.segmentText, activeTab === 1 ? (isDark ? styles.activeTextDark : styles.activeTextLight) : styles.inactiveText]}>Situations</Text>
+            <Text style={[styles.segmentText, activeTab === 1 ? (isDark ? styles.activeTextDark : styles.activeTextLight) : styles.inactiveText]}>Advanced Care</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -243,22 +222,22 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 12,
-    gap: 16,
+    gap: 8,
   },
   column: {
-    gap: 16,
+    gap: 8,
   },
   categoryCard: {
-    width: 88,
-    height: 116,
+    width: 68,
+    height: 104,
     padding: 0,
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
   imageWrapper: {
-    width: 76,
-    height: 76,
-    marginBottom: 8,
+    width: 64,
+    height: 64,
+    marginBottom: 6,
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

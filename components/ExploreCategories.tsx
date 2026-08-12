@@ -24,11 +24,11 @@ export const EXPLORE_CATEGORIES = [
   { id: 'Sleep', label: 'Sleep', image: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=200' },
 ];
 
-const ITEM_WIDTH = 76;
-const GAP = 16;
+const ITEM_WIDTH = 68;
+const GAP = 8;
 const PADDING_LEFT = 16;
-const SLIDER_WIDTH = 52;
-const SLIDER_OFFSET = (ITEM_WIDTH - SLIDER_WIDTH) / 2; // 12
+const SLIDER_WIDTH = 48;
+const SLIDER_OFFSET = (ITEM_WIDTH - SLIDER_WIDTH) / 2; // 10
 
 export default function ExploreCategories({ activeTab, onTabChange, style }: { activeTab: string, onTabChange: (t: string) => void, style?: any }) {
   const { colors, isDark } = useTheme();
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    gap: 16,
+    gap: 8,
     alignItems: 'flex-start',
     position: 'relative',
     paddingBottom: 10,

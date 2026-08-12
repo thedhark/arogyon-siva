@@ -31,7 +31,7 @@ export default function PregnancyCareCard({ onPress }: CardProps) {
       onPress={handlePress}
     >
       <LinearGradient
-        colors={['#FDEEF4', '#EED2DF']}
+        colors={['#E6F7FF', '#BAE7FF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.cardGradient}
@@ -43,7 +43,7 @@ export default function PregnancyCareCard({ onPress }: CardProps) {
         
         <View style={styles.imageContainer}>
           <LinearGradient 
-            colors={['#FDEEF4', 'transparent']} 
+            colors={['#E6F7FF', 'transparent']} 
             start={{ x: 0, y: 0 }} 
             end={{ x: 0.6, y: 0 }} 
             style={styles.imageGradientOverlay} 
@@ -104,15 +104,13 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
   },
   imageContainer: {
-    width: '45%',
+    width: '48%',
     height: '100%',
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
     zIndex: 1,
-    borderTopLeftRadius: 60,
-    borderBottomLeftRadius: 20,
     overflow: 'hidden',
   },
   image: {

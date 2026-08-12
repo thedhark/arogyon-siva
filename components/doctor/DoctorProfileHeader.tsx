@@ -3,14 +3,16 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, Share as RNS
 import { ArrowLeft, Bookmark, Share2, Star, CheckCircle2, MapPin, Globe, ShieldCheck, Award, Users, Video, Building2, Home } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Fonts } from '@/constants/theme';
 
 interface Props {
   doctorData: any;
   colors: any;
   isDark: boolean;
+  onBackPress?: () => void;
 }
 
-export default function DoctorProfileHeader({ doctorData, colors, isDark }: Props) {
+export default function DoctorProfileHeader({ doctorData, colors, isDark, onBackPress }: Props) {
   const router = useRouter();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -31,7 +33,7 @@ export default function DoctorProfileHeader({ doctorData, colors, isDark }: Prop
       <View style={styles.topHeader}>
         <TouchableOpacity 
           style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.9)' }]}
-          onPress={() => router.back()}
+          onPress={() => onBackPress ? onBackPress() : router.back()}
           activeOpacity={0.8}
         >
           <ArrowLeft size={20} color={colors.text} />
@@ -253,9 +255,10 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   doctorName: {
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: -0.3,
+    fontFamily: Fonts.bold,
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.15,
   },
   specialityText: {
     fontSize: 14,

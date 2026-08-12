@@ -14,9 +14,11 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { ArrowLeft, Search, Mic, X, Sparkles, Clock, Star, MapPin, ChevronRight, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { Fonts } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import AnimatedScreen from '@/components/AnimatedScreen';
+import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
 // "Think it, search it" prompt pills (Reference Image 2)
 const INSPIRATION_PILLS = [
@@ -338,6 +340,8 @@ export default function SearchScreen() {
           </>
         )}
       </ScrollView>
+
+      <FloatingCartBar bottomOffset={20} />
     </AnimatedScreen>
   );
 }
@@ -530,8 +534,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   docName: {
+    fontFamily: Fonts.bold,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.15,
   },
   docSpeciality: {
     fontSize: 12,

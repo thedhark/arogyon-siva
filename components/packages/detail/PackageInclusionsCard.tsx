@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, ChevronDown, ChevronUp, ListCheck } from 'lucide-react-native';
 
 interface Props {
   inclusions?: string[];
@@ -22,9 +22,13 @@ export default function PackageInclusionsCard({
   isDark,
   colors,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [isAccordionOpen, setIsAccordionOpen] = useState(true);
+  const [showAllItems, setShowAllItems] = useState(false);
+  
   const displayList = inclusions.length > 0 ? inclusions : DEFAULT_INCLUSIONS;
-  const visibleList = expanded ? displayList : displayList.slice(0, 6);
+  const initialLimit = 3;
+  const visibleList = showAllItems ? displayList : displayList.slice(0, initialLimit);
+  const hasMore = displayList.length > initialLimit;
 
   return (
     <View
@@ -32,41 +36,55 @@ export default function PackageInclusionsCard({
         styles.card,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: 'transparent',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
         },
       ]}
     >
-      <Text style={[styles.title, { color: colors.text }]}>What's included</Text>
+      {/* Accordion Header */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setIsAccordionOpen(!isAccordionOpen)}
+        style={styles.headerRow}
+      >
+        <View style={styles.titleWithIcon}>
+          <ListCheck size={18} color={isDark ? '#A78BFA' : '#6527BE'} />
+          <Text style={[styles.title, { color: colors.text }]}>What's included</Text>
+        </View>
+        {isAccordionOpen ? (
+          <ChevronUp size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+        ) : (
+          <ChevronDown size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+        )}
+      </TouchableOpacity>
 
-      <View style={styles.list}>
-        {visibleList.map((item, idx) => (
-          <View key={idx} style={styles.row}>
-            <View style={styles.checkWrapper}>
-              <Check size={16} color="#6527BE" strokeWidth={2.8} />
-            </View>
-            <Text style={[styles.itemText, { color: isDark ? '#E5E7EB' : '#1F2937' }]}>
-              {item}
-            </Text>
+      {/* Accordion Content */}
+      {isAccordionOpen && (
+        <View style={styles.contentBody}>
+          <View style={styles.list}>
+            {visibleList.map((item, idx) => (
+              <View key={idx} style={styles.row}>
+                <View style={[styles.checkWrapper, { backgroundColor: isDark ? '#2E1065' : '#F5F3FF' }]}>
+                  <Check size={15} color={isDark ? '#DDD6FE' : '#6527BE'} strokeWidth={2.8} />
+                </View>
+                <Text style={[styles.itemText, { color: isDark ? '#E5E7EB' : '#1F2937' }]}>
+                  {item}
+                </Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
 
-      {displayList.length > 6 && (
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => setExpanded(!expanded)}
-          style={styles.viewMoreBtn}
-        >
-          <Text style={styles.viewMoreText}>
-            {expanded ? 'Show less services' : 'View all services'}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {displayList.length <= 6 && (
-        <TouchableOpacity activeOpacity={0.7} style={styles.viewMoreBtn}>
-          <Text style={styles.viewMoreText}>View all services</Text>
-        </TouchableOpacity>
+          {hasMore && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setShowAllItems(!showAllItems)}
+              style={styles.viewMoreBtn}
+            >
+              <Text style={[styles.viewMoreText, { color: isDark ? '#A78BFA' : '#6527BE' }]}>
+                {showAllItems ? 'Show less services' : `View all ${displayList.length} services`}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       )}
     </View>
   );
@@ -75,20 +93,36 @@ export default function PackageInclusionsCard({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
-    borderWidth: 0,
+    borderWidth: 1,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 10,
+    // Flat style with NO shadows/elevation per user requirement
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 12,
     letterSpacing: -0.2,
+  },
+  contentBody: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.04)',
   },
   list: {
     gap: 10,
@@ -96,27 +130,25 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   checkWrapper: {
     width: 24,
     height: 24,
     borderRadius: 6,
-    backgroundColor: '#F5F3FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   itemText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   viewMoreBtn: {
-    marginTop: 18,
+    marginTop: 14,
     alignSelf: 'flex-start',
   },
   viewMoreText: {
-    color: '#6527BE',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
 });

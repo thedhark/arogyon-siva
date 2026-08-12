@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, TextInput, Text, Platform } from 'react-native';
-import { ChevronLeft, Search, Share2, Heart, X } from 'lucide-react-native';
+import { View, StyleSheet, TouchableOpacity, TextInput, Text, Platform, Modal, Pressable } from 'react-native';
+import { ChevronLeft, Search, Share2, Heart, X, MoreVertical } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
+import { Fonts } from '@/constants/theme';
 
 interface HospitalHeaderProps {
   title?: string;
@@ -26,8 +27,8 @@ export default function HospitalHeader({
 }: HospitalHeaderProps) {
   const insets = useSafeAreaInsets();
   const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleTextChange = (text: string) => {
     setSearchQuery(text);
@@ -38,109 +39,106 @@ export default function HospitalHeader({
 
   return (
     <View style={[styles.headerContainer, { top: topInset }]}>
-      {/* Left Section: Circular Back Button + Hospital Title */}
-      <View style={styles.leftGroup}>
-        <TouchableOpacity
-          onPress={onBackPress}
-          style={styles.circleBtnWrapper}
-          activeOpacity={0.8}
+      {/* Left Section: Circular Back Button */}
+      <TouchableOpacity
+        onPress={onBackPress}
+        style={styles.circleBtnWrapper}
+        activeOpacity={0.8}
+      >
+        <View style={styles.circleBtn}>
+          {supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+          ) : Platform.OS === 'ios' ? (
+            <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+          ) : null}
+          <ChevronLeft color="#FFFFFF" size={22} strokeWidth={2.5} />
+        </View>
+      </TouchableOpacity>
+
+      {/* Middle Section: Permanent Transparent Search Bar */}
+      <View style={styles.searchCapsule}>
+        {supportsLiquidGlass ? (
+          <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+        ) : Platform.OS === 'ios' ? (
+          <BlurView intensity={50} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+        ) : null}
+        <Search size={15} color="rgba(255, 255, 255, 0.7)" strokeWidth={2.2} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search experts, packages..."
+          placeholderTextColor="rgba(255, 255, 255, 0.6)"
+          value={searchQuery}
+          onChangeText={handleTextChange}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => handleTextChange('')} style={{ padding: 4 }}>
+            <X size={16} color="rgba(255, 255, 255, 0.6)" />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Right Section: Three Dots Button */}
+      <TouchableOpacity
+        onPress={() => setIsMenuOpen(true)}
+        style={styles.circleBtnWrapper}
+        activeOpacity={0.8}
+      >
+        <View style={styles.circleBtn}>
+          {supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+          ) : Platform.OS === 'ios' ? (
+            <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+          ) : null}
+          <MoreVertical color="#FFFFFF" size={20} strokeWidth={2.2} />
+        </View>
+      </TouchableOpacity>
+
+      {/* Three Dots Menu Modal */}
+      {isMenuOpen && (
+        <Modal
+          visible={isMenuOpen}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsMenuOpen(false)}
         >
-          <View style={styles.circleBtn}>
-            {supportsLiquidGlass ? (
-              <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-            ) : Platform.OS === 'ios' ? (
-              <BlurView intensity={45} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-            ) : null}
-            <ChevronLeft color="#0F172A" size={22} strokeWidth={2.5} />
-          </View>
-        </TouchableOpacity>
-
-        {!isSearchOpen && (
-          <Text style={styles.headerTitleText} numberOfLines={1}>
-            {title}
-          </Text>
-        )}
-      </View>
-
-      {/* Right Action Group: Search, Share, Favorite */}
-      <View style={styles.rightGroup}>
-        {isSearchOpen ? (
-          <View style={styles.searchCapsule}>
-            {supportsLiquidGlass ? (
-              <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-            ) : Platform.OS === 'ios' ? (
-              <BlurView intensity={50} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-            ) : null}
-            <Search size={15} color="#0F172A" strokeWidth={2.2} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search..."
-              placeholderTextColor="#64748B"
-              value={searchQuery}
-              onChangeText={handleTextChange}
-              autoFocus
-            />
-            <TouchableOpacity onPress={() => { setIsSearchOpen(false); handleTextChange(''); }} style={{ padding: 4 }}>
-              <X size={16} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            {/* Search Action Button */}
-            <TouchableOpacity
-              onPress={() => setIsSearchOpen(true)}
-              style={styles.circleBtnWrapper}
-              activeOpacity={0.8}
-            >
-              <View style={styles.circleBtn}>
-                {supportsLiquidGlass ? (
-                  <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-                ) : Platform.OS === 'ios' ? (
-                  <BlurView intensity={45} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-                ) : null}
-                <Search color="#0F172A" size={18} strokeWidth={2.2} />
-              </View>
-            </TouchableOpacity>
-
-            {/* Share Action Button */}
-            <TouchableOpacity
-              onPress={onSharePress}
-              style={styles.circleBtnWrapper}
-              activeOpacity={0.8}
-            >
-              <View style={styles.circleBtn}>
-                {supportsLiquidGlass ? (
-                  <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-                ) : Platform.OS === 'ios' ? (
-                  <BlurView intensity={45} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-                ) : null}
-                <Share2 color="#0F172A" size={18} strokeWidth={2.2} />
-              </View>
-            </TouchableOpacity>
-
-            {/* Favorite / Heart Button */}
-            <TouchableOpacity
-              onPress={onFavoriteToggle}
-              style={styles.circleBtnWrapper}
-              activeOpacity={0.8}
-            >
-              <View style={styles.circleBtn}>
-                {supportsLiquidGlass ? (
-                  <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-                ) : Platform.OS === 'ios' ? (
-                  <BlurView intensity={45} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-                ) : null}
-                <Heart 
-                  color={isFavorite ? '#EF4444' : '#0F172A'} 
-                  fill={isFavorite ? '#EF4444' : 'transparent'} 
-                  size={18} 
-                  strokeWidth={2.2} 
+          <Pressable style={styles.menuOverlay} onPress={() => setIsMenuOpen(false)}>
+            <View style={[styles.menuDropdown, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF', top: topInset + 48 }]}>
+              {/* Favorite Option */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setIsMenuOpen(false);
+                  if (onFavoriteToggle) onFavoriteToggle();
+                }}
+              >
+                <Heart
+                  color={isFavorite ? '#EF4444' : (isDark ? '#CBD5E1' : '#475569')}
+                  fill={isFavorite ? '#EF4444' : 'transparent'}
+                  size={18}
+                  strokeWidth={2.2}
                 />
-              </View>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+                <Text style={[styles.menuItemText, { color: isFavorite ? '#EF4444' : (isDark ? '#E2E8F0' : '#1E293B') }]}>
+                  {isFavorite ? 'Liked' : 'Like'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Share Option */}
+              <TouchableOpacity
+                style={[styles.menuItem, { borderTopWidth: 0.5, borderTopColor: isDark ? '#333333' : '#E2E8F0' }]}
+                onPress={() => {
+                  setIsMenuOpen(false);
+                  if (onSharePress) onSharePress();
+                }}
+              >
+                <Share2 color={isDark ? '#CBD5E1' : '#475569'} size={18} strokeWidth={2.2} />
+                <Text style={[styles.menuItemText, { color: isDark ? '#E2E8F0' : '#1E293B' }]}>
+                  Share
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -155,23 +153,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     zIndex: 35,
   },
-  leftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-    paddingRight: 8,
-  },
-  headerTitleText: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -0.4,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 1.5 },
-    textShadowRadius: 4,
-    flexShrink: 1,
-  },
   circleBtnWrapper: {
     borderRadius: 21,
     overflow: 'hidden',
@@ -182,26 +163,26 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
   },
-  rightGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
   searchCapsule: {
-    width: 170,
+    flex: 1,
     height: 42,
     borderRadius: 21,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF',
+    marginHorizontal: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -216,9 +197,40 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#0F172A',
+    color: '#FFFFFF',
     paddingVertical: 0,
   },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  },
+  menuDropdown: {
+    position: 'absolute',
+    right: 16,
+    width: 140,
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  menuItemText: {
+    fontSize: 13.5,
+    fontFamily: Fonts.medium,
+    fontWeight: '600',
+  },
 });
+
 
 

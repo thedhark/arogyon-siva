@@ -16,7 +16,9 @@ import {
   ArrowLeft, 
   Phone, 
   Shield, 
+  ShieldCheck,
   Users, 
+  UserCheck,
   Building2, 
   Stethoscope, 
   ChevronDown, 
@@ -30,10 +32,16 @@ import {
   Baby,
   Flower2,
   Ribbon,
+  Activity,
+  MapPin,
+  PhoneCall,
+  Headphones,
   MessageSquare
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import InquiryFormCard, { FormFieldConfig } from './InquiryFormCard';
+import WhyArogyonGrid, { WhyItem } from './WhyArogyonGrid';
 import { ArogyonBrandLogo } from './PlannedSurgeryCare';
 
 interface Props {
@@ -217,209 +225,99 @@ export default function WomensHealthCare({ colors, isDark }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Book Consultation Form Card */}
-          <View style={[
-            styles.formCard, 
-            { 
-              backgroundColor: isDark ? '#1F131D' : '#FDF2F8', 
-              borderColor: isDark ? 'rgba(236, 72, 153, 0.3)' : '#FBCFE8' 
-            }
-          ]}>
-            <Text style={[styles.formCardTitle, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-              Consult Gynecologist & Maternity Expert
-            </Text>
-            <Text style={[styles.formCardSubtitle, { color: isDark ? '#F472B6' : '#9D174D' }]}>
-              100% Confidential & Female Specialist Team Available
-            </Text>
+          {/* Form Card matching Image 4 Mockup */}
+          <InquiryFormCard
+            isDark={isDark}
+            headerIcon={Flower2}
+            headerIconBg="#FCE7F3"
+            headerIconColor="#DB2777"
+            title="Find the Right Women's Care"
+            subtitle="Tell us what you need. We'll connect you with the right female specialist."
+            topRightBadge={{
+              text: '100% Confidential',
+              icon: Heart,
+              bg: '#FCE7F3',
+              color: '#DB2777',
+            }}
+            fields={[
+              {
+                key: 'service',
+                type: 'dropdown',
+                icon: Activity,
+                label: 'What do you need help with?',
+                value: selectedService === 'Service Required' ? '' : selectedService,
+                placeholder: 'Select your concern',
+                onPressDropdown: () => setShowServiceModal(true),
+              },
+              {
+                key: 'city',
+                type: 'dropdown',
+                icon: MapPin,
+                label: 'Where would you like care?',
+                value: selectedCity,
+                placeholder: 'Tirupati',
+                onPressDropdown: () => setShowCityModal(true),
+              },
+              {
+                key: 'phone',
+                type: 'phone',
+                icon: PhoneCall,
+                label: 'Your mobile number',
+                value: patientPhone,
+                countryCode: '+91',
+                countryFlag: '🇮🇳',
+                placeholder: 'Enter mobile number',
+                onChangeText: setPatientPhone,
+              },
+            ]}
+            submitButtonText="Find My Care"
+            submitButtonBg="#C2185B"
+            onSubmit={handleBookAppointment}
+            disclaimerText="By continuing, you agree to Arogyon's "
+            privacyLinkText="Terms & Conditions"
+          />
 
-            {/* Service Dropdown */}
-            <TouchableOpacity 
-              style={[styles.dropdownInput, { backgroundColor: isDark ? '#140B13' : '#FFFFFF' }]}
-              onPress={() => setShowServiceModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.dropdownText, { color: selectedService === 'Service Required' ? '#94A3B8' : (isDark ? '#FFFFFF' : '#831843') }]}>
-                {selectedService}
-              </Text>
-              <ChevronDown size={18} color="#64748B" />
-            </TouchableOpacity>
+          {/* 4-Card Why Arogyon Women's Care Grid matching Image 4 Mockup */}
+          <WhyArogyonGrid
+            isDark={isDark}
+            sectionTitle="Why Arogyon Women's Care?"
+            items={[
+              {
+                id: 'w1',
+                title: '100% Female Medical Panel',
+                description: 'Experienced women specialists for complete comfort and privacy.',
+                icon: UserCheck,
+                iconBg: '#FCE7F3',
+                iconColor: '#DB2777',
+              },
+              {
+                id: 'w2',
+                title: 'Maternity & Pregnancy Care',
+                description: "From conception to delivery and beyond—we're with you.",
+                icon: Baby,
+                iconBg: '#FFF1F2',
+                iconColor: '#E11D48',
+              },
+              {
+                id: 'w3',
+                title: 'Advanced & Safe Treatments',
+                description: 'Latest technology & evidence-based care you can trust.',
+                icon: ShieldCheck,
+                iconBg: '#DCFCE7',
+                iconColor: '#15803D',
+              },
+              {
+                id: 'w4',
+                title: 'Care Managers by Your Side',
+                description: 'Personal care managers to guide and support you at every step.',
+                icon: Headphones,
+                iconBg: '#E0F2FE',
+                iconColor: '#0284C7',
+              },
+            ]}
+          />
 
-            {/* City Dropdown */}
-            <TouchableOpacity 
-              style={[styles.dropdownInput, { backgroundColor: isDark ? '#140B13' : '#FFFFFF' }]}
-              onPress={() => setShowCityModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.dropdownText, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-                {selectedCity}
-              </Text>
-              <ChevronDown size={18} color="#64748B" />
-            </TouchableOpacity>
 
-            {/* Name Input */}
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? '#140B13' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#831843' }]}
-              placeholder="Full Name"
-              placeholderTextColor="#94A3B8"
-              value={patientName}
-              onChangeText={setPatientName}
-            />
-
-            {/* Phone Number Input */}
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? '#140B13' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#831843' }]}
-              placeholder="+91 98765 43210"
-              placeholderTextColor="#94A3B8"
-              keyboardType="phone-pad"
-              value={patientPhone}
-              onChangeText={setPatientPhone}
-            />
-
-            {/* Submit CTA Button */}
-            <TouchableOpacity 
-              style={styles.bookSubmitBtn}
-              onPress={handleBookAppointment}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.bookSubmitBtnText}>Book Appointment</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.formDisclaimer}>
-              By submitting, you agree to Arogyon's <Text style={styles.tncLink}>T&C</Text>
-            </Text>
-          </View>
-
-          {/* Why Arogyon Assured Section */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-              Why Arogyon Women's Care?
-            </Text>
-
-            <View style={[styles.infoCard, { backgroundColor: isDark ? '#1F131D' : '#FDF2F8', borderColor: '#FBCFE8' }]}>
-              <Text style={[styles.infoCardHeader, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-                Women-First Healthcare Infrastructure
-              </Text>
-
-              <View style={styles.benefitItem}>
-                <Flower2 size={20} color="#EC4899" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>100% Female Senior Medical Panel</Text>
-                  <Text style={styles.benefitSub}>
-                    Consult experienced female gynecologists, obstetricians, and laparoscopic surgeons for complete privacy.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.benefitItem}>
-                <Baby size={20} color="#BE185D" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>Tier-1 Level-3 NICU & Birthing Suites</Text>
-                  <Text style={styles.benefitSub}>
-                    Advanced neonatal care, 24/7 fetal monitoring, and painless labor epidural support.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.benefitItem}>
-                <Ribbon size={20} color="#EC4899" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>Holistic Hormonal & Breast Screening</Text>
-                  <Text style={styles.benefitSub}>
-                    360° wellness covering PCOS reversal, fertility, bone density, and 3D mammography.
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Treatments Offered Accordions */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-              Treatments & Services
-            </Text>
-
-            <View style={[styles.accordionContainer, { backgroundColor: isDark ? '#1C121A' : '#FFFFFF' }]}>
-              {TREATMENTS_ACCORDION.map((acc, index) => {
-                const isOpen = expandedSection === acc.title;
-                const isLast = index === TREATMENTS_ACCORDION.length - 1;
-
-                return (
-                  <View key={acc.title} style={[!isLast && styles.accordionBorder]}>
-                    <TouchableOpacity
-                      style={styles.accordionHeaderRow}
-                      onPress={() => toggleAccordion(acc.title)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.accordionTitle, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-                        {acc.title}
-                      </Text>
-                      {isOpen ? <ChevronUp size={20} color="#EC4899" /> : <ChevronDown size={20} color="#64748B" />}
-                    </TouchableOpacity>
-
-                    {isOpen && (
-                      <View style={styles.accordionBody}>
-                        {acc.items.map(item => (
-                          <TouchableOpacity
-                            key={item}
-                            style={styles.accordionItemRow}
-                            onPress={() => {
-                              setSelectedService(item);
-                              Haptics.selectionAsync();
-                            }}
-                          >
-                            <CheckCircle2 size={16} color="#EC4899" />
-                            <Text style={[styles.accordionItemText, { color: isDark ? '#CBD5E1' : '#334155' }]}>
-                              {item}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Experiences You Can Trust Testimonial Section */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-              Patient Experiences
-            </Text>
-
-            <View style={[styles.reviewContainerCard, { backgroundColor: isDark ? '#1C121A' : '#FFFFFF' }]}>
-              <View style={styles.overallRatingRow}>
-                <Star size={18} color="#BE185D" fill="#BE185D" />
-                <Text style={[styles.overallRatingText, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-                  Rated 4.90 <Text style={{ fontSize: 13, fontWeight: '500', color: '#64748B' }}>(42,150 Women Patients)</Text>
-                </Text>
-              </View>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewsScroll}>
-                {PATIENT_REVIEWS.map(rev => (
-                  <View key={rev.id} style={[styles.reviewCard, { backgroundColor: isDark ? '#140B13' : '#FDF2F8' }]}>
-                    <View style={styles.reviewUserHeader}>
-                      <View style={styles.userAvatarCircle}>
-                        <Text style={styles.userAvatarText}>{rev.initial}</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.reviewerName, { color: isDark ? '#FFFFFF' : '#831843' }]}>
-                          {rev.name}
-                        </Text>
-                        <View style={styles.starRow}>
-                          <Star size={12} color="#BE185D" fill="#BE185D" />
-                          <Text style={styles.reviewStarText}>{rev.rating}</Text>
-                        </View>
-                      </View>
-                    </View>
-                    <Text style={[styles.reviewBodyText, { color: isDark ? '#CBD5E1' : '#475569' }]} numberOfLines={5}>
-                      {rev.review}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
 
           {/* Arogyon Brand Vision Banner */}
           <LinearGradient

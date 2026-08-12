@@ -17,6 +17,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const bookPackage = useBookingStore(state => state.bookPackage);
+  const addCartItem = useBookingStore(state => state.addCartItem);
 
   const pkg = getPackageById((packageId as string) || 'default-package');
   const availableDates = getUpcomingDates(5);
@@ -28,6 +29,30 @@ export default function CheckoutScreen() {
   // Preferred Consultation Slot
   const [selectedDate, setSelectedDate] = useState(availableDates[0]?.date || 'Aug 7');
   const [selectedSlot, setSelectedSlot] = useState('10:00 AM');
+
+  React.useEffect(() => {
+    const rawPriceStr = (pkg.price || '4999').toString().replace(/[^0-9]/g, '');
+    const pkgPrice = parseFloat(rawPriceStr) || 4999;
+    const rawOrigStr = (pkg.originalPrice || '').toString().replace(/[^0-9]/g, '');
+    const origPrice = parseFloat(rawOrigStr) || Math.round(pkgPrice * 1.35);
+    const savings = Math.max(63, origPrice - pkgPrice);
+
+    addCartItem({
+      type: 'package',
+      itemId: pkg.id || `pkg-${Date.now()}`,
+      title: pkg.title,
+      subtitle: `${pkg.hospitalName || 'Hospital'} • ${mode === 'token' ? 'Slot Reservation' : 'Health Checkup'}`,
+      price: mode === 'token' ? 499 : pkgPrice,
+      originalPrice: mode === 'token' ? pkgPrice : origPrice,
+      savingsAmount: savings,
+      image: pkg.image,
+      selectedDate: availableDates[0]?.date || 'Aug 11',
+      selectedTime: '10:00 AM',
+      hospitalName: pkg.hospitalName,
+    });
+
+    router.replace('/booking/checkout');
+  }, [packageId, mode]);
 
   // Flexible Payment Mode: 'token' | 'full'
   const initialMode = mode === 'full' ? 'full' : 'token';

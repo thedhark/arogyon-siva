@@ -83,13 +83,21 @@ export const LayoutDimensions = {
   tier4Symptom: { width: 76, height: 84, iconSize: 36, borderRadius: 14 },
 };
 
-export const Typography = {
-  hero: { fontSize: 36, fontWeight: '900' as const, letterSpacing: -0.5 },
-  title: { fontSize: 28, fontWeight: '800' as const, letterSpacing: -0.25 },
-  heading: { fontSize: 22, fontWeight: '700' as const, letterSpacing: 0 },
-  subheading: { fontSize: 18, fontWeight: '600' as const, letterSpacing: 0.15 },
-  body: { fontSize: 16, fontWeight: '400' as const, lineHeight: 24, letterSpacing: 0.5 },
-  caption: { fontSize: 14, fontWeight: '500' as const, letterSpacing: 0.25 },
-  micro: { fontSize: 12, fontWeight: '600' as const, letterSpacing: 0.5 },
+export const Fonts = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semiBold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
 };
+
+export const Typography = {
+  hero: { fontFamily: Fonts.bold, fontSize: 32, fontWeight: '700' as const, letterSpacing: -0.5 },
+  title: { fontFamily: Fonts.bold, fontSize: 24, fontWeight: '700' as const, letterSpacing: -0.25 },
+  heading: { fontFamily: Fonts.semiBold, fontSize: 20, fontWeight: '600' as const, letterSpacing: -0.15 },
+  subheading: { fontFamily: Fonts.semiBold, fontSize: 16, fontWeight: '600' as const, letterSpacing: -0.1 },
+  body: { fontFamily: Fonts.regular, fontSize: 15, fontWeight: '400' as const, lineHeight: 22, letterSpacing: 0.2 },
+  caption: { fontFamily: Fonts.medium, fontSize: 13, fontWeight: '500' as const, letterSpacing: 0.1 },
+  micro: { fontFamily: Fonts.medium, fontSize: 11, fontWeight: '500' as const, letterSpacing: 0.3 },
+};
+
 

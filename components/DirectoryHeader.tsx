@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from '
 import Svg, { Path, Defs, LinearGradient, Stop, Mask, Rect, Circle, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 
-export const DIRECTORY_TABS = ['Hospitals'];
+export const DIRECTORY_TABS = ['All', 'Hospitals'];
 
 interface Props {
   activeTab: string;

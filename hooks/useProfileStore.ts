@@ -113,18 +113,18 @@ interface ProfileState {
 
 export const useProfileStore = create<ProfileState>((set) => ({
   userProfile: {
-    name: 'Ananya Sharma',
-    email: 'ananya.sharma@example.com',
+    name: 'John Doe',
+    email: 'john.doe@example.com',
     phone: '+91 9876543210',
     location: 'Bangalore, India',
-    dob: '1998-05-15',
+    dob: '1997-08-11',
     age: 28,
-    gender: 'Female',
+    gender: 'Male',
     bloodGroup: 'O+',
-    height: '168 cm',
-    weight: '58 kg',
+    height: '178 cm',
+    weight: '72 kg',
     emergencyContact: '+91 9812345678',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=250',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250',
   },
 
   updateUserProfile: (updatedFields) =>
@@ -135,9 +135,21 @@ export const useProfileStore = create<ProfileState>((set) => ({
   familyMembers: [
     {
       id: 'f1',
-      name: 'Ravi Sharma',
+      name: 'Ananya Doe',
+      relation: 'Spouse',
+      dob: '1999-05-12',
+      age: 26,
+      gender: 'Female',
+      bloodGroup: 'A+',
+      phone: '+91 9876543210',
+      medicalHistory: 'Pregnancy Care',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+    },
+    {
+      id: 'f2',
+      name: 'Ramesh Doe',
       relation: 'Father',
-      dob: '1965-04-12',
+      dob: '1964-04-12',
       age: 61,
       gender: 'Male',
       bloodGroup: 'B+',
@@ -146,10 +158,10 @@ export const useProfileStore = create<ProfileState>((set) => ({
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200',
     },
     {
-      id: 'f2',
-      name: 'Sunita Sharma',
+      id: 'f3',
+      name: 'Savitri Doe',
       relation: 'Mother',
-      dob: '1968-08-22',
+      dob: '1967-08-22',
       age: 58,
       gender: 'Female',
       bloodGroup: 'O+',

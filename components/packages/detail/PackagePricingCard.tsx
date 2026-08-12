@@ -34,8 +34,8 @@ export default function PackagePricingCard({
           styles.pricingCard,
           {
             backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-            borderWidth: isDark ? 0.5 : 0,
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+            borderWidth: 1,
           },
         ]}
       >
@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
+    borderWidth: 1,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     zIndex: 10,
   },
   cardContentRow: {

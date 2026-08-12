@@ -90,7 +90,7 @@ export default function WideCardTemplate({
 const styles = StyleSheet.create({
   cardContainer: {
     height: 140,
-    borderRadius: Platform.OS === 'android' ? 24 : 14,
+    borderRadius: 22,
     marginBottom: 16,
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
@@ -138,15 +138,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   imageContainer: {
-    width: '45%',
+    width: '48%',
     height: '100%',
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
     zIndex: 1,
-    borderTopLeftRadius: 60,
-    borderBottomLeftRadius: 20,
     overflow: 'hidden',
   },
   image: {

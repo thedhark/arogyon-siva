@@ -7,6 +7,7 @@ import { useBookingStore } from '@/hooks/useBookingStore';
 
 import DoctorProfileHeader from '@/components/doctor/DoctorProfileHeader';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
+import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
 const DATES = [
   { id: '1', day: 'Today', date: 'Aug 14' },
@@ -49,18 +50,24 @@ export default function DoctorProfile() {
   const totalFee = baseFee + servicePriceNum;
   const originalFee = Math.round(totalFee * 2.5);
 
+  const addCartItem = useBookingStore(state => state.addCartItem);
+
   const handleBook = () => {
-    router.push({ 
-      pathname: '/booking/checkout', 
-      params: { 
-        type: consultType, 
-        doctorId: doctorData.id, 
-        date: `${selectedDate.day}, ${selectedDate.date}`, 
-        time: selectedTime,
-        serviceId: selectedServiceId || '',
-        notes: requestNotes,
-      } 
+    addCartItem({
+      type: 'visit',
+      itemId: doctorData.id,
+      title: doctorData.name,
+      subtitle: `${doctorData.speciality} • ${consultType}`,
+      price: totalFee,
+      originalPrice: originalFee,
+      savingsAmount: originalFee - totalFee,
+      image: doctorData.image,
+      selectedDate: `${selectedDate.day}, ${selectedDate.date}`,
+      selectedTime: selectedTime,
+      hospitalName: 'Apollo Hospital',
     });
+
+    router.push('/booking/checkout');
   };
 
   return (
@@ -161,6 +168,8 @@ export default function DoctorProfile() {
         ctaIcon="calendar"
         onPressCTA={handleBook}
       />
+
+      <FloatingCartBar bottomOffset={80} />
     </View>
   );
 }

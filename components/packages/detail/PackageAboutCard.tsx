@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react-native';
 
 interface Props {
   title?: string;
@@ -14,20 +15,43 @@ export default function PackageAboutCard({
   isDark,
   colors,
 }: Props) {
+  const [isAccordionOpen, setIsAccordionOpen] = useState(true);
+
   return (
     <View
       style={[
         styles.card,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: 'transparent',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
         },
       ]}
     >
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.description, { color: isDark ? '#9CA3AF' : '#4B5563' }]}>
-        {description}
-      </Text>
+      {/* Accordion Header */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setIsAccordionOpen(!isAccordionOpen)}
+        style={styles.headerRow}
+      >
+        <View style={styles.titleWithIcon}>
+          <Info size={18} color={isDark ? '#A78BFA' : '#6527BE'} />
+          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        </View>
+        {isAccordionOpen ? (
+          <ChevronUp size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+        ) : (
+          <ChevronDown size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+        )}
+      </TouchableOpacity>
+
+      {/* Accordion Content */}
+      {isAccordionOpen && (
+        <View style={styles.contentBody}>
+          <Text style={[styles.description, { color: isDark ? '#9CA3AF' : '#4B5563' }]}>
+            {description}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -35,23 +59,39 @@ export default function PackageAboutCard({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
-    borderWidth: 0,
+    borderWidth: 1,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 10,
+    // Flat style with NO shadows/elevation per user requirement
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 10,
     letterSpacing: -0.2,
   },
+  contentBody: {
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.04)',
+  },
   description: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 13.5,
+    lineHeight: 21,
   },
 });

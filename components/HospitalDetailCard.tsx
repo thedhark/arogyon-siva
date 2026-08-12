@@ -4,6 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { Heart, Activity, Stethoscope, Calendar, Baby } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { Fonts } from '@/constants/theme';
+
+import { useTheme } from '@/hooks/useTheme';
 
 interface Props {
   id?: string;
@@ -33,6 +36,8 @@ export default function HospitalDetailCard({
   nextAvailable = "Today, 02:00 PM"
 }: Props) {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const [isFavorited, setIsFavorited] = React.useState(false);
 
   return (
     <TouchableOpacity 
@@ -40,7 +45,7 @@ export default function HospitalDetailCard({
       style={styles.outerContainer}
       onPress={() => router.push(`/hospital/${id}`)}
     >
-      <View style={styles.cardContainer}>
+      <View style={[styles.cardContainer, { backgroundColor: isDark ? '#1C1E24' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
         
         {/* Top Image Section */}
         <View style={styles.imageSection}>
@@ -51,21 +56,30 @@ export default function HospitalDetailCard({
           />
           
 
-
-          {/* Top Right Bookmark */}
-          <View style={styles.topRightBookmark}>
-            <Svg width={18} height={18} fill="none" stroke="#FFFFFF" strokeWidth={2} viewBox="0 0 24 24">
-              <Path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
-            </Svg>
-          </View>
+          {/* Top Right Heart (Love Symbol) */}
+          <TouchableOpacity 
+            style={styles.topRightBookmark}
+            activeOpacity={0.8}
+            onPress={(e) => {
+              e.stopPropagation();
+              setIsFavorited(!isFavorited);
+            }}
+          >
+            <Heart 
+              size={20} 
+              color={isFavorited ? "#EF4444" : "#FFFFFF"} 
+              fill={isFavorited ? "#EF4444" : "rgba(0,0,0,0.25)"} 
+              strokeWidth={2} 
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Bottom Content Section */}
-        <View style={styles.bottomSection}>
+        <View style={[styles.bottomSection, { backgroundColor: isDark ? '#1C1E24' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }]}>
           {/* Header Row: Title and Rating */}
           <View style={styles.headerRow}>
             {logo && <Image source={typeof logo === 'string' ? { uri: logo } : logo} style={{ width: 22, height: 22, marginRight: 8, borderRadius: 4 }} resizeMode="contain" />}
-            <Text style={styles.hospitalName} numberOfLines={1}>{name}</Text>
+            <Text style={[styles.hospitalName, { color: isDark ? '#FFFFFF' : '#1C1C1E' }]} numberOfLines={1}>{name}</Text>
             <LinearGradient
               colors={['#9BF229', '#14CE65']}
               start={{ x: 0, y: 0 }}
@@ -89,14 +103,14 @@ export default function HospitalDetailCard({
             <View style={styles.phcInfoRow}>
               <View style={[styles.phcInfoBlock, { alignItems: 'flex-start' }]}>
                 <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Consultation</Text>
-                <Text style={styles.phcInfoValue} numberOfLines={1} adjustsFontSizeToFit>{fee}</Text>
+                <Text style={[styles.phcInfoValue, { color: isDark ? '#F3F4F6' : '#1C1C1E' }]} numberOfLines={1} adjustsFontSizeToFit>{fee}</Text>
               </View>
               
               <View style={styles.verticalDivider} />
               
               <View style={[styles.phcInfoBlock, { alignItems: 'center' }]}>
                 <Text style={styles.phcInfoLabel} numberOfLines={1} adjustsFontSizeToFit>Timings</Text>
-                <Text style={styles.phcInfoValue} numberOfLines={1} adjustsFontSizeToFit>{nextAvailable}</Text>
+                <Text style={[styles.phcInfoValue, { color: isDark ? '#F3F4F6' : '#1C1C1E' }]} numberOfLines={1} adjustsFontSizeToFit>{nextAvailable}</Text>
               </View>
               
               <View style={styles.verticalDivider} />
@@ -151,23 +165,30 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#F3F4F6',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
   mainImage: {
     width: '100%',
     height: '100%',
     position: 'absolute',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
 
   topRightBookmark: {
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     width: 32,
     height: 32,
-    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
   },
   bottomSection: {
     backgroundColor: '#FFFFFF',
@@ -189,10 +210,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   hospitalName: {
+    fontFamily: Fonts.bold,
     flex: 1,
-    fontSize: 19,
-    fontWeight: '900',
+    fontSize: 17.5,
+    fontWeight: '700',
     color: '#1C1C1E',
+    letterSpacing: -0.15,
     marginRight: 8,
   },
   ratingBadge: {
@@ -204,9 +227,10 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   ratingText: {
+    fontFamily: Fonts.semiBold,
     color: '#052E16',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   infoRowContainer: {
     gap: 0,

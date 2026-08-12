@@ -17,6 +17,7 @@ import {
   BadgeCheck
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { Fonts } from '@/constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -27,6 +28,14 @@ import HospitalHeader from '@/components/HospitalHeader';
 import HospitalExperts from '@/components/hospital/HospitalExperts';
 import HospitalPackages from '@/components/hospital/HospitalPackages';
 import HospitalInfoModal from '@/components/hospital/HospitalInfoModal';
+import HospitalOffersBanner from '@/components/hospital/HospitalOffersBanner';
+import HospitalOffersModal from '@/components/hospital/HospitalOffersModal';
+import HospitalGoldFooter from '@/components/hospital/HospitalGoldFooter';
+
+import AddVisitModal from '@/components/booking/AddVisitModal';
+import AddPackageModal from '@/components/booking/AddPackageModal';
+import FloatingCartBar from '@/components/booking/FloatingCartBar';
+import { HOSPITALS_DATA } from '@/constants/directory-data';
 
 const MENU_SECTIONS = [
   { id: 'experts', tab: 'Experts', categorySlug: 'all', title: 'Top Specialist Experts', count: 18 },
@@ -47,7 +56,40 @@ export default function HospitalProfile() {
   const storeHospitals = useBookingStore(state => state.hospitals);
   const storeDoctors = useBookingStore(state => state.doctors);
   
-  const hospitalData = useMemo(() => storeHospitals[id as string], [storeHospitals, id]);
+  const hospitalData = useMemo(() => {
+    if (id && storeHospitals[id as string]) {
+      return storeHospitals[id as string];
+    }
+    const foundInDirectory = HOSPITALS_DATA.find(h => h.id === id);
+    if (foundInDirectory) {
+      return {
+        id: foundInDirectory.id,
+        name: foundInDirectory.name,
+        image: foundInDirectory.image,
+        rating: foundInDirectory.rating || '4.8',
+        ratingsCount: '15.2K',
+        type: foundInDirectory.speciality || 'Multi Speciality Hospital',
+        distance: foundInDirectory.distance || '3.1 km',
+        location: foundInDirectory.location || 'Bangalore',
+        emergency: '24x7 Emergency',
+        logo: (foundInDirectory as any).logo,
+        phone: '08022223333',
+      };
+    }
+    const defaultHosp = storeHospitals['hosp-1'] || HOSPITALS_DATA[0];
+    return {
+      id: (id as string) || 'hosp-1',
+      name: defaultHosp.name || 'Apollo Hospitals',
+      image: defaultHosp.image || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800',
+      rating: defaultHosp.rating || '4.8',
+      ratingsCount: '15.2K',
+      type: defaultHosp.type || (defaultHosp as any).speciality || 'Multi Speciality Hospital',
+      distance: defaultHosp.distance || '3.1 km',
+      location: defaultHosp.location || 'Bangalore',
+      emergency: '24x7 Emergency',
+      logo: (defaultHosp as any).logo,
+    };
+  }, [storeHospitals, id]);
   const doctors = useMemo(() => {
     return Object.values(storeDoctors || {}).filter(doc => doc.hospitalId === (id as string));
   }, [storeDoctors, id]);
@@ -69,19 +111,34 @@ export default function HospitalProfile() {
   const tabAnim = useRef(new Animated.Value(tabIndexMap[getInitialTabVal()] || 0)).current;
   const [trackWidth, setTrackWidth] = useState(0);
 
+  const [packagesYPos, setPackagesYPos] = useState(0);
+  const [expertsYPos, setExpertsYPos] = useState(240);
+  const isManualScrolling = useRef(false);
+
   React.useEffect(() => {
     if (initialTab) {
       const targetVal = getInitialTabVal();
       Animated.timing(tabAnim, { toValue: tabIndexMap[targetVal] || 0, duration: 200, useNativeDriver: false }).start();
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: 220, animated: true });
-      }, 200);
+      if (targetVal === 'Packages') {
+        setTimeout(() => {
+          const targetY = packagesYPos > 0 ? packagesYPos - 20 : 650;
+          scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+        }, 350);
+      } else {
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ y: 220, animated: true });
+        }, 200);
+      }
     }
-  }, [initialTab]);
+  }, [initialTab, packagesYPos]);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
+
+  const [selectedDoctorForVisit, setSelectedDoctorForVisit] = useState<any>(null);
+  const [selectedPackageForAdd, setSelectedPackageForAdd] = useState<any>(null);
 
   const toggleDocLike = (docId: any) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
@@ -96,10 +153,43 @@ export default function HospitalProfile() {
       friction: 8,
       tension: 50,
     }).start();
+
+    isManualScrolling.current = true;
     if (tab === 'Packages') {
       setSelectedPackageCategory('all');
+      const targetY = packagesYPos > 0 ? packagesYPos - 20 : 650;
+      scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+    } else {
+      const targetY = Math.max(expertsYPos - 20, 220);
+      scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
     }
-    scrollViewRef.current?.scrollTo({ y: 220, animated: true });
+    setTimeout(() => {
+      isManualScrolling.current = false;
+    }, 600);
+  };
+
+  const handleScroll = (event: any) => {
+    if (isManualScrolling.current) return;
+    const scrollY = event.nativeEvent.contentOffset.y;
+    if (packagesYPos > 0) {
+      if (scrollY >= packagesYPos - 140 && activeTab !== 'Packages') {
+        setActiveTab('Packages');
+        Animated.spring(tabAnim, {
+          toValue: 1,
+          useNativeDriver: false,
+          friction: 8,
+          tension: 50,
+        }).start();
+      } else if (scrollY < packagesYPos - 140 && activeTab !== 'Experts') {
+        setActiveTab('Experts');
+        Animated.spring(tabAnim, {
+          toValue: 0,
+          useNativeDriver: false,
+          friction: 8,
+          tension: 50,
+        }).start();
+      }
+    }
   };
 
   const handleSelectMenuSection = (item: typeof MENU_SECTIONS[0]) => {
@@ -162,7 +252,9 @@ export default function HospitalProfile() {
         ref={scrollViewRef}
         bounces={true} 
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 130 }}
       >
         {/* Full Bleed Hero Cover Banner with Rounded Bottom Curves */}
         <View style={styles.coverContainer}>
@@ -242,6 +334,13 @@ export default function HospitalProfile() {
             </View>
           </View>
 
+          {/* Hospital Offers Banner Bar */}
+          <HospitalOffersBanner
+            offersCount={6}
+            onPress={() => setIsOffersModalOpen(true)}
+            isDark={isDark}
+          />
+
           {/* 2-Segment Pill Tab Switcher: Experts | Packages */}
           <View style={styles.segmentWrapper}>
             <View 
@@ -312,7 +411,7 @@ export default function HospitalProfile() {
           </View>
         </View>
 
-        {activeTab === 'Experts' && (
+        <View onLayout={(e) => setExpertsYPos(e.nativeEvent.layout.y)}>
           <HospitalExperts 
             doctors={doctors} 
             likedDocs={likedDocs as any} 
@@ -320,20 +419,47 @@ export default function HospitalProfile() {
             colors={colors} 
             isDark={isDark} 
             searchQuery={searchFilterText}
+            onAddVisitPress={(doc) => setSelectedDoctorForVisit(doc)}
           />
-        )}
+        </View>
 
-        {activeTab === 'Packages' && (
-          <HospitalPackages 
-            hospitalName={hospitalData.name} 
-            colors={colors} 
-            isDark={isDark}
-            selectedCategory={selectedPackageCategory}
-            onSelectCategory={(slug: string) => setSelectedPackageCategory(slug)}
-            searchQuery={searchFilterText}
-          />
-        )}
+        {/* Middle Framed Section Heading for Health Packages */}
+        <View 
+          onLayout={(e) => setPackagesYPos(e.nativeEvent.layout.y)}
+          style={styles.packagesHeadingContainer}
+        >
+          <View style={styles.packagesHeadingDivider}>
+            <View style={[styles.headingLine, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#CBD5E1' }]} />
+            <View style={[styles.headingBadge, { backgroundColor: isDark ? '#1E293B' : '#E0F2FE' }]}>
+              <Sparkles size={14} color={isDark ? '#38BDF8' : '#0284C7'} />
+              <Text style={[styles.headingBadgeText, { color: isDark ? '#38BDF8' : '#0369A1' }]}>
+                HEALTH PACKAGES
+              </Text>
+            </View>
+            <View style={[styles.headingLine, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#CBD5E1' }]} />
+          </View>
+
+          <Text style={[styles.packagesMainTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+            Specialized Packages & Surgery Care
+          </Text>
+          <Text style={[styles.packagesSubTitle, { color: isDark ? '#9CA3AF' : '#64748B' }]}>
+            Comprehensive checkups, maternity suites & recovery plans with transparent pricing
+          </Text>
+        </View>
+
+        <HospitalPackages 
+          hospitalName={hospitalData.name} 
+          colors={colors} 
+          isDark={isDark}
+          selectedCategory={selectedPackageCategory}
+          onSelectCategory={(slug: string) => setSelectedPackageCategory(slug)}
+          searchQuery={searchFilterText}
+          onAddPackagePress={(pkg) => setSelectedPackageForAdd(pkg)}
+        />
       </ScrollView>
+
+      {/* Sticky AROGYON GOLD Delivery & Service Footer Banner matching user screenshot */}
+      <HospitalGoldFooter isDark={isDark} />
 
       {/* Menu Filter Button */}
       <TouchableOpacity 
@@ -421,6 +547,33 @@ export default function HospitalProfile() {
           image={hospitalData.image}
         />
       )}
+
+      {/* Hospital Offers Bottom Sheet Modal */}
+      <HospitalOffersModal
+        visible={isOffersModalOpen}
+        onClose={() => setIsOffersModalOpen(false)}
+        hospitalName={hospitalData.name}
+        isDark={isDark}
+      />
+
+      {/* Add Visit Slot Modal Popup */}
+      <AddVisitModal
+        visible={!!selectedDoctorForVisit}
+        doctor={selectedDoctorForVisit}
+        hospitalName={hospitalData.name}
+        onClose={() => setSelectedDoctorForVisit(null)}
+      />
+
+      {/* Add Package Slot Modal Popup */}
+      <AddPackageModal
+        visible={!!selectedPackageForAdd}
+        packageItem={selectedPackageForAdd}
+        hospitalName={hospitalData.name}
+        onClose={() => setSelectedPackageForAdd(null)}
+      />
+
+      {/* Sticky Floating Cart Bar */}
+      <FloatingCartBar bottomOffset={20} />
     </View>
   );
 }
@@ -438,22 +591,28 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 245,
     position: 'relative',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
     overflow: 'hidden',
   },
   coverImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   coverGradient: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   profileBadgeWrapper: {
     position: 'absolute',
@@ -485,9 +644,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   profileLogoText: {
+    fontFamily: Fonts.bold,
     color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: 20,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   imageCountBadge: {
@@ -500,9 +660,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   imageCountText: {
+    fontFamily: Fonts.medium,
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   topSection: {
     marginTop: 0,
@@ -526,9 +687,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   hospitalName: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    fontFamily: Fonts.bold,
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.15,
   },
   infoTriggerBtn: {
     padding: 2,
@@ -539,6 +701,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   subwayLocationText: {
+    fontFamily: Fonts.medium,
     fontSize: 13,
     color: '#64748B',
     fontWeight: '500',
@@ -556,14 +719,16 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   subwayRatingVal: {
+    fontFamily: Fonts.semiBold,
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '600',
   },
   subwayReviewsText: {
+    fontFamily: Fonts.medium,
     fontSize: 11,
     color: '#64748B',
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 4,
     textDecorationLine: 'underline',
   },
@@ -596,12 +761,13 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   segmentText: {
-    fontSize: 15,
-    letterSpacing: -0.2,
+    fontFamily: Fonts.semiBold,
+    fontSize: 14.5,
+    letterSpacing: -0.1,
   },
   floatingMenuBtn: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 74,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -620,9 +786,10 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   floatingMenuText: {
+    fontFamily: Fonts.semiBold,
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
@@ -652,8 +819,9 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   modalTitle: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontFamily: Fonts.semiBold,
+    fontSize: 16,
+    fontWeight: '600',
   },
   menuItemRow: {
     flexDirection: 'row',
@@ -671,5 +839,50 @@ const styles = StyleSheet.create({
   },
   menuItemCount: {
     fontSize: 14,
+  },
+  packagesHeadingContainer: {
+    paddingHorizontal: 16,
+    marginTop: 28,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  packagesHeadingDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 12,
+  },
+  headingLine: {
+    flex: 1,
+    height: 1,
+  },
+  headingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginHorizontal: 10,
+  },
+  headingBadgeText: {
+    fontSize: 11,
+    fontFamily: Fonts.bold,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  packagesMainTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  packagesSubTitle: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    textAlign: 'center',
+    lineHeight: 16,
+    maxWidth: 320,
   },
 });

@@ -115,8 +115,10 @@ const styles = StyleSheet.create({
   heroSection: {
     height: 230,
     position: 'relative',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
     overflow: 'hidden',
   },
   heroImage: {

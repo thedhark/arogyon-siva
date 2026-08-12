@@ -8,13 +8,13 @@ interface Props {
 export default function PediatricWideCard({ onPress }: Props) {
   return (
     <WideCardTemplate
-      title="Pediatric Care Card"
-      subtitle="Growth milestone tracking & child immunization"
-      badgeText="25% OFF VACCINE"
-      badgeColor="#E65100"
+      title="Pediatric & Child Care"
+      subtitle="Vaccination tracking, growth monitoring & child care"
+      badgeText="KIDS HEALTH PACK"
+      badgeColor="#0284C7"
       image="https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=600"
-      colors={['#FFF3E0', '#FFE0B2']}
-      categorySlug="pediatrics"
+      colors={['#E6F7FF', '#BAE7FF']}
+      categorySlug="pediatric"
       onPress={onPress}
     />
   );

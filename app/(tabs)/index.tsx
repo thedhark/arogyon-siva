@@ -22,6 +22,7 @@ import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import { useGlass } from '@/contexts/GlassContext';
 import AndroidGlassView from '@/components/AndroidGlassView';
+import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
@@ -33,7 +34,7 @@ export default function HomeScreen() {
   const { colors, isDark } = useTheme();
   const { settings } = useGlass();
   const insets = useSafeAreaInsets();
-  const [activeDirectoryTab, setActiveDirectoryTab] = useState('Hospitals');
+  const [activeDirectoryTab, setActiveDirectoryTab] = useState('All');
   const [currentCity, setCurrentCity] = useState<string>('Detecting location...');
 
   useEffect(() => {
@@ -71,14 +72,14 @@ export default function HomeScreen() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const currentY = event.contentOffset.y;
-      
+
       // Track scroll direction with a small threshold to prevent jitter
       if (currentY > lastScrollY.value + 5 && currentY > 0) {
         isScrollingDown.value = true;
       } else if (currentY < lastScrollY.value - 5) {
         isScrollingDown.value = false;
       }
-      
+
       lastScrollY.value = currentY;
       scrollY.value = currentY;
     },
@@ -110,7 +111,7 @@ export default function HomeScreen() {
       [0, 1],
       Extrapolation.CLAMP
     );
-    
+
     let backgroundColor = 'transparent';
     if (supportsLiquidGlass || Platform.OS === 'ios') {
       backgroundColor = isDark ? `rgba(18,18,18,${progress * 0.4})` : `rgba(255,255,255,${progress * 0.4})`;
@@ -140,7 +141,7 @@ export default function HomeScreen() {
       [0, 1],
       Extrapolation.CLAMP
     );
-    
+
     return {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: progress * 4 },
@@ -186,7 +187,7 @@ export default function HomeScreen() {
     const isSticky = scrollY.value >= triggerPoint;
     // Only hide if sticky AND scrolling down
     const shouldHide = isSticky && isScrollingDown.value;
-    
+
     // The filter pill itself is now ~28px tall. We use 38px to keep it tight and minimal.
     return {
       height: withTiming(shouldHide ? 0 : 38, { duration: 300 }),
@@ -198,16 +199,16 @@ export default function HomeScreen() {
   return (
     <AnimatedScreen entrance="up">
       <View style={[styles.screen, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
-        <Animated.ScrollView 
+        <Animated.ScrollView
           onScroll={scrollHandler}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false} 
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={[5]}
           bounces={false}
           overScrollMode="never"
         >
-          
+
           {/* Index 0: Header & Search Bar */}
           <View style={{ marginBottom: 12, paddingHorizontal: 16 }}>
             <View style={{ marginBottom: 4 }}>
@@ -251,7 +252,7 @@ export default function HomeScreen() {
               if (Math.abs(categoriesY.value - y) > 1) {
                 categoriesY.value = y;
               }
-            }} 
+            }}
             style={{ zIndex: 10 }}
           >
             <Animated.View style={categoriesStickyStyle}>
@@ -267,9 +268,9 @@ export default function HomeScreen() {
                     <AnimatedBlurView animatedProps={animatedBlurProps} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                   )}
                 </Animated.View>
-                <ExploreCategories 
-                  activeTab={activeDirectoryTab} 
-                  onTabChange={setActiveDirectoryTab} 
+                <ExploreCategories
+                  activeTab={activeDirectoryTab}
+                  onTabChange={setActiveDirectoryTab}
                   style={{ marginBottom: 0, paddingVertical: 12 }}
                 />
                 <Animated.View style={animatedFiltersStyle}>
@@ -285,6 +286,8 @@ export default function HomeScreen() {
           </View>
 
         </Animated.ScrollView>
+
+        <FloatingCartBar bottomOffset={Platform.OS === 'ios' ? 90 : 75} />
       </View>
     </AnimatedScreen>
   );

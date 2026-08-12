@@ -23,10 +23,7 @@ import Animated, {
   useAnimatedReaction,
   runOnJS,
 } from 'react-native-reanimated';
-import { formatTime, formatDisplayDate } from '@/utils';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import { readDocumentOnDevice, extractStructuredInsights } from '@/services/documentReaderService';
+import { formatTime } from '@/utils';
 import { useRecordsStore } from '@/hooks/useRecordsStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -34,22 +31,14 @@ import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import {
   ArrowUp,
   Sparkles,
-  Sun,
   Heart,
-  Plus,
   Home,
   FileText,
-  Camera,
   Image as ImageIcon,
-  FileSpreadsheet,
-  X,
-  ChevronRight,
-  Paperclip,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
-import { Alert } from 'react-native';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 const AVATAR_URL = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
@@ -129,7 +118,6 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
   const [isThinking, setIsThinking] = useState(false);
   const [isNameLiked, setIsNameLiked] = useState(false);
   const [isQuoteLiked, setIsQuoteLiked] = useState(false);
-  const [showAttachmentModal, setShowAttachmentModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [isPointerActive, setIsPointerActive] = useState(false);
@@ -224,163 +212,6 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }, 900);
-  };
-
-  const addRecord = useRecordsStore((state) => state.addRecord);
-
-  const handleOpenAttachmentModal = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setShowAttachmentModal(true);
-  };
-
-  const handleSelectAttachmentOption = async (docType: string, label: string) => {
-    setShowAttachmentModal(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    let fileToProcess: { uri: string; name: string; type: string; isImage: boolean } | null = null;
-
-    try {
-      if (docType === 'camera') {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Camera Permission Required', 'Please enable camera access in your settings to capture medical records.');
-          return;
-        }
-        const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const asset = result.assets[0];
-          fileToProcess = {
-            uri: asset.uri,
-            name: asset.fileName || `Camera_Scan_${Date.now()}.jpg`,
-            type: 'image/jpeg',
-            isImage: true,
-          };
-        }
-      } else if (docType === 'gallery') {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permission Required', 'Please allow photo library access to attach photos.');
-          return;
-        }
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: 'images',
-          quality: 0.8,
-        });
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const asset = result.assets[0];
-          fileToProcess = {
-            uri: asset.uri,
-            name: asset.fileName || `Photo_Record_${Date.now()}.jpg`,
-            type: 'image/jpeg',
-            isImage: true,
-          };
-        }
-      } else if (docType === 'prescription' || docType === 'lab') {
-        const mimeTypes = docType === 'lab'
-          ? ['application/pdf', 'image/*', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-          : ['*/*'];
-        const result = await DocumentPicker.getDocumentAsync({
-          type: mimeTypes,
-          copyToCacheDirectory: true,
-        });
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const asset = result.assets[0];
-          const isImage = (asset.mimeType || '').startsWith('image/') || asset.name.match(/\.(jpg|jpeg|png|webp|heic)$/i) !== null;
-          fileToProcess = {
-            uri: asset.uri,
-            name: asset.name,
-            type: asset.mimeType || 'application/octet-stream',
-            isImage,
-          };
-        }
-      }
-    } catch (error) {
-      console.warn('Attachment picking failed:', error);
-      return;
-    }
-
-    if (!fileToProcess) return;
-
-    const selected = fileToProcess;
-
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: 'user',
-      text: '',
-      timestamp: formatTime(new Date()),
-      attachment: {
-        uri: selected.uri,
-        name: selected.name,
-        type: selected.isImage ? 'image' : 'document',
-      },
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setIsThinking(true);
-
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-
-    // Perform on-device OCR scan
-    const ocrResult = await readDocumentOnDevice(selected);
-
-    // Update message attachment category & summary
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === userMsg.id && msg.attachment
-          ? {
-              ...msg,
-              attachment: {
-                ...msg.attachment,
-                category: ocrResult.category,
-                summary: ocrResult.summary,
-              },
-            }
-          : msg
-      )
-    );
-
-    // Persist to central Records Store
-    addRecord({
-      title: ocrResult.suggestedTitle || selected.name,
-      date: formatDisplayDate(new Date()),
-      category: ocrResult.category,
-      fileUri: selected.uri,
-      fileName: selected.name,
-      extractedText: ocrResult.extractedText,
-      summary: ocrResult.summary,
-      tags: ocrResult.tags,
-    });
-
-    const insights = extractStructuredInsights(ocrResult.extractedText);
-    let aiText = `📄 Extracted Insights from "${selected.name}":\n• Category: ${ocrResult.category}\n• Summary: ${ocrResult.summary}`;
-    
-    if (insights.doctorName) {
-      aiText += `\n• Doctor: ${insights.doctorName}`;
-    }
-    if (insights.testValues.length > 0) {
-      aiText += `\n• Detected Parameters: ${insights.testValues.map(t => `${t.name}: ${t.value}`).join(', ')}`;
-    }
-    if (insights.medications.length > 0) {
-      aiText += `\n• Prescribed Medicines: ${insights.medications.join(', ')}`;
-    }
-    aiText += `\n\n✅ Saved securely to your Records vault.`;
-
-    const aiMsg: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      sender: 'ai',
-      text: aiText,
-      timestamp: formatTime(new Date()),
-    };
-
-    setMessages((prev) => [...prev, aiMsg]);
-    setIsThinking(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
   };
 
   const handleReset = () => {
@@ -505,48 +336,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
                 </TouchableOpacity>
               </View>
 
-              {/* Weather & AQI Cards Row (Flat Pure White Cards) */}
-              <View style={styles.widgetsRow}>
-                {/* Weather Card */}
-                <View
-                  style={[
-                    styles.widgetCard,
-                    {
-                      backgroundColor: isDark ? '#161B1E' : '#FFFFFF',
-                    },
-                  ]}
-                >
-                  <Sun size={32} color="#F59E0B" strokeWidth={2} />
-                  <View style={[styles.widgetDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }]} />
-                  <View style={styles.widgetTextCol}>
-                    <Text style={[styles.widgetVal, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>33°C</Text>
-                    <Text style={[styles.widgetSub, { color: isDark ? '#94A3B8' : '#64748B' }]}>Sunny</Text>
-                  </View>
-                </View>
-
-                {/* AQI Card */}
-                <View
-                  style={[
-                    styles.widgetCard,
-                    {
-                      backgroundColor: isDark ? '#161B1E' : '#FFFFFF',
-                    },
-                  ]}
-                >
-                  <Sparkles size={30} color="#10B981" strokeWidth={2} />
-                  <View style={[styles.widgetDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }]} />
-                  <View style={styles.widgetTextCol}>
-                    <Text style={styles.widgetValGreen}>
-                      42 <Text style={[styles.widgetUnit, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>AQI</Text>
-                    </Text>
-                    <Text style={[styles.widgetSub, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-                      Good <Text style={{ color: '#10B981' }}>•</Text>
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Roast / Insight Quote Card */}
+              {/* Health Insight & AQI Quote Card */}
               <View
                 style={[
                   styles.quoteCard,
@@ -556,25 +346,36 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
                   },
                 ]}
               >
-                <Text style={styles.quoteMark}>“</Text>
-                <Text style={[styles.quoteText, { color: isDark ? '#E2E8F0' : '#1E293B' }]}>
-                  Stay hydrated and maintain balanced rest for optimal wellness today.
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setIsQuoteLiked(!isQuoteLiked);
-                  }}
-                  style={styles.quoteHeartBtn}
-                >
-                  <Heart
-                    size={22}
-                    color="#10B981"
-                    fill={isQuoteLiked ? '#10B981' : 'none'}
-                    strokeWidth={2}
-                  />
-                </TouchableOpacity>
+                <View style={styles.quoteCardHeaderRow}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Sparkles size={16} color="#10B981" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#10B981', letterSpacing: 0.3 }}>
+                      AQI 42 • GOOD AIR QUALITY
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setIsQuoteLiked(!isQuoteLiked);
+                    }}
+                    style={styles.quoteHeartBtn}
+                  >
+                    <Heart
+                      size={20}
+                      color="#10B981"
+                      fill={isQuoteLiked ? '#10B981' : 'none'}
+                      strokeWidth={2}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.quoteCardBodyRow}>
+                  <Text style={styles.quoteMark}>“</Text>
+                  <Text style={[styles.quoteText, { color: isDark ? '#E2E8F0' : '#1E293B' }]}>
+                    Stay hydrated and maintain balanced rest for optimal wellness today.
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -682,14 +483,6 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
                 },
               ]}
             >
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={handleOpenAttachmentModal}
-                style={styles.capsulePlusBtn}
-              >
-                <Plus size={18} color="#14ce65" />
-              </TouchableOpacity>
-
               <TextInput
                 style={[
                   styles.capsuleInput,
@@ -697,7 +490,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
                     color: isDark ? '#ffffff' : '#0f172a',
                   },
                 ]}
-                placeholder="Ask Arogyon AI or attach health records..."
+                placeholder="Ask Arogyon AI..."
                 placeholderTextColor={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.45)'}
                 value={inputText}
                 onChangeText={setInputText}
@@ -717,68 +510,6 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
               </TouchableOpacity>
             </View>
           </Animated.View>
-
-          {/* Ultra-Minimal ChatGPT-Style Attachment Popover Menu */}
-          {showAttachmentModal && (
-            <Pressable
-              style={styles.attachmentModalBackdrop}
-              onPress={() => setShowAttachmentModal(false)}
-            >
-              <Pressable
-                style={[
-                  styles.popoverMenuCard,
-                  {
-                    bottom: Math.max(insets.bottom + 68, 80),
-                    backgroundColor: isDark ? '#1E2227' : '#FFFFFF',
-                    borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
-                  },
-                ]}
-                onPress={(e) => e.stopPropagation()}
-              >
-                {/* Item 1: Photos */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => handleSelectAttachmentOption('gallery', 'Photo Library')}
-                  style={styles.popoverItemRow}
-                >
-                  <View style={[styles.popoverIconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
-                    <ImageIcon size={19} color={isDark ? '#FFFFFF' : '#0F172A'} strokeWidth={2} />
-                  </View>
-                  <Text style={[styles.popoverItemText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    Photos
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Item 3: Files */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => handleSelectAttachmentOption('prescription', 'Files & Records')}
-                  style={styles.popoverItemRow}
-                >
-                  <View style={[styles.popoverIconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
-                    <Paperclip size={19} color={isDark ? '#FFFFFF' : '#0F172A'} strokeWidth={2} />
-                  </View>
-                  <Text style={[styles.popoverItemText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    Files
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Item 4: Lab Reports */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => handleSelectAttachmentOption('lab', 'Diagnostic Lab Reports')}
-                  style={styles.popoverItemRow}
-                >
-                  <View style={[styles.popoverIconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
-                    <FileSpreadsheet size={19} color={isDark ? '#FFFFFF' : '#0F172A'} strokeWidth={2} />
-                  </View>
-                  <Text style={[styles.popoverItemText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    Lab Reports
-                  </Text>
-                </TouchableOpacity>
-              </Pressable>
-            </Pressable>
-          )}
         </KeyboardAvoidingView>
       </Animated.View>
     </Animated.View>
@@ -947,33 +678,41 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   quoteCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 18,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 22,
     borderWidth: 1,
-    gap: 12,
+    gap: 8,
+  },
+  quoteCardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quoteCardBodyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
   },
   quoteMark: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '900',
     color: '#10B981',
-    lineHeight: 32,
-    marginTop: -8,
+    lineHeight: 28,
+    marginTop: -2,
   },
   quoteText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: 21,
   },
   highlightWord: {
     color: '#FF6B00',
     fontWeight: '700',
   },
   quoteHeartBtn: {
-    padding: 4,
+    padding: 2,
   },
 
   /* ── Chat Messages (Pure Text - Zero Color Wrapper) ─────── */
@@ -1032,15 +771,6 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  capsulePlusBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(20,206,101,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
   capsuleInput: {
     flex: 1,
     height: '100%',
@@ -1055,54 +785,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
-  },
-
-  /* ── Ultra-Minimal Floating Popover Menu (ChatGPT Style) ──────── */
-  attachmentModalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.18)',
-    zIndex: 99,
-  },
-  popoverMenuCard: {
-    position: 'absolute',
-    left: 20,
-    width: 220,
-    borderRadius: 28,
-    padding: 8,
-    borderWidth: 1,
-    gap: 4,
-
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.14,
-        shadowRadius: 24,
-      },
-      android: {
-        elevation: 12,
-      },
-    }),
-  },
-  popoverItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-  },
-  popoverIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  popoverItemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 14,
-    letterSpacing: -0.2,
   },
 
   /* ── Attachment Styling ────────────────────────────────────────── */

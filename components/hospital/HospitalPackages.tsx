@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput,
 import { useRouter } from 'expo-router';
 import { ChevronRight, Search, SlidersHorizontal, X, CheckCircle2, HeartPulse, Stethoscope, Activity } from 'lucide-react-native';
 import PackageItemCard from '@/components/packages/cards/PackageItemCard';
+import { Fonts } from '@/constants/theme';
 
 interface Props {
   colors: any;
@@ -11,6 +12,7 @@ interface Props {
   selectedCategory?: string;
   onSelectCategory?: (catId: string) => void;
   searchQuery?: string;
+  onAddPackagePress?: (packageItem: any) => void;
 }
 
 interface HealthPackage {
@@ -132,7 +134,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
   },
 ];
 
-export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory, searchQuery: externalSearchQuery = '' }: Props) {
+export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory, searchQuery: externalSearchQuery = '', onAddPackagePress }: Props) {
   const router = useRouter();
   const [internalCategory, setInternalCategory] = useState('all');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -269,7 +271,9 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
                   key={pkg.id}
                   item={pkg}
                   layout="horizontal"
-                  onPress={handleViewPackage}
+                  variant="hospital"
+                  onPress={(id) => onAddPackagePress ? onAddPackagePress(pkg) : handleViewPackage(id)}
+                  onAddPress={(p) => onAddPackagePress ? onAddPackagePress(p) : handleViewPackage(p.id)}
                 />
               ))}
             </View>
@@ -327,8 +331,8 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 0,
+    paddingVertical: 4,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -337,6 +341,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 14,
+    marginHorizontal: 16,
     marginBottom: 10,
   },
   searchInput: {
@@ -351,6 +356,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: 16,
     paddingBottom: 12,
   },
   allPill: {
@@ -364,8 +370,9 @@ const styles = StyleSheet.create({
     height: 28,
   },
   allPillText: {
+    fontFamily: Fonts.bold,
     fontSize: 11.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   allUnderline: {
     width: 10,
@@ -383,7 +390,9 @@ const styles = StyleSheet.create({
     height: 28,
   },
   categoryChipText: {
+    fontFamily: Fonts.medium,
     fontSize: 11.5,
+    fontWeight: '500',
   },
   morePill: {
     paddingHorizontal: 10,
@@ -395,19 +404,23 @@ const styles = StyleSheet.create({
     height: 28,
   },
   morePillText: {
+    fontFamily: Fonts.bold,
     fontSize: 11.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   verticalContainer: {
-    gap: 14,
+    paddingHorizontal: 0,
+    gap: 12,
     marginTop: 4,
   },
   emptyContainer: {
     paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 14,
+    fontFamily: Fonts.medium,
+    fontSize: 13.5,
     fontWeight: '500',
   },
   verticalPackageCard: {
@@ -424,8 +437,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardCategoryTagText: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontFamily: Fonts.semiBold,
+    fontSize: 10.5,
+    fontWeight: '600',
     color: '#7C3AED',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -444,12 +458,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   packageTitle: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontFamily: Fonts.semiBold,
+    fontSize: 14.5,
+    fontWeight: '600',
     marginBottom: 4,
-    lineHeight: 18,
+    lineHeight: 19,
+    letterSpacing: -0.1,
   },
   packageSubtitle: {
+    fontFamily: Fonts.regular,
     fontSize: 12,
     lineHeight: 16,
     marginBottom: 8,
@@ -468,13 +485,15 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   currentPrice: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontFamily: Fonts.semiBold,
+    fontSize: 15.5,
+    fontWeight: '600',
   },
   originalPrice: {
+    fontFamily: Fonts.regular,
     fontSize: 11,
     textDecorationLine: 'line-through',
-    fontWeight: '600',
+    fontWeight: '400',
   },
   discountBadge: {
     paddingHorizontal: 4,
@@ -482,9 +501,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   discountText: {
+    fontFamily: Fonts.semiBold,
     color: '#EF4444',
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   viewPackageBtn: {
     flexDirection: 'row',
@@ -498,9 +518,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   viewPackageText: {
+    fontFamily: Fonts.semiBold,
     color: '#EF4444',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11.5,
+    fontWeight: '600',
   },
   fullMenuBtnWrapper: {
     alignItems: 'center',
@@ -569,19 +590,20 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   categorySectionGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   categorySectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
-    paddingHorizontal: 2,
+    paddingHorizontal: 16,
   },
   categorySectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    fontFamily: Fonts.semiBold,
+    fontSize: 16.5,
+    fontWeight: '600',
+    letterSpacing: -0.15,
   },
   categoryBadgeCount: {
     paddingHorizontal: 8,
@@ -589,10 +611,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   categoryBadgeCountText: {
+    fontFamily: Fonts.semiBold,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   modalItemText: {
+    fontFamily: Fonts.medium,
     fontSize: 14,
   },
 });

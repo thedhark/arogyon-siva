@@ -16,7 +16,9 @@ import {
   ArrowLeft, 
   Phone, 
   Shield, 
+  ShieldCheck,
   Users, 
+  User,
   Building2, 
   Stethoscope, 
   ChevronDown, 
@@ -30,10 +32,15 @@ import {
   Plane,
   Heart,
   FileCheck,
+  FileText,
+  Headphones,
+  PhoneCall,
   MessageSquare
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import InquiryFormCard, { FormFieldConfig } from './InquiryFormCard';
+import WhyArogyonGrid, { WhyItem } from './WhyArogyonGrid';
 import { ArogyonBrandLogo } from './PlannedSurgeryCare';
 
 interface Props {
@@ -115,7 +122,8 @@ export default function InternationalPatientCare({ colors, isDark }: Props) {
   const [selectedService, setSelectedService] = useState('Medical Service');
   const [selectedCountry, setSelectedCountry] = useState('United Arab Emirates (UAE)');
   const [patientName, setPatientName] = useState('');
-  const [patientPhone, setPatientPhone] = useState('+971 50 123 4567');
+  const [passportNumber, setPassportNumber] = useState('');
+  const [patientPhone, setPatientPhone] = useState('50 123 4567');
 
   // Modals
   const [showServiceModal, setShowServiceModal] = useState(false);
@@ -220,209 +228,111 @@ export default function InternationalPatientCare({ colors, isDark }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Book Consultation Form Card */}
-          <View style={[
-            styles.formCard, 
-            { 
-              backgroundColor: isDark ? '#111927' : '#E8F5F8', 
-              borderColor: isDark ? 'rgba(72, 199, 40, 0.3)' : '#BCE5EE' 
-            }
-          ]}>
-            <Text style={[styles.formCardTitle, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Request Medical Assistance
-            </Text>
-            <Text style={[styles.formCardSubtitle, { color: isDark ? '#94A3B8' : '#475569' }]}>
-              Get Video Opinion & Visa Support Within 24 Hours
-            </Text>
+          {/* Form Card matching Image 2 Mockup */}
+          <InquiryFormCard
+            isDark={isDark}
+            headerIcon={Globe}
+            headerIconBg="#D6EBF8"
+            headerIconColor="#0284C7"
+            title="Request Medical Assistance"
+            subtitle="Get video opinion & visa support within 24 hours"
+            fields={[
+              {
+                key: 'service',
+                type: 'dropdown',
+                icon: Stethoscope,
+                label: 'Medical Service',
+                value: selectedService === 'Medical Service' ? '' : selectedService,
+                placeholder: 'Select medical service',
+                onPressDropdown: () => setShowServiceModal(true),
+              },
+              {
+                key: 'country',
+                type: 'dropdown',
+                icon: Globe,
+                label: 'Country You Are In',
+                value: selectedCountry,
+                placeholder: 'United Arab Emirates (UAE)',
+                onPressDropdown: () => setShowCountryModal(true),
+              },
+              {
+                key: 'name',
+                type: 'text',
+                icon: User,
+                label: 'Full Name (as in Passport)',
+                value: patientName,
+                placeholder: 'Enter full name',
+                onChangeText: setPatientName,
+              },
+              {
+                key: 'passport',
+                type: 'text',
+                icon: FileText,
+                label: 'Passport Number',
+                value: passportNumber,
+                placeholder: 'Enter passport number',
+                onChangeText: setPassportNumber,
+              },
+              {
+                key: 'phone',
+                type: 'phone',
+                icon: PhoneCall,
+                label: 'WhatsApp / Mobile Number',
+                value: patientPhone,
+                countryCode: '+971',
+                countryFlag: '🇦🇪',
+                placeholder: '50 123 4567',
+                onChangeText: setPatientPhone,
+              },
+            ]}
+            submitButtonText="Contact International Desk"
+            submitButtonBg="#032541"
+            onSubmit={handleBookAppointment}
+            disclaimerText="By submitting, you agree to Arogyon's "
+            privacyLinkText="Global Privacy Policy"
+          />
 
-            {/* Service Dropdown */}
-            <TouchableOpacity 
-              style={[styles.dropdownInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF' }]}
-              onPress={() => setShowServiceModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.dropdownText, { color: selectedService === 'Medical Service' ? '#94A3B8' : (isDark ? '#FFFFFF' : '#0B3848') }]}>
-                {selectedService}
-              </Text>
-              <ChevronDown size={18} color="#64748B" />
-            </TouchableOpacity>
+          {/* 4-Card Why Arogyon Global Care Grid matching Image 2 Mockup */}
+          <WhyArogyonGrid
+            isDark={isDark}
+            sectionTitle="Why Arogyon Global Care?"
+            items={[
+              {
+                id: 'g1',
+                title: 'Visa & Travel Support',
+                description: 'Visa invitation in 24 hrs & travel concierge.',
+                icon: Plane,
+                iconBg: '#E0F2FE',
+                iconColor: '#0284C7',
+              },
+              {
+                id: 'g2',
+                title: 'Top Hospitals Worldwide',
+                description: 'Partnered with accredited hospitals globally.',
+                icon: Building2,
+                iconBg: '#E0F7FA',
+                iconColor: '#00838F',
+              },
+              {
+                id: 'g3',
+                title: '24/7 Care Experts',
+                description: 'Dedicated care team available round the clock.',
+                icon: Headphones,
+                iconBg: '#F3E8FF',
+                iconColor: '#9333EA',
+              },
+              {
+                id: 'g4',
+                title: 'End-to-End Assistance',
+                description: 'From treatment planning to travel back home.',
+                icon: ShieldCheck,
+                iconBg: '#DCFCE7',
+                iconColor: '#15803D',
+              },
+            ]}
+          />
 
-            {/* Country Dropdown */}
-            <TouchableOpacity 
-              style={[styles.dropdownInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF' }]}
-              onPress={() => setShowCountryModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.dropdownText, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                {selectedCountry}
-              </Text>
-              <ChevronDown size={18} color="#64748B" />
-            </TouchableOpacity>
 
-            {/* Name Input */}
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#0B3848' }]}
-              placeholder="Full Name (Passport)"
-              placeholderTextColor="#94A3B8"
-              value={patientName}
-              onChangeText={setPatientName}
-            />
-
-            {/* Phone Number Input */}
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#0B3848' }]}
-              placeholder="+971 50 123 4567 (WhatsApp)"
-              placeholderTextColor="#94A3B8"
-              keyboardType="phone-pad"
-              value={patientPhone}
-              onChangeText={setPatientPhone}
-            />
-
-            {/* Submit CTA Button */}
-            <TouchableOpacity 
-              style={styles.bookSubmitBtn}
-              onPress={handleBookAppointment}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.bookSubmitBtnText}>Contact International Desk</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.formDisclaimer}>
-              By submitting, you agree to Arogyon's <Text style={styles.tncLink}>Global Privacy Policy</Text>
-            </Text>
-          </View>
-
-          {/* Why Arogyon Assured Section */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Why Arogyon Global Care?
-            </Text>
-
-            <View style={[styles.infoCard, { backgroundColor: isDark ? '#111927' : '#E8F5F8', borderColor: '#BCE5EE' }]}>
-              <Text style={[styles.infoCardHeader, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                International Patient Services
-              </Text>
-
-              <View style={styles.benefitItem}>
-                <Plane size={20} color="#48C728" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>Medical Visa & Airport Concierge</Text>
-                  <Text style={styles.benefitSub}>
-                    Official hospital visa invitation letter issued within 24 hours + VIP airport reception and ambulance pick-up.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.benefitItem}>
-                <Building2 size={20} color="#0B3848" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>JCI & NABH Accredited Hospitals</Text>
-                  <Text style={styles.benefitSub}>
-                    Carefully vetted super-specialty hospitals with world-renowned surgical directors.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.benefitItem}>
-                <Globe size={20} color="#48C728" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>Dedicated Multilingual Translators</Text>
-                  <Text style={styles.benefitSub}>
-                    1:1 personal care coordinator fluent in Arabic, French, Russian, Spanish, and English.
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Treatments Offered Accordions */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Services & Specialities
-            </Text>
-
-            <View style={[styles.accordionContainer, { backgroundColor: isDark ? '#161F33' : '#FFFFFF' }]}>
-              {TREATMENTS_ACCORDION.map((acc, index) => {
-                const isOpen = expandedSection === acc.title;
-                const isLast = index === TREATMENTS_ACCORDION.length - 1;
-
-                return (
-                  <View key={acc.title} style={[!isLast && styles.accordionBorder]}>
-                    <TouchableOpacity
-                      style={styles.accordionHeaderRow}
-                      onPress={() => toggleAccordion(acc.title)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.accordionTitle, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                        {acc.title}
-                      </Text>
-                      {isOpen ? <ChevronUp size={20} color="#48C728" /> : <ChevronDown size={20} color="#64748B" />}
-                    </TouchableOpacity>
-
-                    {isOpen && (
-                      <View style={styles.accordionBody}>
-                        {acc.items.map(item => (
-                          <TouchableOpacity
-                            key={item}
-                            style={styles.accordionItemRow}
-                            onPress={() => {
-                              setSelectedService(item);
-                              Haptics.selectionAsync();
-                            }}
-                          >
-                            <CheckCircle2 size={16} color="#48C728" />
-                            <Text style={[styles.accordionItemText, { color: isDark ? '#CBD5E1' : '#334155' }]}>
-                              {item}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Experiences You Can Trust Testimonial Section */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Global Patient Reviews
-            </Text>
-
-            <View style={[styles.reviewContainerCard, { backgroundColor: isDark ? '#161F33' : '#FFFFFF' }]}>
-              <View style={styles.overallRatingRow}>
-                <Star size={18} color="#0B3848" fill="#0B3848" />
-                <Text style={[styles.overallRatingText, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                  Rated 4.95 <Text style={{ fontSize: 13, fontWeight: '500', color: '#64748B' }}>(14,280 International Patients)</Text>
-                </Text>
-              </View>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewsScroll}>
-                {PATIENT_REVIEWS.map(rev => (
-                  <View key={rev.id} style={[styles.reviewCard, { backgroundColor: isDark ? '#0B1320' : '#F1F7F9' }]}>
-                    <View style={styles.reviewUserHeader}>
-                      <View style={styles.userAvatarCircle}>
-                        <Text style={styles.userAvatarText}>{rev.initial}</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.reviewerName, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                          {rev.name}
-                        </Text>
-                        <View style={styles.starRow}>
-                          <Star size={12} color="#0B3848" fill="#0B3848" />
-                          <Text style={styles.reviewStarText}>{rev.rating}</Text>
-                        </View>
-                      </View>
-                    </View>
-                    <Text style={[styles.reviewBodyText, { color: isDark ? '#CBD5E1' : '#475569' }]} numberOfLines={5}>
-                      {rev.review}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
 
           {/* Arogyon Brand Vision Banner */}
           <LinearGradient

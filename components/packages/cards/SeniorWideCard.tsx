@@ -9,11 +9,11 @@ export default function SeniorWideCard({ onPress }: Props) {
   return (
     <WideCardTemplate
       title="Senior Citizen Health Card"
-      subtitle="45-parameter geriatric evaluation & free home sample"
-      badgeText="FREE HOME SAMPLE"
-      badgeColor="#2E7D32"
-      image="https://images.unsplash.com/photo-1581579438747-1dc8d1e2729a?q=80&w=600"
-      colors={['#E8F5E9', '#C8E6C9']}
+      subtitle="Full body check, cardiac & geriatric wellness"
+      badgeText="SENIOR CARE DISCOUNT"
+      badgeColor="#0284C7"
+      image="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=600"
+      colors={['#E6F7FF', '#BAE7FF']}
       categorySlug="senior"
       onPress={onPress}
     />

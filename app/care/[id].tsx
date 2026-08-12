@@ -6,6 +6,7 @@ import InternationalPatientCare from '@/components/care/InternationalPatientCare
 import WomensHealthCare from '@/components/care/WomensHealthCare';
 import MensHealthCare from '@/components/care/MensHealthCare';
 import PreventiveHealthCare from '@/components/care/PreventiveHealthCare';
+import SecondOpinionCare from '@/components/care/SecondOpinionCare';
 import ServiceListing from './service/[id]';
 
 export default function DirectCareScreen() {
@@ -13,6 +14,10 @@ export default function DirectCareScreen() {
   const { colors, isDark } = useTheme();
 
   const normalizedId = (typeof id === 'string' ? id : '').toLowerCase().trim().replace(/[-_]/g, '');
+
+  if (['opinion', 'secondopinion', '2ndopinion', 'second-opinion'].includes(normalizedId)) {
+    return <SecondOpinionCare colors={colors} isDark={isDark} />;
+  }
 
   if (['postsurgery', 'plannedsurgery', 'surgery', 'generalsurgery', '5'].includes(normalizedId)) {
     return <PlannedSurgeryCare colors={colors} isDark={isDark} />;

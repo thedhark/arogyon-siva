@@ -31,19 +31,19 @@ export default function SeniorCareCard({ onPress }: CardProps) {
       onPress={handlePress}
     >
       <LinearGradient
-        colors={['#FFFBEB', '#FDE68A']}
+        colors={['#E6F7FF', '#BAE7FF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.cardGradient}
       >
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>Senior Citizen Health Plan</Text>
-          <Text style={styles.subtitle} numberOfLines={2}>Comprehensive geriatric care & home visits</Text>
+          <Text style={styles.title} numberOfLines={1}>Senior Citizen Health</Text>
+          <Text style={styles.subtitle} numberOfLines={2}>Full body check, cardiac & geriatric wellness</Text>
         </View>
         
         <View style={styles.imageContainer}>
           <LinearGradient 
-            colors={['#FFFBEB', 'transparent']} 
+            colors={['#E6F7FF', 'transparent']} 
             start={{ x: 0, y: 0 }} 
             end={{ x: 0.6, y: 0 }} 
             style={styles.imageGradientOverlay} 
@@ -104,15 +104,13 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
   },
   imageContainer: {
-    width: '45%',
+    width: '48%',
     height: '100%',
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
     zIndex: 1,
-    borderTopLeftRadius: 60,
-    borderBottomLeftRadius: 20,
     overflow: 'hidden',
   },
   image: {

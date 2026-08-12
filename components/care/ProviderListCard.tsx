@@ -99,11 +99,12 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
+    width: '34%',
     marginRight: 16,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: '100%',
+    aspectRatio: 1,
     borderRadius: 12,
     backgroundColor: '#F3F4F6',
   },

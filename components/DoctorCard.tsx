@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Star, Flame, Zap, ThumbsUp, User } from 'lucide-react-native';
+import { Heart, Star, Flame, Zap, ThumbsUp, User, Calendar, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { Fonts } from '@/constants/theme';
+import RecommendedDoctorCard, { DoctorData } from '@/components/hospital/RecommendedDoctorCard';
 
 export interface DoctorCardData {
   id?: string;
@@ -21,8 +23,9 @@ export interface DoctorCardData {
   tagType?: 'fire' | 'zap' | 'thumb' | string;
   tagText?: string;
   tag?: string;
+  languages?: string;
+  emoji?: string;
 }
-
 
 interface DoctorCardProps {
   doc: DoctorCardData;
@@ -31,12 +34,52 @@ interface DoctorCardProps {
   isLiked?: boolean;
   onPress: () => void;
   onLikePress?: () => void;
+  onAddPress?: (selectedSlot?: string) => void;
+  variant?: 'default' | 'hospital' | 'expert' | 'recommended';
+  ctaText?: string;
 }
 
-export default function DoctorCard({ doc, isDark: isDarkProp, colors: colorsProp, isLiked = false, onPress, onLikePress }: DoctorCardProps) {
+export default function DoctorCard({
+  doc,
+  isDark: isDarkProp,
+  colors: colorsProp,
+  isLiked = false,
+  onPress,
+  onLikePress,
+  onAddPress,
+  variant = 'default',
+  ctaText = 'Book Visit',
+}: DoctorCardProps) {
   const theme = useTheme();
   const isDark = isDarkProp ?? theme.isDark;
   const colors = colorsProp ?? theme.colors;
+
+  if (variant === 'recommended') {
+    const recommendedData: DoctorData = {
+      id: doc.id || 'doc-1',
+      name: doc.name,
+      speciality: doc.speciality || 'Specialist',
+      fee: doc.fee || doc.price || '800',
+      hospitalName: doc.hospital || doc.location || 'Apollo Hospitals, Banjara Hills',
+      location: doc.location || 'Banjara Hills',
+      languages: doc.languages || 'English • Hindi • Telugu',
+      image: doc.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400',
+      emoji: doc.emoji,
+      availableSlots: ['10:00 AM', '12:30 PM', '05:00 PM'],
+    };
+
+    return (
+      <RecommendedDoctorCard
+        doctor={recommendedData}
+        isBookmarked={isLiked}
+        onBookmarkToggle={onLikePress}
+        onBookVisitPress={(d, slot) => {
+          if (onAddPress) onAddPress(slot);
+          else onPress();
+        }}
+      />
+    );
+  }
 
   const docName = doc?.name || 'Doctor';
   const docSpeciality = doc?.speciality || 'Specialist';
@@ -46,12 +89,24 @@ export default function DoctorCard({ doc, isDark: isDarkProp, colors: colorsProp
   const docPrice = doc?.price || doc?.fee || '500';
   const docNextAvailable = doc?.nextAvailable || 'Today';
 
+  const isHospitalVariant = variant === 'hospital';
+  const gradientColors = isHospitalVariant
+    ? ['#9BF229', '#14CE65']
+    : (isDark ? ['#2A2C33', '#16171B', '#0B0C0E'] : ['#1E293B', '#0F172A']);
+  const textColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
+
   return (
     <TouchableOpacity 
       style={[
         styles.docCard, 
         { 
-          backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
+          backgroundColor: isHospitalVariant ? 'transparent' : (isDark ? '#1E1E1E' : '#FFFFFF'),
+          borderColor: isHospitalVariant ? (isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9') : (isDark ? '#27272A' : '#F3F4F6'),
+          borderWidth: isHospitalVariant ? 0 : 1,
+          borderBottomWidth: 1,
+          elevation: isHospitalVariant ? 0 : 1,
+          shadowOpacity: isHospitalVariant ? 0 : 0.04,
+          marginVertical: isHospitalVariant ? 2 : 0,
         }
       ]}
       onPress={onPress}
@@ -130,11 +185,25 @@ export default function DoctorCard({ doc, isDark: isDarkProp, colors: colorsProp
           <Text style={styles.bottomColLabel}>Next Available</Text>
         </View>
         
-        <LinearGradient colors={['#14B8A6', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bookGradientBtn}>
-          <View style={styles.bookBtnInner}>
-            <Text style={styles.bookBtnText}>Book Visit</Text>
-          </View>
-        </LinearGradient>
+        {/* Tactile Reshaped Beveled Pill Button */}
+        <TouchableOpacity
+          style={[
+            styles.bookGradientBtn,
+            isHospitalVariant && styles.hospitalBtnShadow,
+          ]}
+          onPress={() => onAddPress ? onAddPress() : onPress()}
+          activeOpacity={0.85}
+        >
+          <LinearGradient
+            colors={gradientColors as [string, string, ...string[]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.bookBtnInner}
+          >
+            <Calendar size={14} color={textColor} style={{ marginRight: 4 }} />
+            <Text style={[styles.bookBtnText, { color: textColor }]}>{ctaText}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -142,7 +211,7 @@ export default function DoctorCard({ doc, isDark: isDarkProp, colors: colorsProp
 
 const styles = StyleSheet.create({
   docCard: {
-    borderRadius: 10,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#F3F4F6',
@@ -154,18 +223,20 @@ const styles = StyleSheet.create({
   },
   docCardTop: {
     flexDirection: 'row',
-    padding: 16,
+    padding: 14,
   },
   docLeft: {
+    width: '34%',
     marginRight: 12,
   },
   avatarContainer: {
     position: 'relative',
+    width: '100%',
   },
   docAvatar: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 16,
     backgroundColor: '#F3F4F6',
   },
   onlineDot: {
@@ -189,16 +260,20 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   docName: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontFamily: Fonts.bold,
+    fontSize: 16.5,
+    fontWeight: '700',
+    letterSpacing: -0.15,
   },
   docSpecialty: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.medium,
+    fontSize: 12.5,
+    fontWeight: '500',
     color: '#4B5563',
     marginBottom: 2,
   },
   docDegrees: {
+    fontFamily: Fonts.regular,
     fontSize: 12,
     color: '#6B7280',
     marginBottom: 8,
@@ -214,12 +289,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   docRating: {
+    fontFamily: Fonts.semiBold,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#F59E0B',
     marginLeft: 4,
   },
   docReviews: {
+    fontFamily: Fonts.regular,
     fontSize: 12,
     color: '#6B7280',
   },
@@ -231,8 +308,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   highlightTagText: {
+    fontFamily: Fonts.semiBold,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: 4,
   },
 
@@ -246,7 +324,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: 'transparent', // Let it blend with surfaceElevated
+    backgroundColor: 'transparent',
   },
   feeCol: {
     // Auto width
@@ -255,10 +333,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomColVal: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontFamily: Fonts.semiBold,
+    fontSize: 14.5,
+    fontWeight: '600',
   },
   bottomColLabel: {
+    fontFamily: Fonts.regular,
     fontSize: 11,
     color: '#6B7280',
     marginTop: 2,
@@ -270,16 +350,34 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   bookGradientBtn: {
-    borderRadius: 10, // Refined sleek border radius
+    borderRadius: 999, // Reshaped tactile rounded pill style
     marginLeft: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  hospitalBtnShadow: {
+    shadowColor: '#14CE65',
+    shadowOpacity: 0.3,
   },
   bookBtnInner: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 9.5,
+    borderRadius: 999,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   bookBtnText: {
+    fontFamily: Fonts.semiBold,
     color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 14,
+    fontWeight: '600',
+    fontSize: 13,
+    letterSpacing: -0.1,
   },
 });

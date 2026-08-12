@@ -4,6 +4,8 @@ import { ArrowDownCircle, Heart, ShoppingBag, Calendar, ShieldCheck, Check, Tag,
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/useTheme';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 export interface StickyBookingPaymentBarProps {
   priceDropText?: string; // Optional custom main offer
   price: number | string;
@@ -19,6 +21,7 @@ export interface StickyBookingPaymentBarProps {
   onPressCTA: () => void;
   onPressTokenCTA?: () => void;
   disabled?: boolean;
+  variant?: 'default' | 'hospital';
 }
 
 const OFFERS = [
@@ -34,7 +37,7 @@ export default function StickyBookingPaymentBar({
   originalPrice,
   discountText,
   taxSubtext,
-  ctaText = 'Book Package',
+  ctaText = 'ADD Package',
   tokenCtaText,
   ctaIcon = 'calendar',
   showBookmark = false,
@@ -43,8 +46,18 @@ export default function StickyBookingPaymentBar({
   onPressCTA,
   onPressTokenCTA,
   disabled = false,
+  variant = 'default',
 }: StickyBookingPaymentBarProps) {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 14 : 10);
+  
+  const isHospitalVariant = variant === 'hospital';
+  const ctaGradientColors = isHospitalVariant 
+    ? ['#9BF229', '#14CE65'] 
+    : ['#2A2C33', '#16171B', '#0B0C0E'];
+  const ctaTextColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
+  const ctaIconColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
   
   const [offerIndex, setOfferIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -83,14 +96,14 @@ export default function StickyBookingPaymentBar({
   const renderCtaIcon = () => {
     switch (ctaIcon) {
       case 'calendar':
-        return <Calendar size={17} color="#FFFFFF" style={styles.ctaIcon} />;
+        return <Calendar size={17} color={ctaIconColor} style={styles.ctaIcon} />;
       case 'shield':
-        return <ShieldCheck size={17} color="#FFFFFF" style={styles.ctaIcon} />;
+        return <ShieldCheck size={17} color={ctaIconColor} style={styles.ctaIcon} />;
       case 'check':
-        return <Check size={17} color="#FFFFFF" style={styles.ctaIcon} />;
+        return <Check size={17} color={ctaIconColor} style={styles.ctaIcon} />;
       case 'bag':
       default:
-        return <ShoppingBag size={17} color="#FFFFFF" style={styles.ctaIcon} />;
+        return <ShoppingBag size={17} color={ctaIconColor} style={styles.ctaIcon} />;
     }
   };
 
@@ -130,16 +143,16 @@ export default function StickyBookingPaymentBar({
         </Animated.View>
       </TouchableOpacity>
 
-      {/* Sticky Rounded Card Action Bar */}
+      {/* Sticky Edge-to-Edge Action Bar */}
       <View
         style={[
           styles.cardBar,
           {
-            backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-            borderWidth: isDark ? 0.5 : 0,
+            backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)',
+            paddingBottom: bottomInset + 4,
           },
-          tokenCtaText ? { paddingHorizontal: 12, paddingVertical: 10, gap: 10 } : {},
+          tokenCtaText ? { paddingHorizontal: 16, paddingTop: 12, gap: 10 } : {},
         ]}
       >
         {/* Left Price Details (Only shown in single-button mode to prevent 3-element horizontal overflow) */}
@@ -174,12 +187,12 @@ export default function StickyBookingPaymentBar({
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={isDark ? ['#36224B', '#221533', '#130B1E'] : ['#F5EEFF', '#EBE0FA', '#DDD0F7']}
+                colors={isDark ? ['#1E293B', '#1E3A8A', '#1D4ED8'] : ['#EFF6FF', '#DBEAFE', '#BFDBFE']}
                 locations={[0, 0.5, 1]}
                 style={styles.tokenBtnGradient}
               >
-                <Calendar size={15} color={isDark ? '#DDD6FE' : '#6527BE'} />
-                <Text style={[styles.tokenBtnText, { color: isDark ? '#DDD6FE' : '#5B21B6' }]} numberOfLines={1}>
+                <Calendar size={15} color={isDark ? '#93C5FD' : '#1D4ED8'} />
+                <Text style={[styles.tokenBtnText, { color: isDark ? '#93C5FD' : '#1D4ED8' }]} numberOfLines={1}>
                   {tokenCtaText}
                 </Text>
               </LinearGradient>
@@ -205,24 +218,25 @@ export default function StickyBookingPaymentBar({
             </TouchableOpacity>
           )}
 
-          {/* Primary Full Package CTA Button - Tactile Dark Obsidian Beveled Pill */}
+          {/* Primary Full Package CTA Button - Reshaped Tactile Gradient Pill */}
           <TouchableOpacity
             style={[
               styles.ctaBtnWrapper,
               tokenCtaText ? { flex: 1, minWidth: 0 } : {},
               disabled && { opacity: 0.6 },
+              isHospitalVariant && { shadowColor: '#14CE65', shadowOpacity: 0.4 },
             ]}
             onPress={onPressCTA}
             disabled={disabled}
             activeOpacity={0.85}
           >
             <LinearGradient
-              colors={['#2A2C33', '#16171B', '#0B0C0E']}
+              colors={ctaGradientColors as [string, string, ...string[]]}
               locations={[0, 0.5, 1]}
               style={styles.ctaBtnGradient}
             >
               {renderCtaIcon()}
-              <Text style={styles.ctaText} numberOfLines={1}>{ctaText}</Text>
+              <Text style={[styles.ctaText, { color: ctaTextColor }]} numberOfLines={1}>{ctaText}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -234,25 +248,28 @@ export default function StickyBookingPaymentBar({
 const styles = StyleSheet.create({
   fixedWrapper: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 16 : 8,
-    left: 8,
-    right: 8,
-    alignItems: 'center',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    alignItems: 'stretch',
     zIndex: 999,
   },
   priceDropPill: {
-    width: '94%',
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginBottom: -6,
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: -1,
     zIndex: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   offerContent: {
     flexDirection: 'row',
@@ -280,15 +297,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderRadius: 28,
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     zIndex: 2,
   },
   priceColumn: {
@@ -339,7 +359,7 @@ const styles = StyleSheet.create({
   },
   tokenBtnWrapper: {
     borderRadius: 999,
-    shadowColor: '#6527BE',
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -354,7 +374,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12.5,
     borderRadius: 999,
     borderWidth: 0.5,
-    borderColor: 'rgba(101, 39, 190, 0.25)',
+    borderColor: 'rgba(37, 99, 235, 0.25)',
   },
   tokenBtnText: {
     fontSize: 13,

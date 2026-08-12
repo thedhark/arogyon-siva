@@ -3,25 +3,28 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform, TextInput, ScrollVi
 import Animated, { FadeInDown, useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
-import { Search, X, Sparkles, ShieldCheck, Clock, CreditCard } from 'lucide-react-native';
+import { Search, X } from 'lucide-react-native';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import AndroidGlassView from '@/components/AndroidGlassView';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import HomeHeader from '@/components/HomeHeader';
 
-import {
-  ALL_CATEGORY_CARDS
-} from '@/components/packages/cards';
+import { ALL_CATEGORY_CARDS } from '@/components/packages/cards';
 
 const CATEGORY_CHIPS = [
   { id: 'all', label: 'All Packages' },
-  { id: 'pregnancy', label: 'Maternity' },
-  { id: 'cardiac', label: 'Cardiac & Heart' },
-  { id: 'ortho', label: 'Ortho & Joint' },
-  { id: 'skin', label: 'Derma & Skin' },
+  { id: 'health-checkups', label: 'Checkups' },
+  { id: 'heart', label: 'Heart Care' },
+  { id: 'diabetes', label: 'Diabetes' },
+  { id: 'skin', label: 'Skin Care' },
+  { id: 'hair', label: 'Hair Care' },
+  { id: 'women', label: "Women's Care" },
+  { id: 'bone-joint', label: 'Bone & Joint' },
   { id: 'dental', label: 'Dental Care' },
-  { id: 'senior', label: 'Senior Care' },
+  { id: 'child', label: 'Child Care' },
+  { id: 'eye', label: 'Eye Care' },
+  { id: 'physio', label: 'Physio & Rehab' },
 ];
 
 export default function PlansScreen() {
@@ -107,7 +110,7 @@ export default function PlansScreen() {
               <Search size={18} color={mutedColor} style={styles.searchIcon} />
               <TextInput
                 style={[styles.searchInput, { color: textColor }]}
-                placeholder='Search care packages ("Pregnancy", "Dental", "Heart")...'
+                placeholder='Search care packages ("Heart", "Skin", "Diabetes")...'
                 placeholderTextColor={mutedColor}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -154,40 +157,22 @@ export default function PlansScreen() {
             </ScrollView>
           </Animated.View>
 
-          {/* Benefits Banner */}
-          <Animated.View entering={FadeInDown.delay(180)} style={[styles.benefitsBanner, { backgroundColor: isDark ? '#1E1E1E' : '#F0FDFA', borderColor: isDark ? '#333' : '#CCFBF1' }]}>
-            <View style={styles.benefitItem}>
-              <ShieldCheck size={16} color="#0D9488" />
-              <Text style={[styles.benefitText, { color: colors.text }]}>NABH Partner Hospitals</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Clock size={16} color="#0D9488" />
-              <Text style={[styles.benefitText, { color: colors.text }]}>Free Home Pickup</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <CreditCard size={16} color="#0D9488" />
-              <Text style={[styles.benefitText, { color: colors.text }]}>0% EMI Options</Text>
-            </View>
-          </Animated.View>
-
           {/* Section Header */}
           <Animated.View entering={FadeInDown.delay(210)} style={styles.sectionHeader}>
             <View style={styles.titleRow}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Popular Care Packages</Text>
-              <View style={styles.badge}>
-                <Sparkles size={12} color="#10B981" />
-                <Text style={styles.badgeText}>{filteredCards.length} Plans Available</Text>
-              </View>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {filteredCards.length} Medical & Health Categories
+              </Text>
             </View>
           </Animated.View>
 
-          {/* Cards Rendered Explicitly */}
+          {/* Cards Rendered Dynamically */}
           <Animated.View entering={FadeInDown.delay(250)}>
             {filteredCards.map((cardItem, index) => {
               const CardComponent = cardItem.component;
               return (
-                <Animated.View key={cardItem.id} entering={FadeInDown.delay(250 + index * 40)}>
-                  <CardComponent />
+                <Animated.View key={cardItem.id} entering={FadeInDown.delay(100 + Math.min(index * 30, 300))}>
+                  <CardComponent category={cardItem.category} />
                 </Animated.View>
               );
             })}
@@ -244,24 +229,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  benefitsBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 18,
-  },
-  benefitItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  benefitText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -276,21 +243,5 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 19,
     fontWeight: '800',
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#065F46',
   },
 });

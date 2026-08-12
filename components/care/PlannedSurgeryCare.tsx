@@ -18,6 +18,7 @@ import {
   ArrowLeft, 
   Phone, 
   Shield, 
+  ShieldCheck,
   Users, 
   User,
   Eye,
@@ -35,8 +36,14 @@ import {
   FileText,
   HeartPulse,
   Share2,
-  Tag
+  Tag,
+  Calendar,
+  Edit3,
+  MapPin,
+  PhoneCall
 } from 'lucide-react-native';
+import InquiryFormCard, { FormFieldConfig } from './InquiryFormCard';
+import WhyArogyonGrid, { WhyItem } from './WhyArogyonGrid';
 
 const CARE_JOURNEY_STAGES = [
   {
@@ -399,7 +406,6 @@ export default function PlannedSurgeryCare({ colors, isDark }: Props) {
               </View>
 
               <Text style={styles.heroMainTitle}>Planned Surgery Care</Text>
-              <Text style={styles.heroMainSubtitle}>Complete care. Total peace of mind.</Text>
             </View>
           </LinearGradient>
         </View>
@@ -423,265 +429,110 @@ export default function PlannedSurgeryCare({ colors, isDark }: Props) {
 
 
 
-          {/* Book Consultation Form Card with Curved Borders */}
-          <View style={[
-            styles.formCard, 
-            { 
-              backgroundColor: isDark ? '#111927' : '#E8F5F8', 
-              borderColor: isDark ? 'rgba(72, 199, 40, 0.3)' : '#BCE5EE' 
-            }
-          ]}>
-            <Text style={[styles.formCardTitle, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Book your consultation today
-            </Text>
-            <Text style={[styles.formCardSubtitle, { color: isDark ? '#94A3B8' : '#475569' }]}>
-              Get a Call Back Within 15 Minutes
-            </Text>
+          {/* Book Consultation Form Card matching Image 3 Mockup */}
+          <InquiryFormCard
+            isDark={isDark}
+            headerIcon={Calendar}
+            headerIconBg="#D1FAF0"
+            headerIconColor="#059669"
+            title="Book your consultation"
+            subtitle="Get a call back within 15 minutes"
+            topRightBadge={{
+              text: '100% Secure',
+              icon: ShieldCheck,
+              bg: '#DCFCE7',
+              color: '#15803D',
+            }}
+            fields={[
+              {
+                key: 'surgery',
+                type: 'dropdown',
+                icon: Edit3,
+                label: 'I need help with',
+                value: selectedSurgery,
+                placeholder: 'Surgery',
+                onPressDropdown: () => setShowSurgeryModal(true),
+              },
+              {
+                key: 'city',
+                type: 'dropdown',
+                icon: MapPin,
+                label: 'Preferred location',
+                value: selectedCity,
+                placeholder: 'Tirupati',
+                onPressDropdown: () => setShowCityModal(true),
+              },
+              {
+                key: 'name',
+                type: 'text',
+                icon: User,
+                label: 'Your name',
+                value: patientName,
+                placeholder: 'Enter your name',
+                onChangeText: setPatientName,
+              },
+              {
+                key: 'phone',
+                type: 'phone',
+                icon: PhoneCall,
+                label: 'Mobile number',
+                value: patientPhone,
+                countryCode: '+91',
+                countryFlag: '🇮🇳',
+                placeholder: '95507 15570',
+                onChangeText: setPatientPhone,
+              },
+            ]}
+            submitButtonText="Book Appointment"
+            submitButtonBg="#053A47"
+            onSubmit={handleBookAppointment}
+            disclaimerText="By submitting the form, you agree to Arogyon's "
+            privacyLinkText="Terms & Conditions"
+          />
 
-            {/* Surgery Dropdown */}
-            <TouchableOpacity 
-              style={[styles.dropdownInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF' }]}
-              onPress={() => setShowSurgeryModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.dropdownText, { color: selectedSurgery === 'Surgery' ? '#94A3B8' : (isDark ? '#FFFFFF' : '#0B3848') }]}>
-                {selectedSurgery}
-              </Text>
-              <ChevronDown size={18} color="#64748B" />
-            </TouchableOpacity>
-
-            {/* City Dropdown */}
-            <TouchableOpacity 
-              style={[styles.dropdownInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF' }]}
-              onPress={() => setShowCityModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.dropdownText, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                {selectedCity}
-              </Text>
-              <ChevronDown size={18} color="#64748B" />
-            </TouchableOpacity>
-
-            {/* Name Input */}
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#0B3848' }]}
-              placeholder="sgh"
-              placeholderTextColor="#94A3B8"
-              value={patientName}
-              onChangeText={setPatientName}
-            />
-
-            {/* Phone Number Input */}
-            <TextInput
-              style={[styles.textInput, { backgroundColor: isDark ? '#0B1320' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#0B3848' }]}
-              placeholder="+919550715570"
-              placeholderTextColor="#94A3B8"
-              keyboardType="phone-pad"
-              value={patientPhone}
-              onChangeText={setPatientPhone}
-            />
-
-            {/* Submit CTA Button in Arogyon Deep Teal & Green */}
-            <TouchableOpacity 
-              style={styles.bookSubmitBtn}
-              onPress={handleBookAppointment}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.bookSubmitBtnText}>Book Appointment</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.formDisclaimer}>
-              By submitting the form, you agree to Arogyon's <Text style={styles.tncLink}>T&C</Text>
-            </Text>
-          </View>
+          {/* 4-Card Why Arogyon Assured Grid matching Image 3 Mockup */}
+          <WhyArogyonGrid
+            isDark={isDark}
+            sectionTitle="Why Arogyon Assured?"
+            items={[
+              {
+                id: 'a1',
+                title: '4.5/5 Hospital Rating',
+                description: 'Trusted by thousands',
+                icon: Star,
+                iconBg: '#ECFDF5',
+                iconColor: '#059669',
+              },
+              {
+                id: 'a2',
+                title: 'Verified Hospitals',
+                description: 'Rigorous quality checks',
+                icon: ShieldCheck,
+                iconBg: '#E0F2FE',
+                iconColor: '#0284C7',
+              },
+              {
+                id: 'a3',
+                title: 'Expert Surgeons',
+                description: 'Experienced & specialized',
+                icon: Users,
+                iconBg: '#F3E8FF',
+                iconColor: '#9333EA',
+              },
+              {
+                id: 'a4',
+                title: 'End-to-End Care',
+                description: 'From consultation to recovery',
+                icon: Heart,
+                iconBg: '#FCE7F3',
+                iconColor: '#DB2777',
+              },
+            ]}
+          />
 
 
 
-          {/* Why Arogyon Assured Section */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Why Arogyon Assured?
-            </Text>
 
-            {/* Assured Benefits Curved Card */}
-            <View style={[styles.infoCard, { backgroundColor: isDark ? '#111927' : '#E8F5F8', borderColor: '#BCE5EE' }]}>
-              <Text style={[styles.infoCardHeader, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                Arogyon Assured Benefits
-              </Text>
-
-              {/* Benefit Item 1 */}
-              <View style={styles.benefitItem}>
-                <Sparkles size={20} color="#48C728" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>4+/5 Hospital Excellence Rating</Text>
-                  <Text style={styles.benefitSub}>
-                    First score of its kind in India, evaluating a hospital's infrastructure, equipment, and facilities through an auditing process.
-                  </Text>
-                </View>
-              </View>
-
-              {/* Benefit Item 2 */}
-              <View style={styles.benefitItem}>
-                <Building2 size={20} color="#0B3848" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>1,000+ Assured Hospitals</Text>
-                  <Text style={styles.benefitSub}>
-                    Carefully Vetted & <Text style={{ fontWeight: '700' }}>Quality-Verified Facilities</Text> Across Multiple Cities
-                  </Text>
-                </View>
-              </View>
-
-              {/* Benefit Item 3 */}
-              <View style={styles.benefitItem}>
-                <Stethoscope size={20} color="#48C728" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.benefitTitle}>15+ Years of Expertise</Text>
-                  <Text style={styles.benefitSub}>
-                    Proven <Text style={{ fontWeight: '700' }}>Expertise & Safe Outcomes</Text>
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Assured Network Stats Curved Card */}
-            <View style={[styles.infoCard, { backgroundColor: isDark ? '#111927' : '#E8F5F8', borderColor: '#BCE5EE', marginTop: 12 }]}>
-              <Text style={[styles.infoCardHeader, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                Arogyon's Assured Network
-              </Text>
-
-              <View style={styles.statsGridRow}>
-                <View style={styles.gridStatCol}>
-                  <Text style={styles.gridStatNum}>1 Crore+</Text>
-                  <Text style={styles.gridStatLabel}>Patients</Text>
-                </View>
-                <View style={styles.gridStatCol}>
-                  <Text style={styles.gridStatNum}>10,000+</Text>
-                  <Text style={styles.gridStatLabel}>Surgeons</Text>
-                </View>
-                <View style={styles.gridStatCol}>
-                  <Text style={styles.gridStatNum}>25+</Text>
-                  <Text style={styles.gridStatLabel}>Cities</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Treatments Offered Accordions */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Treatments Offered
-            </Text>
-
-            <View style={[styles.accordionContainer, { backgroundColor: isDark ? '#161F33' : '#FFFFFF' }]}>
-              {TREATMENTS_ACCORDION.map((acc, index) => {
-                const isOpen = expandedSection === acc.title;
-                const isLast = index === TREATMENTS_ACCORDION.length - 1;
-
-                return (
-                  <View key={acc.title} style={[!isLast && styles.accordionBorder]}>
-                    <TouchableOpacity
-                      style={styles.accordionHeaderRow}
-                      onPress={() => toggleAccordion(acc.title)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.accordionTitle, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                        {acc.title}
-                      </Text>
-                      {isOpen ? <ChevronUp size={20} color="#48C728" /> : <ChevronDown size={20} color="#64748B" />}
-                    </TouchableOpacity>
-
-                    {isOpen && (
-                      acc.title === 'Popular' ? (
-                        <View style={styles.popularGridContainer}>
-                          {POPULAR_TREATMENT_ITEMS.map((item) => {
-                            const IconComp = item.icon;
-                            return (
-                              <TouchableOpacity
-                                key={item.name}
-                                style={[
-                                  styles.popularGridCard,
-                                  { backgroundColor: isDark ? '#0B1320' : '#F8FAFC' }
-                                ]}
-                                onPress={() => handleTreatmentClick(item.name)}
-                                activeOpacity={0.8}
-                              >
-                                <View style={[styles.popularIconCircle, { backgroundColor: item.color + '18' }]}>
-                                  <IconComp size={22} color={item.color} />
-                                </View>
-                                <Text 
-                                  style={[styles.popularGridText, { color: isDark ? '#FFFFFF' : '#0F172A' }]} 
-                                  numberOfLines={2}
-                                >
-                                  {item.name}
-                                </Text>
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </View>
-                      ) : (
-                        <View style={styles.accordionBody}>
-                          {acc.items.map(item => (
-                            <TouchableOpacity
-                              key={item}
-                              style={styles.accordionItemRow}
-                              onPress={() => handleTreatmentClick(item)}
-                            >
-                              <CheckCircle2 size={16} color="#48C728" />
-                              <Text style={[styles.accordionItemText, { color: isDark ? '#CBD5E1' : '#334155' }]}>
-                                {item}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Experiences You Can Trust Testimonial Section */}
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionHeading, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-              Experiences You Can Trust
-            </Text>
-
-            <View style={[styles.reviewContainerCard, { backgroundColor: isDark ? '#161F33' : '#FFFFFF' }]}>
-              {/* Overall Rating Pill */}
-              <View style={styles.overallRatingRow}>
-                <Star size={18} color="#0B3848" fill="#0B3848" />
-                <Text style={[styles.overallRatingText, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                  Rated 4.75 <Text style={{ fontSize: 13, fontWeight: '500', color: '#64748B' }}>(94,296 patients)</Text>
-                </Text>
-              </View>
-
-              {/* Horizontal Scroll Testimonials */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.reviewsScroll}>
-                {PATIENT_REVIEWS.map(rev => (
-                  <View key={rev.id} style={[styles.reviewCard, { backgroundColor: isDark ? '#0B1320' : '#F1F7F9' }]}>
-                    <View style={styles.reviewUserHeader}>
-                      <View style={styles.userAvatarCircle}>
-                        <Text style={styles.userAvatarText}>{rev.initial}</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.reviewerName, { color: isDark ? '#FFFFFF' : '#0B3848' }]}>
-                          {rev.name}
-                        </Text>
-                        <View style={styles.starRow}>
-                          <Star size={12} color="#0B3848" fill="#0B3848" />
-                          <Text style={styles.reviewStarText}>{rev.rating}</Text>
-                        </View>
-                      </View>
-                    </View>
-                    <Text style={[styles.reviewBodyText, { color: isDark ? '#CBD5E1' : '#475569' }]} numberOfLines={5}>
-                      {rev.review}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
 
           {/* Arogyon Brand Vision Curved Banner */}
           <LinearGradient

@@ -54,6 +54,12 @@ export interface Appointment {
   discount?: number;
   totalPaid?: number;
   transactionDate?: string;
+  assignedPatientId?: string;
+  assignedPatientName?: string;
+  assignedPatientRelation?: string;
+  assignedPatientGender?: string;
+  assignedPatientAge?: string;
+  assignedPatientAvatar?: string;
 }
 
 export interface PackageBooking {
@@ -74,11 +80,33 @@ export interface PackageBooking {
   bookingDate: string;
 }
 
+export interface CartItem {
+  id: string;
+  type: 'visit' | 'package';
+  itemId: string;
+  title: string;
+  subtitle?: string;
+  price: number;
+  originalPrice?: number;
+  savingsAmount?: number;
+  image: string;
+  selectedDate?: string;
+  selectedTime?: string;
+  hospitalName?: string;
+  assignedPatientId?: string;
+  assignedPatientName?: string;
+  assignedPatientRelation?: string;
+  assignedPatientGender?: string;
+  assignedPatientAge?: string;
+  assignedPatientAvatar?: string;
+}
+
 interface BookingState {
   doctors: Record<string, Doctor>;
   hospitals: Record<string, Hospital>;
   appointments: Appointment[];
   packageBookings: PackageBooking[];
+  cartItems: CartItem[];
   
   getDoctor: (id: string) => Doctor | undefined;
   getHospital: (id: string) => Hospital | undefined;
@@ -87,6 +115,12 @@ interface BookingState {
   bookPackage: (details: Omit<PackageBooking, 'id' | 'bookingDate'>) => string;
   cancelAppointment: (id: string) => void;
   getAppointment: (id: string) => Appointment | undefined;
+  addCartItem: (item: Omit<CartItem, 'id'>) => string;
+  updateCartItemPatient: (cartItemId: string, patientInfo: Partial<CartItem>) => void;
+  removeCartItem: (id: string) => void;
+  clearCart: () => void;
+  getCartSavings: () => number;
+  getCartTotal: () => number;
 }
 
 const initialDoctors: Record<string, Doctor> = {
@@ -283,6 +317,45 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   hospitals: initialHospitals,
   appointments: initialAppointments,
   packageBookings: [],
+  cartItems: [],
+
+  addCartItem: (item) => {
+    const id = `cart-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const newItem: CartItem = {
+      ...item,
+      id,
+    };
+    set((state) => ({
+      cartItems: [newItem, ...state.cartItems],
+    }));
+    return id;
+  },
+
+  removeCartItem: (id) => {
+    set((state) => ({
+      cartItems: state.cartItems.filter(item => item.id !== id),
+    }));
+  },
+
+  updateCartItemPatient: (cartItemId, patientInfo) => {
+    set((state) => ({
+      cartItems: state.cartItems.map(item =>
+        item.id === cartItemId ? { ...item, ...patientInfo } : item
+      ),
+    }));
+  },
+
+  clearCart: () => {
+    set({ cartItems: [] });
+  },
+
+  getCartSavings: () => {
+    return get().cartItems.reduce((acc, item) => acc + (item.savingsAmount || (item.originalPrice ? Math.max(0, item.originalPrice - item.price) : 0)), 0);
+  },
+
+  getCartTotal: () => {
+    return get().cartItems.reduce((acc, item) => acc + item.price, 0);
+  },
 
   getDoctor: (id) => {
     const docs = get().doctors;

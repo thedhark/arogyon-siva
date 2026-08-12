@@ -9,6 +9,8 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getCategoryById } from '@/constants/package-data';
 import PackageItemCard from '@/components/packages/cards/PackageItemCard';
+import AddPackageModal from '@/components/booking/AddPackageModal';
+import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
 const MOCK_HOSPITALS = [
   {
@@ -45,9 +47,22 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
   const router = useRouter();
   const { isDark } = useTheme();
   const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedPackageForAdd, setSelectedPackageForAdd] = useState<any>(null);
 
   // Load normalized category data from master index registry
   const categoryData = getCategoryById(categorySlug);
+
+  // Filter packages based on subcategory or filter tag
+  const filteredPackages = categoryData.packages.filter((pkg) => {
+    if (selectedSubcategory && pkg.subcategory) {
+      return pkg.subcategory.toLowerCase() === selectedSubcategory.toLowerCase();
+    }
+    return true;
+  });
+
+  // Display packages fallback if subcategory selected but specific package not defined
+  const displayedPackages = filteredPackages.length > 0 ? filteredPackages : categoryData.packages;
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#0D0E11' : '#F4F6F8' }]}>
@@ -66,11 +81,6 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
               <ChevronLeft size={24} color="#FFF" />
             </TouchableOpacity>
           </SafeAreaView>
-
-          <View style={styles.heroOfferContainer}>
-            <Text style={styles.heroOfferHighlight}>{categoryData.offer}</Text>
-            <Text style={styles.heroOfferSub}>{categoryData.subtitle}</Text>
-          </View>
         </View>
 
         {/* Framed Category Title Section */}
@@ -81,6 +91,69 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
           </Text>
           <View style={[styles.titleLine, { backgroundColor: isDark ? '#333' : '#E5E5E5' }]} />
         </View>
+
+        {/* Circle Icons Subcategories Row (Below Banner / Header & Above Filters) */}
+        {categoryData.subcategories && categoryData.subcategories.length > 0 && (
+          <View style={styles.subcategoriesWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.subcategoriesScrollContent}
+            >
+              {categoryData.subcategories.map((subName) => {
+                const isSelected = selectedSubcategory === subName;
+                return (
+                  <TouchableOpacity
+                    key={subName}
+                    onPress={() => setSelectedSubcategory(isSelected ? null : subName)}
+                    activeOpacity={0.8}
+                    style={styles.circleItemWrapper}
+                  >
+                    <View
+                      style={[
+                        styles.circleContainer,
+                        isSelected
+                          ? {
+                              backgroundColor: '#005C4B',
+                              borderColor: '#005C4B',
+                              shadowColor: '#005C4B',
+                              shadowOffset: { width: 0, height: 4 },
+                              shadowOpacity: 0.3,
+                              shadowRadius: 6,
+                              elevation: 4,
+                            }
+                          : {
+                              backgroundColor: isDark ? '#1A1C23' : '#FFFFFF',
+                              borderColor: isDark ? '#2D3039' : '#E2E8F0',
+                            },
+                      ]}
+                    >
+                      <Text style={styles.circleEmoji}>{categoryData.emoji || '🩺'}</Text>
+                    </View>
+                    <Text
+                      numberOfLines={2}
+                      style={[
+                        styles.circleLabel,
+                        {
+                          color: isSelected
+                            ? isDark
+                              ? '#38BDF8'
+                              : '#005C4B'
+                            : isDark
+                            ? '#CBD5E1'
+                            : '#334155',
+                          fontWeight: isSelected ? '700' : '600',
+                        },
+                      ]}
+                    >
+                      {subName}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Filters */}
         <View style={styles.filtersWrapper}>
@@ -146,12 +219,13 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
 
               {/* Horizontal Scroll of Packages */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.packagesScrollContent}>
-                {categoryData.packages.map((pkg) => (
-                  <View key={pkg.id} style={{ width: 295, marginRight: 12 }}>
+                {displayedPackages.map((pkg) => (
+                  <View key={pkg.id} style={styles.packageCardWrapper}>
                     <PackageItemCard
                       item={pkg}
                       layout="vertical"
                       onPress={(id) => router.push(`/packages/detail/${id}` as any)}
+                      onAddPress={(item) => setSelectedPackageForAdd(item)}
                     />
                   </View>
                 ))}
@@ -162,7 +236,7 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
                 <TouchableOpacity 
                   style={[styles.fullMenuBtn, { backgroundColor: isDark ? '#1E1E22' : '#FFFFFF', borderColor: 'transparent' }]}
                   onPress={() => {
-                    const targetHospId = hospital.id === 'h2' ? 'hosp-1' : 'hosp-1';
+                    const targetHospId = hospital.id === 'h2' ? 'hosp-2' : hospital.id === 'h3' ? 'hosp-4' : 'hosp-1';
                     router.push(`/hospital/${targetHospId}?tab=Packages` as any);
                   }}
                   activeOpacity={0.8}
@@ -172,14 +246,29 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
                 </TouchableOpacity>
               </View>
 
-              {/* Clean Section Spacing (Zero Border Lines) */}
-              <View style={styles.sectionDivider} />
+              {/* Clean Section Divider Line between Hospitals */}
+              {index < MOCK_HOSPITALS.length - 1 && (
+                <View style={styles.hospitalDividerWrapper}>
+                  <View style={[styles.hospitalDividerLine, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0' }]} />
+                </View>
+              )}
 
             </Animated.View>
           ))}
         </View>
 
       </ScrollView>
+
+      {/* Add Package Slot Modal Popup */}
+      <AddPackageModal
+        visible={!!selectedPackageForAdd}
+        packageItem={selectedPackageForAdd}
+        hospitalName={selectedPackageForAdd?.hospitalName || 'Cloudnine Hospital'}
+        onClose={() => setSelectedPackageForAdd(null)}
+      />
+
+      {/* Sticky Floating Cart Bar */}
+      <FloatingCartBar bottomOffset={20} />
     </View>
   );
 }
@@ -219,36 +308,13 @@ const styles = StyleSheet.create({
   heroGradient: {
     ...StyleSheet.absoluteFillObject,
   },
-  heroOfferContainer: {
-    position: 'absolute',
-    bottom: 24,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  heroOfferHighlight: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#84E034',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-    letterSpacing: 0.5,
-  },
-  heroOfferSub: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 4,
-  },
   titleSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: 14,
   },
   titleLine: {
     flex: 1,
@@ -259,6 +325,35 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
     paddingHorizontal: 16,
+  },
+  subcategoriesWrapper: {
+    marginBottom: 16,
+  },
+  subcategoriesScrollContent: {
+    paddingHorizontal: 16,
+    gap: 14,
+    alignItems: 'flex-start',
+  },
+  circleItemWrapper: {
+    alignItems: 'center',
+    width: 76,
+  },
+  circleContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  circleEmoji: {
+    fontSize: 26,
+  },
+  circleLabel: {
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 14,
   },
   filtersWrapper: {
     marginBottom: 16,
@@ -355,87 +450,12 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '500',
   },
+  packageCardWrapper: {
+    width: 174,
+    marginRight: 12,
+  },
   packagesScrollContent: {
     paddingHorizontal: 16,
-    gap: 16,
-  },
-  packageCard: {
-    width: 280,
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  packageImageContainer: {
-    width: '100%',
-    height: 120,
-  },
-  packageImage: {
-    width: '100%',
-    height: '100%',
-  },
-  packageContent: {
-    padding: 16,
-  },
-  typeIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  packageTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    flex: 1,
-  },
-  priceAndActionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  priceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    flex: 1,
-    gap: 4,
-  },
-  currentPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  originalPrice: {
-    fontSize: 12,
-    color: '#999',
-    textDecorationLine: 'line-through',
-    fontWeight: '600',
-  },
-  discountBadge: {
-    backgroundColor: '#FEF2F2',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  discountText: {
-    color: '#EF4444',
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  viewPackageBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  viewPackageText: {
-    color: '#EF4444',
-    fontSize: 13,
-    fontWeight: '700',
   },
   fullMenuBtnWrapper: {
     alignItems: 'center',
@@ -460,9 +480,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  sectionDivider: {
-    height: 16,
-    marginBottom: 8,
+  hospitalDividerWrapper: {
+    paddingHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  hospitalDividerLine: {
+    height: 1.5,
     width: '100%',
-  }
+    borderRadius: 1,
+  },
 });

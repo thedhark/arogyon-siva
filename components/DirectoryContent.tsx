@@ -7,22 +7,52 @@ import { useTheme } from '@/hooks/useTheme';
 export default function DirectoryContent({ activeTab }: { activeTab: string }) {
   const { colors, isDark } = useTheme();
 
+  const filteredData = React.useMemo(() => {
+    if (!activeTab || activeTab === 'Hospitals' || activeTab === 'All') {
+      return HOSPITALS_DATA;
+    }
+    const tabLower = activeTab.toLowerCase();
+    const matches = HOSPITALS_DATA.filter(h => {
+      const specLower = (h.speciality || '').toLowerCase();
+      const nameLower = (h.name || '').toLowerCase();
+      const categoryLower = ((h as any).category || '').toLowerCase();
+      const deptsLower = (h.departments || '').toLowerCase();
+      
+      return specLower.includes(tabLower) || 
+             nameLower.includes(tabLower) || 
+             categoryLower.includes(tabLower) || 
+             deptsLower.includes(tabLower);
+    });
+
+    if (matches.length === 0) {
+      return HOSPITALS_DATA;
+    }
+    return matches;
+  }, [activeTab]);
+
+  const headerTitle = React.useMemo(() => {
+    if (!activeTab || activeTab === 'Hospitals' || activeTab === 'All') {
+      return `${filteredData.length} CARE PROVIDERS NEAR YOU`;
+    }
+    return `${filteredData.length} ${activeTab.toUpperCase()} PROVIDERS NEAR YOU`;
+  }, [activeTab, filteredData.length]);
+
   return (
     <View style={styles.container}>
       <View style={styles.headerBlock}>
         <Text style={[styles.countHeader, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
-          {`${HOSPITALS_DATA.length} CARE PROVIDERS NEAR YOU`}
+          {headerTitle}
         </Text>
         <Text style={[styles.featuredLabel, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>
           Featured
         </Text>
       </View>
 
-      {HOSPITALS_DATA.map((hospital, index) => (
+      {filteredData.map((hospital, index) => (
         <HospitalDetailCard 
-          key={index} 
+          key={hospital.id || hospital.name + '-' + index} 
           {...hospital} 
-          speciality={activeTab !== 'Hospitals' ? `${activeTab} Super Speciality Clinic` : hospital.speciality}
+          speciality={hospital.speciality}
         />
       ))}
     </View>
@@ -62,3 +92,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   }
 });
+

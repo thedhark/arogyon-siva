@@ -22,7 +22,7 @@ const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1629909613654-28e3
 export default function PackageHeroBanner({
   image = DEFAULT_HERO_IMAGE,
   title = 'Comprehensive Health Package',
-  subtitle = 'Complete care. Total peace of mind.',
+  subtitle = '',
   hospitalName = 'Arogyan Partner Hospital',
   isDark,
   colors,
@@ -35,6 +35,7 @@ export default function PackageHeroBanner({
   const topInset = Math.max(insets.top, Platform.OS === 'ios' ? 44 : 20);
 
   const cleanTitle = (title || 'Comprehensive Health Package').replace(/^1\s*x\s*/i, '');
+  const displaySubtitle = subtitle && !subtitle.toLowerCase().includes('complete care. total peace of mind') ? subtitle : null;
 
   return (
     <View style={styles.container}>
@@ -92,8 +93,8 @@ export default function PackageHeroBanner({
             <Text style={styles.packageTitle}>{cleanTitle}</Text>
 
             {/* Subtitle */}
-            {subtitle ? (
-              <Text style={styles.packageSubtitle}>{subtitle}</Text>
+            {displaySubtitle ? (
+              <Text style={styles.packageSubtitle}>{displaySubtitle}</Text>
             ) : null}
           </View>
         </View>
@@ -111,14 +112,18 @@ const styles = StyleSheet.create({
     height: 300,
     position: 'relative',
     overflow: 'hidden',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   heroImageStyle: {
     width: '100%',
     height: '100%',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   bannerContent: {
     flex: 1,
