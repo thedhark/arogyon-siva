@@ -1,172 +1,111 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Calendar, Clock } from 'lucide-react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Stethoscope, ShieldCheck, HeartHandshake, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { Fonts } from '@/constants/theme';
 
 interface Props {
   isDark?: boolean;
   style?: any;
-  onSelectDateTime?: (date: string, time: string) => void;
 }
 
-const DATES = [
-  { id: '1', label: 'Today', subText: 'Aug 11' },
-  { id: '2', label: 'Tomorrow', subText: 'Aug 12' },
-  { id: '3', label: 'Wed', subText: 'Aug 13' },
-  { id: '4', label: 'Thu', subText: 'Aug 14' },
-];
-
-const TIME_SLOTS = [
-  '08:00 AM (Fasting)',
-  '10:00 AM',
-  '01:00 PM',
-  '04:00 PM',
-];
-
-export default function PackageAssessmentCard({ isDark, style, onSelectDateTime }: Props) {
+export default function PackageAssessmentCard({ isDark, style }: Props) {
   const theme = useTheme();
   const activeDark = isDark ?? theme.isDark;
 
-  const [selectedDate, setSelectedDate] = useState('1');
-  const [selectedTime, setSelectedTime] = useState('08:00 AM (Fasting)');
-
-  const handleDateSelect = (id: string) => {
-    setSelectedDate(id);
-    const d = DATES.find(item => item.id === id);
-    if (d && onSelectDateTime) {
-      onSelectDateTime(`${d.label} ${d.subText}`, selectedTime);
-    }
-  };
-
-  const handleTimeSelect = (slot: string) => {
-    setSelectedTime(slot);
-    const d = DATES.find(item => item.id === selectedDate);
-    if (d && onSelectDateTime) {
-      onSelectDateTime(`${d.label} ${d.subText}`, slot);
-    }
-  };
+  const journeySteps = [
+    {
+      id: 'step-1',
+      icon: Stethoscope,
+      iconColor: activeDark ? '#C084FC' : '#7C3AED',
+      iconBg: activeDark ? 'rgba(124, 58, 237, 0.15)' : '#F5F3FF',
+      title: 'Senior Specialist Clinical Review',
+      description: 'Comprehensive in-person consultation and clinical assessment included.',
+    },
+    {
+      id: 'step-2',
+      icon: ShieldCheck,
+      iconColor: activeDark ? '#34D399' : '#059669',
+      iconBg: activeDark ? 'rgba(5, 150, 105, 0.15)' : '#ECFDF5',
+      title: '100% Price Lock Guarantee',
+      description: 'Zero hidden hospital fees. Complete coverage for all stated procedures.',
+    },
+    {
+      id: 'step-3',
+      icon: HeartHandshake,
+      iconColor: activeDark ? '#60A5FA' : '#2563EB',
+      iconBg: activeDark ? 'rgba(37, 99, 235, 0.15)' : '#EFF6FF',
+      title: 'Personal Care Coordinator',
+      description: 'Dedicated Arogyon manager for fast-track entry and insurance assistance.',
+    },
+  ];
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: activeDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: activeDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+          backgroundColor: activeDark ? '#18181B' : '#FFFFFF',
+          borderColor: activeDark ? '#27272A' : '#E2E8F0',
         },
         style,
       ]}
     >
-      {/* Date Section Header */}
+      {/* Header */}
       <View style={styles.headerRow}>
-        <Calendar size={18} color={activeDark ? '#A78BFA' : '#6527BE'} />
-        <Text style={[styles.headerTitle, { color: activeDark ? '#F3F4F6' : '#1E293B' }]}>
-          Select Assessment Date & Time
-        </Text>
+        <View
+          style={[
+            styles.headerIconContainer,
+            { backgroundColor: activeDark ? 'rgba(167, 139, 250, 0.15)' : '#F5F3FF' },
+          ]}
+        >
+          <Sparkles size={16} color={activeDark ? '#A78BFA' : '#6527BE'} />
+        </View>
+        <View style={styles.headerTextCol}>
+          <Text style={[styles.headerTitle, { color: activeDark ? '#F4F4F5' : '#0F172A' }]}>
+            Hospital Care Journey
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: activeDark ? '#A1A1AA' : '#64748B' }]}>
+            Included with this package
+          </Text>
+        </View>
       </View>
 
-      {/* Horizontal Date Selector Pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.dateRow}
-      >
-        {DATES.map((item) => {
-          const isSelected = selectedDate === item.id;
-          return (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.8}
-              onPress={() => handleDateSelect(item.id)}
-              style={[
-                styles.datePill,
-                {
-                  backgroundColor: isSelected
-                    ? (activeDark ? '#2E1065' : '#F5F3FF')
-                    : (activeDark ? '#27272A' : '#FAFAFA'),
-                  borderColor: isSelected
-                    ? (activeDark ? '#A78BFA' : '#7C3AED')
-                    : (activeDark ? '#3F3F46' : '#E2E8F0'),
-                  borderWidth: isSelected ? 1.5 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.datePillLabel,
-                  {
-                    color: isSelected
-                      ? (activeDark ? '#DDD6FE' : '#6527BE')
-                      : (activeDark ? '#A1A1AA' : '#64748B'),
-                    fontWeight: isSelected ? '700' : '500',
-                  },
-                ]}
-              >
-                {item.label}
-              </Text>
-              <Text
-                style={[
-                  styles.datePillSub,
-                  {
-                    color: isSelected
-                      ? (activeDark ? '#DDD6FE' : '#6527BE')
-                      : (activeDark ? '#F4F4F5' : '#0F172A'),
-                    fontWeight: isSelected ? '800' : '700',
-                  },
-                ]}
-              >
-                {item.subText}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {/* Steps List */}
+      <View style={styles.stepsContainer}>
+        {journeySteps.map((step, index) => {
+          const IconComponent = step.icon;
+          const isLast = index === journeySteps.length - 1;
 
-      {/* Time Slot Section Header */}
-      <View style={[styles.headerRow, { marginTop: 16 }]}>
-        <Clock size={18} color={activeDark ? '#A78BFA' : '#6527BE'} />
-        <Text style={[styles.headerTitle, { color: activeDark ? '#F3F4F6' : '#1E293B' }]}>
-          Select Time Slot
-        </Text>
-      </View>
-
-      {/* Time Slot Grid */}
-      <View style={styles.timeGrid}>
-        {TIME_SLOTS.map((slot) => {
-          const isSelected = selectedTime === slot;
           return (
-            <TouchableOpacity
-              key={slot}
-              activeOpacity={0.8}
-              onPress={() => handleTimeSelect(slot)}
-              style={[
-                styles.timePill,
-                {
-                  backgroundColor: isSelected
-                    ? (activeDark ? '#2E1065' : '#F5F3FF')
-                    : (activeDark ? '#27272A' : '#FAFAFA'),
-                  borderColor: isSelected
-                    ? (activeDark ? '#A78BFA' : '#7C3AED')
-                    : (activeDark ? '#3F3F46' : '#E2E8F0'),
-                  borderWidth: isSelected ? 1.5 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.timePillText,
-                  {
-                    color: isSelected
-                      ? (activeDark ? '#DDD6FE' : '#6527BE')
-                      : (activeDark ? '#E4E4E7' : '#334155'),
-                    fontWeight: isSelected ? '700' : '600',
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {slot}
-              </Text>
-            </TouchableOpacity>
+            <View key={step.id} style={styles.stepItem}>
+              {/* Left Column: Icon + Connecting line */}
+              <View style={styles.leftCol}>
+                <View style={[styles.iconCircle, { backgroundColor: step.iconBg }]}>
+                  <IconComponent size={17} color={step.iconColor} />
+                </View>
+                {!isLast && (
+                  <View
+                    style={[
+                      styles.connectorLine,
+                      { backgroundColor: activeDark ? '#27272A' : '#E2E8F0' },
+                    ]}
+                  />
+                )}
+              </View>
+
+              {/* Right Column: Step Text */}
+              <View style={[styles.rightCol, !isLast && { paddingBottom: 16 }]}>
+                <Text style={[styles.stepTitle, { color: activeDark ? '#F4F4F5' : '#1E293B' }]}>
+                  {step.title}
+                </Text>
+                <Text
+                  style={[styles.stepDesc, { color: activeDark ? '#9CA3AF' : '#64748B' }]}
+                >
+                  {step.description}
+                </Text>
+              </View>
+            </View>
           );
         })}
       </View>
@@ -177,62 +116,79 @@ export default function PackageAssessmentCard({ isDark, style, onSelectDateTime 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     marginHorizontal: 16,
-    marginVertical: 8,
-    // Flat style with NO shadows/elevation per user requirement
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
+    marginVertical: 6,
     elevation: 0,
+    shadowColor: 'transparent',
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
+    gap: 10,
+  },
+  headerIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTextCol: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 15,
+    fontFamily: Fonts?.bold || 'System',
     fontWeight: '700',
     letterSpacing: -0.2,
   },
-  dateRow: {
-    gap: 8,
-    paddingRight: 4,
+  headerSubtitle: {
+    fontSize: 12,
+    fontFamily: Fonts?.medium || 'System',
+    fontWeight: '500',
+    marginTop: 1,
   },
-  datePill: {
-    width: 82,
-    height: 56,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
+  stepsContainer: {
+    paddingTop: 2,
   },
-  datePillLabel: {
-    fontSize: 11,
-    marginBottom: 2,
-  },
-  datePillSub: {
-    fontSize: 13,
-  },
-  timeGrid: {
+  stepItem: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
-  timePill: {
-    width: '48.5%',
-    height: 44,
-    borderRadius: 12,
+  leftCol: {
+    alignItems: 'center',
+    marginRight: 12,
+    width: 32,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
   },
-  timePillText: {
-    fontSize: 12.5,
-    textAlign: 'center',
+  connectorLine: {
+    width: 1.5,
+    flex: 1,
+    marginVertical: 4,
+  },
+  rightCol: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  stepTitle: {
+    fontSize: 13.5,
+    fontFamily: Fonts?.bold || 'System',
+    fontWeight: '700',
+    marginBottom: 2,
+    letterSpacing: -0.1,
+  },
+  stepDesc: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontFamily: Fonts?.regular || 'System',
+    fontWeight: '400',
   },
 });

@@ -356,7 +356,7 @@ export default function PlannedSurgeryCare({ colors, isDark }: Props) {
         {/* Full-Bleed Hero Cover Image Container matching screenshot */}
         <View style={styles.heroCoverContainer}>
           <Image
-            source="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1000"
+            source={require('../../assets/images/package-banners/plastic_surgery.png')}
             style={styles.heroCoverImage}
             contentFit="cover"
           />
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroCoverContainer: {
-    height: 232,
+    height: 300,
     width: '100%',
     position: 'relative',
     borderBottomLeftRadius: 28,

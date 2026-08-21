@@ -23,7 +23,7 @@ interface PackageDetailProps {
   price: string;
   originalPrice?: string;
   discount?: string;
-  image?: string;
+  image?: any;
   rating?: string;
   bookedCount?: string;
   summary?: string;
@@ -59,10 +59,6 @@ export default function RedesignedPackageDetailView({
   const addCartItem = useBookingStore(state => state.addCartItem);
 
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [selectedDateTime, setSelectedDateTime] = useState<{ date: string; time: string }>({
-    date: 'Today Aug 11',
-    time: '08:00 AM (Fasting)',
-  });
 
   const handleShare = async () => {
     try {
@@ -90,8 +86,6 @@ export default function RedesignedPackageDetailView({
       originalPrice: pkgPrice,
       savingsAmount: savings,
       image: image,
-      selectedDate: selectedDateTime.date,
-      selectedTime: selectedDateTime.time,
       hospitalName: hospitalName,
     });
     router.push('/booking/checkout');
@@ -107,8 +101,6 @@ export default function RedesignedPackageDetailView({
       originalPrice: origPrice,
       savingsAmount: savings,
       image: image,
-      selectedDate: selectedDateTime.date,
-      selectedTime: selectedDateTime.time,
       hospitalName: hospitalName,
     });
     router.push('/booking/checkout');
@@ -152,7 +144,6 @@ export default function RedesignedPackageDetailView({
         <Animated.View entering={FadeInDown.delay(125)}>
           <PackageAssessmentCard
             isDark={isDark}
-            onSelectDateTime={(date, time) => setSelectedDateTime({ date, time })}
           />
         </Animated.View>
 

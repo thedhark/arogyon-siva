@@ -22,7 +22,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
-import AndroidGlassView from '@/components/AndroidGlassView';
 
 import HospitalHeader from '@/components/HospitalHeader';
 import HospitalExperts from '@/components/hospital/HospitalExperts';
@@ -55,6 +54,8 @@ export default function HospitalProfile() {
   const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
   const storeHospitals = useBookingStore(state => state.hospitals);
   const storeDoctors = useBookingStore(state => state.doctors);
+  const cartItems = useBookingStore(state => state.cartItems);
+  const hasCartItems = (cartItems?.length || 0) > 0;
   
   const hospitalData = useMemo(() => {
     if (id && storeHospitals[id as string]) {
@@ -459,24 +460,26 @@ export default function HospitalProfile() {
       </ScrollView>
 
       {/* Sticky AROGYON GOLD Delivery & Service Footer Banner matching user screenshot */}
-      <HospitalGoldFooter isDark={isDark} />
+      {!hasCartItems && <HospitalGoldFooter isDark={isDark} />}
 
       {/* Menu Filter Button */}
-      <TouchableOpacity 
-        style={styles.floatingMenuBtn}
-        onPress={() => setIsMenuOpen(true)}
-        activeOpacity={0.88}
-      >
-        {Platform.OS === 'android' ? (
-          <AndroidGlassView tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.85)' }]} />
-        ) : supportsLiquidGlass ? (
-          <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-        ) : (
-          <BlurView intensity={90} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.6)' }]} />
-        )}
-        <Menu size={18} color="#FFFFFF" />
-        <Text style={styles.floatingMenuText}>Care Menu</Text>
-      </TouchableOpacity>
+      {!hasCartItems && (
+        <TouchableOpacity 
+          style={styles.floatingMenuBtn}
+          onPress={() => setIsMenuOpen(true)}
+          activeOpacity={0.88}
+        >
+          {Platform.OS === 'android' ? (
+            <View style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(20,20,24,0.92)' }]} />
+          ) : supportsLiquidGlass ? (
+            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.5)' }]} />
+          ) : (
+            <BlurView intensity={90} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.6)' }]} />
+          )}
+          <Menu size={18} color="#FFFFFF" />
+          <Text style={styles.floatingMenuText}>Care Menu</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Menu Sheet Modal */}
       {isMenuOpen && (
@@ -573,7 +576,7 @@ export default function HospitalProfile() {
       />
 
       {/* Sticky Floating Cart Bar */}
-      <FloatingCartBar bottomOffset={20} />
+      <FloatingCartBar variant="hospital" bottomOffset={0} />
     </View>
   );
 }

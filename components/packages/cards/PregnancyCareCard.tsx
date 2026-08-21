@@ -5,6 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { MEDICAL_ILLUSTRATIONS } from '@/constants/medical-illustrations';
+import { resolveImageSource } from '@/utils/imageUtils';
+import { scale, verticalScale } from '@/utils/responsive';
 
 export interface CardProps {
   onPress?: () => void;
@@ -48,7 +50,7 @@ export default function PregnancyCareCard({ onPress }: CardProps) {
             end={{ x: 0.6, y: 0 }} 
             style={styles.imageGradientOverlay} 
           />
-          <Image source={{ uri: MEDICAL_ILLUSTRATIONS.pregnancy }} style={styles.image} resizeMode="cover" />
+          <Image source={resolveImageSource(MEDICAL_ILLUSTRATIONS.pregnancy)} style={styles.image} resizeMode="cover" />
         </View>
 
         <View style={styles.btnWrapper}>
@@ -69,7 +71,7 @@ export default function PregnancyCareCard({ onPress }: CardProps) {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    height: 135,
+    height: verticalScale(152),
     borderRadius: Platform.OS === 'android' ? 22 : 16,
     marginBottom: 14,
     shadowColor: '#000',

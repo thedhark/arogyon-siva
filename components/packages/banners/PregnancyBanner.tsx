@@ -8,7 +8,7 @@ interface Props {
 export default function PregnancyBanner({ onBack }: Props) {
   return (
     <BannerTemplate
-      image="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1000"
+      image={require('../../../assets/images/package-banners/pregnancy_care.png')}
       offerHighlight="50% OFF UP TO ₹1,500 UNLOCKED"
       offerSubtitle="40-Week Maternity & Delivery Care"
       onBack={onBack}

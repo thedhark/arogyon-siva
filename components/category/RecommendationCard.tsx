@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Star } from 'lucide-react-native';
 
+import { resolveImageSource } from '@/utils/imageUtils';
+
 interface Props {
   type: 'doctor' | 'hospital' | 'package';
-  image: string;
+  image: any;
   title: string;
   subtitle: string;
   rating?: string;
@@ -31,7 +33,7 @@ export default function RecommendationCard({
   return (
     <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F3F4F6' }]}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
+        <Image source={resolveImageSource(image)} style={styles.image} resizeMode="cover" />
       </View>
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{title}</Text>

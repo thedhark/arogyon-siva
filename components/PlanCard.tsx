@@ -3,19 +3,20 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Dimensions }
 import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
 interface PlanCardProps {
   image: string;
   title: string;
-  tag: string;
-  colors: [string, string, ...string[]];
+  tag?: string;
+  colors?: [string, string, ...string[]];
   categorySlug?: string;
   onPress?: () => void;
 }
 
-export default function PlanCard({ image, title, tag, colors, categorySlug, onPress }: PlanCardProps) {
+export default function PlanCard({ image, title, tag, colors = ['transparent', 'rgba(0, 0, 0, 0.65)'], categorySlug, onPress }: PlanCardProps) {
   const router = useRouter();
 
   const handlePress = () => {
@@ -30,19 +31,17 @@ export default function PlanCard({ image, title, tag, colors, categorySlug, onPr
 
   return (
     <TouchableOpacity activeOpacity={0.85} style={styles.planCard} onPress={handlePress}>
-      <ImageBackground source={{ uri: image }} style={styles.planCardImage} imageStyle={{ borderRadius: 24 }}>
-        <LinearGradient colors={colors} style={styles.planCardGradient}>
-          <View style={styles.planTag}>
-            <Text style={styles.planTagText}>{tag}</Text>
-          </View>
-          <View style={styles.planCardContent}>
-            <Text style={styles.planCardTitle}>{title}</Text>
-            <View style={[styles.planCardFooter, { justifyContent: 'flex-end' }]}>
-              <View style={styles.planCardBtn}>
-                <ChevronRight size={14} color="#1b5e55" />
-              </View>
+      <ImageBackground source={resolveImageSource(image)} style={styles.planCardImage} imageStyle={{ borderRadius: 24 }}>
+        {tag ? (
+          <View style={styles.planTagContainer}>
+            <View style={styles.planTag}>
+              <Text style={styles.planTagText}>{tag}</Text>
             </View>
           </View>
+        ) : null}
+        
+        <LinearGradient colors={colors} style={styles.bottomGradient}>
+          <Text style={styles.planCardTitle}>{title}</Text>
         </LinearGradient>
       </ImageBackground>
     </TouchableOpacity>
@@ -63,12 +62,23 @@ const styles = StyleSheet.create({
   },
   planCardImage: {
     flex: 1,
-  },
-  planCardGradient: {
-    flex: 1,
-    padding: 10,
-    justifyContent: 'space-between',
     borderRadius: 24,
+    overflow: 'hidden',
+  },
+  planTagContainer: {
+    padding: 8,
+  },
+  bottomGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 55,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    justifyContent: 'flex-end',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   planTag: {
     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -82,32 +92,13 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '800',
   },
-  planCardContent: {
-    gap: 2,
-  },
   planCardTitle: {
     color: '#fff',
     fontSize: 12,
     fontWeight: '800',
-    marginBottom: 2,
     lineHeight: 14,
-  },
-  planCardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  planCardDuration: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 9,
-    fontWeight: '600',
-  },
-  planCardBtn: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });

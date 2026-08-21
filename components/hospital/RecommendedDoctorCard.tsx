@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, Share } from 'react-native';
-import { MapPin, Globe, Bookmark, Share2, Plus, Calendar } from 'lucide-react-native';
+import { MapPin, Globe, Bookmark, Share2, Calendar } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
+import { scale, verticalScale } from '@/utils/responsive';
+import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
 
 export interface DoctorData {
   id: string;
@@ -22,7 +24,8 @@ interface Props {
   doctor: DoctorData;
   isBookmarked?: boolean;
   onBookmarkToggle?: () => void;
-  onBookVisitPress: (doctor: DoctorData, selectedSlot?: string) => void;
+  onBookVisitPress: (doctor: DoctorData, selectedSlot?: string, patient?: SelectedPatientInfo, count?: number) => void;
+  onCardPress?: (doctor: DoctorData) => void;
   hideLocation?: boolean;
 }
 
@@ -31,6 +34,7 @@ export default function RecommendedDoctorCard({
   isBookmarked = false,
   onBookmarkToggle,
   onBookVisitPress,
+  onCardPress,
   hideLocation = false,
 }: Props) {
   const { colors, isDark } = useTheme();
@@ -72,18 +76,14 @@ export default function RecommendedDoctorCard({
       : '🩺');
 
   return (
-    <View
-      style={[
-        styles.cardContainer,
-        {
-          backgroundColor: isDark ? '#1E1E24' : '#FFFFFF',
-          borderColor: isDark ? '#27272A' : '#F1F5F9',
-        },
-      ]}
-    >
+    <View style={styles.cardContainer}>
       <View style={styles.topRow}>
-        {/* Left Info Column */}
-        <View style={styles.infoCol}>
+        {/* Left Info Column (Clickable to open Doctor Details) */}
+        <TouchableOpacity
+          style={styles.infoCol}
+          activeOpacity={0.8}
+          onPress={() => onCardPress?.(doctor)}
+        >
           {/* Doctor Name & Emoji */}
           <View style={styles.nameRow}>
             <Text style={[styles.doctorName, { color: colors.text }]} numberOfLines={1}>
@@ -124,11 +124,11 @@ export default function RecommendedDoctorCard({
             </Text>
           </View>
 
-          {/* Single Clean Availability Line (Replaced messy pills) */}
+          {/* Single Clean Availability Line */}
           <View style={styles.availabilityRow}>
             <Calendar size={12} color="#E11D48" style={styles.detailIcon} />
             <Text style={styles.availabilityText}>
-              Available at <Text style={styles.timeHighlight}>{availableTimeText}</Text> today
+              <Text style={styles.timeHighlight}>{availableTimeText}</Text>, 24 May 2024
             </Text>
           </View>
 
@@ -143,7 +143,7 @@ export default function RecommendedDoctorCard({
               activeOpacity={0.7}
             >
               <Bookmark
-                size={14}
+                size={16}
                 color={bookmarked ? '#E11D48' : (isDark ? '#CBD5E1' : '#475569')}
                 fill={bookmarked ? '#E11D48' : 'transparent'}
               />
@@ -157,51 +157,61 @@ export default function RecommendedDoctorCard({
               onPress={handleShare}
               activeOpacity={0.7}
             >
-              <Share2 size={14} color={isDark ? '#CBD5E1' : '#475569'} />
+              <Share2 size={16} color={isDark ? '#CBD5E1' : '#475569'} />
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Right Column: Doctor Portrait Photo + Book Visit Button right below photo */}
+        {/* Right Column: Doctor Portrait Photo + Floating Book Visit Selector */}
         <View style={styles.rightCol}>
-          <View style={styles.portraitWrapper}>
+          <TouchableOpacity
+            style={styles.portraitWrapper}
+            activeOpacity={0.8}
+            onPress={() => onCardPress?.(doctor)}
+          >
             <Image
               source={{ uri: doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400' }}
               style={styles.portraitImage}
               resizeMode="cover"
             />
-          </View>
-
-          {/* BOOK VISIT Button positioned directly under the photo */}
-          <TouchableOpacity
-            style={[
-              styles.bookVisitBtn,
-              { backgroundColor: isDark ? '#2D1B28' : '#FFF5F7' },
-            ]}
-            onPress={() => onBookVisitPress(doctor, availableTimeText)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.bookVisitText}>BOOK VISIT</Text>
-            <Plus size={13} color="#E11D48" strokeWidth={2.5} style={{ marginLeft: 2 }} />
           </TouchableOpacity>
+
+          {/* Floating Action Button (Overlapping bottom edge of image) */}
+          <View style={styles.floatingButtonContainer}>
+            <BookVisitSelector
+              buttonLabel="ADD VISIT"
+              onBookPress={(patient) => onBookVisitPress(doctor, availableTimeText, patient, 1)}
+              onCountChange={(count, patient) => {
+                if (count > 0) {
+                  onBookVisitPress(doctor, availableTimeText, patient, count);
+                }
+              }}
+            />
+          </View>
         </View>
       </View>
+
+      {/* Minimal Thin Separator Line with Breaks */}
+      <View
+        style={[
+          styles.dividerLine,
+          { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)' },
+        ]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   cardContainer: {
-    borderRadius: 16,
-    borderWidth: 1,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 5,
-    elevation: 2,
+    overflow: 'visible',
+  },
+  dividerLine: {
+    height: 1,
+    marginHorizontal: 16,
+    marginTop: 14,
   },
   topRow: {
     flexDirection: 'row',
@@ -210,42 +220,46 @@ const styles = StyleSheet.create({
   },
   infoCol: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 12,
+    justifyContent: 'space-between',
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   doctorName: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.15,
+    lineHeight: 22,
   },
   emojiText: {
     fontSize: 15,
-    marginLeft: 5,
+    marginLeft: 4,
   },
   specialtyText: {
     fontFamily: Fonts.medium,
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '500',
     color: '#64748B',
-    marginBottom: 6,
+    marginBottom: 5,
+    lineHeight: 16.5,
   },
   feeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   feeVal: {
     fontFamily: Fonts.semiBold,
-    fontSize: 13.5,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.15,
   },
   feeDot: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#94A3B8',
     marginHorizontal: 5,
   },
@@ -265,7 +279,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontFamily: Fonts.regular,
-    fontSize: 11.5,
+    fontSize: 12,
     color: '#64748B',
     fontWeight: '400',
     flex: 1,
@@ -274,11 +288,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 3,
-    marginBottom: 8,
+    marginBottom: 7,
   },
   availabilityText: {
     fontFamily: Fonts.medium,
-    fontSize: 11,
+    fontSize: 11.5,
     color: '#475569',
     fontWeight: '500',
   },
@@ -289,54 +303,38 @@ const styles = StyleSheet.create({
   },
   leftActions: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 2,
+    gap: 10,
+    marginTop: 5,
   },
   iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rightCol: {
-    width: 118,
+    width: scale(163),
     alignItems: 'center',
+    position: 'relative',
+    paddingBottom: 4,
   },
   portraitWrapper: {
     width: '100%',
-    height: 122,
-    borderRadius: 16,
+    height: verticalScale(156),
+    borderRadius: 18,
     overflow: 'hidden',
     backgroundColor: '#EFECE9',
-    marginBottom: 8,
   },
   portraitImage: {
     width: '100%',
     height: '100%',
   },
-  bookVisitBtn: {
-    width: 98,
-    height: 34,
-    flexDirection: 'row',
+  floatingButtonContainer: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#E11D48',
-    backgroundColor: '#FFF5F7',
-    shadowColor: '#E11D48',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  bookVisitText: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: '#E11D48',
-    letterSpacing: 0.2,
+    marginTop: -21,
+    zIndex: 10,
   },
 });

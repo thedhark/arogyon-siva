@@ -5,7 +5,6 @@ import { Search, Mic } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
-import AndroidGlassView from '@/components/AndroidGlassView';
 
 const searchTerms = [
   'Search "General Physician"',

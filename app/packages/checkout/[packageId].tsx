@@ -101,7 +101,7 @@ export default function CheckoutScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <SafeAreaView edges={['top']} style={[styles.headerBar, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerIconBtn}>
           <ChevronLeft size={24} color={colors.text} />

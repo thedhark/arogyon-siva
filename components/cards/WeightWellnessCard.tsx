@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { MoreVertical, ArrowRight, Sparkles, TrendingUp, Target, Flame, Droplets, Moon, Footprints, Activity, Heart } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -67,7 +67,9 @@ export default function WeightWellnessCard({
           pointerEvents="none" 
         />
         {/* User-suggested Glassmorphism Blur */}
-        <BlurView intensity={15} tint="light" style={StyleSheet.absoluteFill} />
+        {Platform.OS === 'ios' && (
+          <BlurView intensity={15} tint="light" style={StyleSheet.absoluteFill} />
+        )}
 
         {/* Asymmetrical White Spread Overlay */}
         <View style={[StyleSheet.absoluteFill, { zIndex: 1 }]} pointerEvents="none">

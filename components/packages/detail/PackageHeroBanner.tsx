@@ -4,8 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Heart, Share2, CheckCircle2 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { resolveImageSource } from '@/utils/imageUtils';
+
 interface Props {
-  image?: string;
+  image?: any;
   title?: string;
   subtitle?: string;
   hospitalName?: string;
@@ -40,22 +42,11 @@ export default function PackageHeroBanner({
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={{ uri: image || DEFAULT_HERO_IMAGE }}
+        source={resolveImageSource(image, DEFAULT_HERO_IMAGE)}
         style={styles.heroBackground}
         imageStyle={styles.heroImageStyle}
         resizeMode="cover"
       >
-        {/* Soft Dark Overlay Gradient for White Text Legibility */}
-        <LinearGradient
-          colors={[
-            'rgba(0, 0, 0, 0.25)',
-            'rgba(0, 0, 0, 0.15)',
-            'rgba(0, 0, 0, 0.55)',
-            'rgba(0, 0, 0, 0.80)',
-          ]}
-          locations={[0, 0.35, 0.7, 1]}
-          style={StyleSheet.absoluteFillObject}
-        />
 
         <View style={[styles.bannerContent, { paddingTop: topInset }]}>
           {/* Top Navigation Row - All Solid White Circle Buttons */}

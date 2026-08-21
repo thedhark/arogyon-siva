@@ -19,7 +19,6 @@ import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import AndroidGlassView from '@/components/AndroidGlassView';
 import GlobalChatOverlay from './GlobalChatOverlay';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -471,7 +470,7 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
             ]} 
           >
             {Platform.OS === 'android' ? (
-              <AndroidGlassView style={[StyleSheet.absoluteFill, { borderRadius: 24, overflow: 'hidden' }]} />
+              <View style={[StyleSheet.absoluteFill, { borderRadius: 24, backgroundColor: isDark ? '#2E2E2E' : '#FFFFFF' }]} />
             ) : supportsLiquidGlass ? (
               <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 24, overflow: 'hidden' }]} />
             ) : (

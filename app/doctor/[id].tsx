@@ -71,7 +71,7 @@ export default function DoctorProfile() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -164,7 +164,7 @@ export default function DoctorProfile() {
         price={totalFee}
         originalPrice={originalFee}
         discountText="60% Off"
-        ctaText="Book Visit"
+        ctaText="ADD VISIT"
         ctaIcon="calendar"
         onPressCTA={handleBook}
       />

@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { CategoryIndex } from '@/constants/package-data';
+import { moderateScale } from '@/utils/responsive';
 
 export interface CategoryMainCardProps {
   category: CategoryIndex;
@@ -41,7 +42,7 @@ export default function CategoryMainCard({ category, onPress }: CategoryMainCard
         style={styles.cardGradient}
       >
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title} numberOfLines={2}>
             {category.title}
           </Text>
         </View>
@@ -64,7 +65,8 @@ export default function CategoryMainCard({ category, onPress }: CategoryMainCard
 
 const styles = StyleSheet.create({
   cardContainer: {
-    height: 118,
+    minHeight: moderateScale(105, 0.3),
+    height: moderateScale(115, 0.3),
     borderRadius: Platform.OS === 'android' ? 20 : 16,
     marginBottom: 12,
     borderWidth: 1,
@@ -83,16 +85,18 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingLeft: 20,
-    paddingRight: 60,
+    paddingLeft: moderateScale(20, 0.3),
+    paddingRight: moderateScale(56, 0.3),
+    paddingVertical: 10,
     justifyContent: 'center',
     zIndex: 2,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: moderateScale(15.5, 0.2),
+    fontWeight: '700',
     color: '#0F172A',
     letterSpacing: 0.3,
+    lineHeight: moderateScale(21, 0.2),
   },
   btnWrapper: {
     position: 'absolute',

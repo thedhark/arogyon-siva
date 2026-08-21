@@ -6,7 +6,8 @@ import { useRouter } from 'expo-router';
 import { Search, X } from 'lucide-react-native';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
-import AndroidGlassView from '@/components/AndroidGlassView';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getDynamicTopInset } from '@/utils/responsive';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import HomeHeader from '@/components/HomeHeader';
 
@@ -29,6 +30,7 @@ const CATEGORY_CHIPS = [
 
 export default function PlansScreen() {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChip, setSelectedChip] = useState('all');
@@ -76,7 +78,7 @@ export default function PlansScreen() {
           showsVerticalScrollIndicator={false}
           bounces={false}
           overScrollMode="never"
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: getDynamicTopInset(insets.top) }]}
         >
           <HomeHeader currentCity="Bangalore" avatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" />
 
@@ -97,9 +99,7 @@ export default function PlansScreen() {
                 },
               ]}
             >
-              {Platform.OS === 'android' ? (
-                <AndroidGlassView style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]} />
-              ) : supportsLiquidGlass ? (
+              {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
                 <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]} />
               ) : (
                 Platform.OS === 'ios' && (

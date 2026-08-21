@@ -170,36 +170,14 @@ function extractTextFromPdfBytes(bytes: Uint8Array): string {
 
 async function extractPdfText(uri: string): Promise<string> {
   const bytes = await getFileBytes(uri);
-  let textFromPdfJs = '';
 
-  try {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const task = pdfjs.getDocument({ data: bytes, useWorkerFetch: false, isEvalSupported: false });
-    const document = await task.promise;
-    const pages = await Promise.all(
-      Array.from({ length: document.numPages }, async (_, index) => {
-        const page = await document.getPage(index + 1);
-        const content = await page.getTextContent();
-        return content.items.map((item) => ('str' in item ? item.str : '')).join(' ');
-      })
-    );
-    textFromPdfJs = compactText(pages.join('\n\n'));
-    await task.destroy();
-  } catch {
-    // pdfjs worker error ignored
-  }
-
-  if (textFromPdfJs.length > 10) {
-    return textFromPdfJs;
-  }
-
-  // Pure JS stream text parser fallback
+  // Pure JS stream text parser (compatible across Hermes, iOS, Android, and Web)
   const textFromStream = compactText(extractTextFromPdfBytes(bytes));
   if (textFromStream.length > 5) {
     return textFromStream;
   }
 
-  return textFromPdfJs || textFromStream;
+  return textFromStream;
 }
 
 async function extractImageText(uri: string): Promise<string> {

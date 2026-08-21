@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 
+import { resolveImageSource } from '@/utils/imageUtils';
+
 interface Props {
-  image?: string;
+  image?: any;
   title: string;
   price: string;
   originalPrice?: string;
@@ -36,11 +38,7 @@ export default function CategoryPackageListItem({
       <View style={styles.cardRow}>
         {/* Image */}
         <Image
-          source={{
-            uri:
-              image ||
-              'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=200',
-          }}
+          source={resolveImageSource(image, 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=200')}
           style={styles.verticalPackageImage}
           resizeMode="cover"
         />

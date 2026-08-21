@@ -146,14 +146,33 @@ export default function HospitalExperts({
     });
   }, [mappedDoctors, selectedSpec, externalSearchQuery, isHighlyRecommended, isAvailableToday]);
 
-  const handleBookVisit = (doctor: DoctorData, selectedSlot?: string) => {
+  const addCartItem = useBookingStore((state) => state.addCartItem);
+
+  const handleCardPress = (doctor: DoctorData) => {
+    router.push({
+      pathname: '/doctor/[id]',
+      params: { id: doctor.id, slot: doctor.availableSlots?.[0] || '10:00 AM' },
+    });
+  };
+
+  const handleBookVisit = (doctor: DoctorData, selectedSlot?: string, patient?: any, count?: number) => {
+    addCartItem({
+      type: 'visit',
+      itemId: doctor.id,
+      title: doctor.name,
+      subtitle: doctor.speciality,
+      price: Number(doctor.fee) || 800,
+      image: doctor.image,
+      selectedDate: '24 May 2024',
+      selectedTime: selectedSlot || '10:00 AM',
+      hospitalName: doctor.hospitalName || 'Apollo Hospitals, Banjara Hills',
+      assignedPatientId: patient?.id || 'me',
+      assignedPatientName: patient?.name || 'Me',
+      assignedPatientRelation: patient?.relation || 'Self',
+    });
+
     if (onAddVisitPress) {
       onAddVisitPress(doctor, selectedSlot);
-    } else {
-      router.push({
-        pathname: '/doctor/[id]',
-        params: { id: doctor.id, slot: selectedSlot },
-      });
     }
   };
 
@@ -214,6 +233,7 @@ export default function HospitalExperts({
               isBookmarked={likedDocs[doc.id] || false}
               onBookmarkToggle={() => toggleDocLike(doc.id)}
               onBookVisitPress={handleBookVisit}
+              onCardPress={handleCardPress}
               hideLocation={true}
             />
           ))}

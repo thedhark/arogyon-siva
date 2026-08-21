@@ -124,7 +124,7 @@ export default function GlobalPaymentScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 

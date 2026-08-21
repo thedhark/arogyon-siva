@@ -70,7 +70,7 @@ export default function HospitalInfoPage() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 

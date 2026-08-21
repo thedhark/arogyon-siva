@@ -48,7 +48,7 @@ export default function DoctorCard({
   onLikePress,
   onAddPress,
   variant = 'default',
-  ctaText = 'Book Visit',
+  ctaText = 'ADD VISIT',
 }: DoctorCardProps) {
   const theme = useTheme();
   const isDark = isDarkProp ?? theme.isDark;
@@ -73,9 +73,9 @@ export default function DoctorCard({
         doctor={recommendedData}
         isBookmarked={isLiked}
         onBookmarkToggle={onLikePress}
+        onCardPress={onPress}
         onBookVisitPress={(d, slot) => {
           if (onAddPress) onAddPress(slot);
-          else onPress();
         }}
       />
     );
@@ -92,7 +92,7 @@ export default function DoctorCard({
   const isHospitalVariant = variant === 'hospital';
   const gradientColors = isHospitalVariant
     ? ['#9BF229', '#14CE65']
-    : (isDark ? ['#2A2C33', '#16171B', '#0B0C0E'] : ['#1E293B', '#0F172A']);
+    : (isDark ? ['#4338CA', '#3730A3'] : ['#6366F1', '#4F46E5']);
   const textColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
 
   return (

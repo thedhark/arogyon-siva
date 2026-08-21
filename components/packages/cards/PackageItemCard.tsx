@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Share } from 'react-native';
-import { Plus, ChevronRight, Bookmark, Share2, Star } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import {
+  Plus,
+  ChevronRight,
+  Bookmark,
+  Share2,
+  Bed,
+  Baby,
+  Headphones,
+  Stethoscope,
+  Activity,
+  ShieldCheck,
+} from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
+import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
+
+import { resolveImageSource } from '@/utils/imageUtils';
+import { scale, verticalScale } from '@/utils/responsive';
 
 export interface PackageItemCardData {
   id: string;
@@ -12,7 +26,7 @@ export interface PackageItemCardData {
   price: string;
   originalPrice?: string;
   discount?: string;
-  image: string;
+  image: any;
   inclusions?: string[];
   hospitalName?: string;
 }
@@ -24,6 +38,7 @@ interface PackageItemCardProps {
   ctaText?: string;
   layout?: 'horizontal' | 'vertical';
   variant?: 'default' | 'hospital';
+  titleNumberOfLines?: number;
 }
 
 export default function PackageItemCard({
@@ -33,11 +48,12 @@ export default function PackageItemCard({
   ctaText,
   layout = 'vertical',
   variant = 'default',
+  titleNumberOfLines,
 }: PackageItemCardProps) {
   const { colors, isDark } = useTheme();
   const [isSaved, setIsSaved] = useState(false);
   const displayTitle = (item.title || '').replace(/^1\s*x\s*/i, '');
-  const buttonLabel = ctaText ?? (layout === 'vertical' ? 'Book' : 'Book Package');
+  const buttonLabel = ctaText ?? 'ADD PACKAGE';
 
   const handleShare = async () => {
     try {
@@ -49,122 +65,235 @@ export default function PackageItemCard({
     }
   };
 
-  const isHospitalVariant = variant === 'hospital';
-  const btnGradientColors = isHospitalVariant
-    ? ['#9BF229', '#14CE65']
-    : (isDark ? ['#2A2C33', '#16171B', '#0B0C0E'] : ['#1E293B', '#0F172A']);
-  const btnTextColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
+  const getPackageFeatureTags = () => {
+    const lower = displayTitle.toLowerCase();
+    if (lower.includes('maternity') || lower.includes('pregnancy') || lower.includes('delivery')) {
+      return {
+        tags: [
+          { label: 'Private\nSuite', icon: Bed, color: '#E11D48', bg: '#FFF1F2' },
+          { label: 'Pediatrician\nSupport', icon: Baby, color: '#EA580C', bg: '#FFF7ED' },
+          { label: '24×7\nSupport', icon: Headphones, color: '#7C3AED', bg: '#F5F3FF' },
+        ],
+        moreCount: 8,
+      };
+    }
+    if (lower.includes('cardiac') || lower.includes('heart')) {
+      return {
+        tags: [
+          { label: 'Senior\nDoctor', icon: Stethoscope, color: '#E11D48', bg: '#FFF1F2' },
+          { label: 'Echo &\nTMT', icon: Activity, color: '#EA580C', bg: '#FFF7ED' },
+          { label: '24×7\nSupport', icon: Headphones, color: '#7C3AED', bg: '#F5F3FF' },
+        ],
+        moreCount: 6,
+      };
+    }
+    if (lower.includes('knee') || lower.includes('surgery') || lower.includes('ortho')) {
+      return {
+        tags: [
+          { label: 'Private\nRoom', icon: Bed, color: '#E11D48', bg: '#FFF1F2' },
+          { label: 'Physio\nTherapy', icon: Activity, color: '#EA580C', bg: '#FFF7ED' },
+          { label: '24×7\nSupport', icon: Headphones, color: '#7C3AED', bg: '#F5F3FF' },
+        ],
+        moreCount: 6,
+      };
+    }
+    return {
+      tags: [
+        { label: 'Senior\nDoctor', icon: Stethoscope, color: '#E11D48', bg: '#FFF1F2' },
+        { label: 'All Lab\nTests', icon: ShieldCheck, color: '#EA580C', bg: '#FFF7ED' },
+        { label: '24×7\nSupport', icon: Headphones, color: '#7C3AED', bg: '#F5F3FF' },
+      ],
+      moreCount: item.inclusions ? Math.max(5, item.inclusions.length) : 8,
+    };
+  };
+
+  const featureHighlights = getPackageFeatureTags();
 
   if (layout === 'horizontal') {
+    const isHospital = variant === 'hospital';
     return (
       <View
         style={[
           styles.horizontalZomatoCard,
-          {
-            backgroundColor: isDark ? '#1E1E24' : '#FFFFFF',
-            borderColor: isDark ? '#27272A' : '#F1F5F9',
-          },
+          isHospital
+            ? styles.hospitalHorizontalCard
+            : {
+                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
+              },
         ]}
       >
-        {/* Top Info Row: Left Details + Right Thumbnail Image */}
+        {/* Top Info Row: Left Thumbnail Image + Right Details */}
         <View style={styles.zomatoTopInfoRow}>
-          {/* Left Content Column */}
-          <View style={styles.zomatoLeftColumn}>
-            {/* Item Category Indicator & Title */}
-            <Text style={[styles.zomatoTitleText, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
-              {displayTitle}
-            </Text>
-
-            {/* Description & ...more trigger */}
-            <TouchableOpacity activeOpacity={0.7} onPress={() => onPress(item.id)}>
-              <Text style={[styles.zomatoDescText, { color: isDark ? '#9CA3AF' : '#64748B' }]} numberOfLines={2}>
-                {item.subtitle || (item.inclusions ? item.inclusions.join(', ') : 'Comprehensive health checkup package with lab tests and specialist consultation.')}
-                <Text style={styles.zomatoMoreText}> ...more</Text>
-              </Text>
-            </TouchableOpacity>
-
-            {/* Price & Discount Row (Now below subtitle/description) */}
-            <View style={styles.zomatoPriceRow}>
-              <Text style={[styles.zomatoPriceText, { color: colors.text }]}>{item.price}</Text>
-
-              {item.originalPrice ? (
-                <Text style={styles.originalPriceText}>{item.originalPrice}</Text>
-              ) : null}
-
-              {item.discount ? (
-                <View style={[styles.discountTag, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2' }]}>
-                  <Text style={styles.discountTagText}>{item.discount}</Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          {/* Right Image Column */}
-          <View style={styles.zomatoRightImageCol}>
-            <View style={styles.zomatoImageContainer}>
+          {/* Left Image Column */}
+          <View style={styles.zomatoLeftImageCol}>
+            <TouchableOpacity
+              style={styles.zomatoImageContainer}
+              activeOpacity={0.88}
+              onPress={() => onPress(item.id)}
+            >
               <Image
-                source={{ uri: item.image }}
+                source={resolveImageSource(item.image)}
                 style={styles.zomatoThumbnailImage}
                 resizeMode="cover"
               />
-            </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Right Content Column */}
+          <View style={styles.zomatoRightContentCol}>
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => onPress(item.id)}
+            >
+              {/* Item Title */}
+              <Text
+                style={[styles.zomatoTitleText, { color: colors.text }]}
+                numberOfLines={titleNumberOfLines ?? 2}
+                ellipsizeMode="tail"
+              >
+                {displayTitle}
+              </Text>
+
+              {/* Feature / Highlight Tags Row */}
+              <View style={styles.highlightTagsRow}>
+                {featureHighlights.tags.map((h, idx) => {
+                  const IconComp = h.icon;
+                  return (
+                    <View key={idx} style={styles.tagItemCol}>
+                      <View
+                        style={[
+                          styles.tagIconBox,
+                          { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : h.bg },
+                        ]}
+                      >
+                        <IconComp size={15} color={h.color} />
+                      </View>
+                      <Text
+                        style={[styles.tagItemLabel, { color: isDark ? '#9CA3AF' : '#475569' }]}
+                        numberOfLines={2}
+                      >
+                        {h.label}
+                      </Text>
+                    </View>
+                  );
+                })}
+
+                {/* +X more Box */}
+                <View
+                  style={[
+                    styles.tagMoreBox,
+                    {
+                      borderColor: isDark ? '#3F3F46' : '#E2E8F0',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#FFFFFF',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.tagMoreCountText, { color: isDark ? '#F4F4F5' : '#1E293B' }]}
+                  >
+                    +{featureHighlights.moreCount}
+                  </Text>
+                  <Text
+                    style={[styles.tagMoreLabelText, { color: isDark ? '#A1A1AA' : '#64748B' }]}
+                  >
+                    more
+                  </Text>
+                </View>
+              </View>
+
+              {/* Price & Discount Row */}
+              <View style={styles.zomatoPriceRow}>
+                <Text style={[styles.zomatoPriceText, { color: colors.text }]}>{item.price}</Text>
+
+                {item.originalPrice ? (
+                  <Text style={styles.originalPriceText}>{item.originalPrice}</Text>
+                ) : null}
+
+                {item.discount ? (
+                  <View
+                    style={[
+                      styles.discountTag,
+                      { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2' },
+                    ]}
+                  >
+                    <Text style={styles.discountTagText}>{item.discount}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Bottom Baseline Action Row (Bookmark & Share on Left, ADD + & Customisable on Right in the EXACT SAME LINE as Bookmark!) */}
-        <View style={styles.zomatoBottomActionRow}>
-          {/* Left Action Icons: Bookmark & Share */}
-          <View style={styles.zomatoLeftIcons}>
-            <TouchableOpacity 
+        {/* Bottom Actions Row: Left Bookmark/Share Box Buttons + Right Book Button */}
+        <View style={styles.cardBottomActionsRow}>
+          <View style={styles.leftActionButtons}>
+            <TouchableOpacity
               style={[
-                styles.zomatoIconCircle, 
-                { borderColor: isDark ? '#333338' : '#E2E8F0', backgroundColor: isDark ? '#27272A' : '#FFFFFF' }
-              ]} 
+                styles.actionBoxBtn,
+                {
+                  backgroundColor: isDark ? '#27272A' : '#FFFFFF',
+                  borderColor: isDark ? '#3F3F46' : '#E2E8F0',
+                },
+              ]}
               onPress={() => setIsSaved(!isSaved)}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Bookmark 
-                size={15} 
-                color={isSaved ? '#E11D48' : (isDark ? '#CBD5E1' : '#475569')} 
-                fill={isSaved ? '#E11D48' : 'none'} 
+              <Bookmark
+                size={17}
+                color={isSaved ? '#E11D48' : (isDark ? '#9CA3AF' : '#64748B')}
+                fill={isSaved ? '#E11D48' : 'none'}
               />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                styles.zomatoIconCircle, 
-                { borderColor: isDark ? '#333338' : '#E2E8F0', backgroundColor: isDark ? '#27272A' : '#FFFFFF' }
-              ]} 
+                styles.actionBoxBtn,
+                {
+                  backgroundColor: isDark ? '#27272A' : '#FFFFFF',
+                  borderColor: isDark ? '#3F3F46' : '#E2E8F0',
+                },
+              ]}
               onPress={handleShare}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Share2 size={14} color={isDark ? '#CBD5E1' : '#475569'} />
+              <Share2 size={17} color={isDark ? '#9CA3AF' : '#64748B'} />
             </TouchableOpacity>
           </View>
 
-          {/* Right Action: ADD + Button in the EXACT SAME HORIZONTAL LINE as Bookmark! */}
-          <View style={styles.zomatoRightAddWrapper}>
-            <TouchableOpacity
-              style={[
-                styles.zomatoRowAddBtn,
-                { backgroundColor: isDark ? '#2D1B28' : '#FFF5F7', borderColor: '#E11D48' }
-              ]}
-              onPress={() => onAddPress ? onAddPress(item) : onPress(item.id)}
-              activeOpacity={0.82}
-            >
-              <Text style={styles.zomatoAddText}>BOOK</Text>
-              <Plus size={14} color="#E11D48" strokeWidth={3} />
-            </TouchableOpacity>
-            <Text style={styles.zomatoCustomisableText}>customisable</Text>
+          {/* Right Action Button */}
+          <View style={styles.rightActionBtnWrapper}>
+            <BookVisitSelector
+              buttonLabel={buttonLabel}
+              onBookPress={(patient) => {
+                if (onAddPress) onAddPress({ ...item, assignedPatient: patient } as any);
+              }}
+              onCountChange={(count, patient) => {
+                if (count > 0 && onAddPress) {
+                  onAddPress({ ...item, assignedPatient: patient, quantity: count } as any);
+                }
+              }}
+            />
           </View>
         </View>
+
+        {isHospital && (
+          <View
+            style={[
+              styles.minimalDividerWithBreaks,
+              { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)' },
+            ]}
+          />
+        )}
       </View>
     );
   }
 
   // Default Vertical Banner Layout (For Packages tab & Category screens)
   return (
-    <TouchableOpacity
+    <View
       style={[
         styles.verticalCard,
         {
@@ -172,195 +301,234 @@ export default function PackageItemCard({
           borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#FFFFFF',
         },
       ]}
-      activeOpacity={0.9}
-      onPress={() => onPress(item.id)}
     >
-      {/* Top Full-Width Cover Banner Image */}
-      <View style={styles.verticalImageContainer}>
+      {/* Top Full-Width Cover Banner Image (Clickable to view package) */}
+      <TouchableOpacity
+        style={styles.verticalImageContainer}
+        activeOpacity={0.9}
+        onPress={() => onPress(item.id)}
+      >
         <Image
-          source={{ uri: item.image }}
+          source={resolveImageSource(item.image)}
           style={styles.bannerImage}
           resizeMode="cover"
         />
-      </View>
+      </TouchableOpacity>
 
       {/* Card Content Body */}
       <View style={styles.verticalCardBody}>
-        <View style={styles.verticalTitleWrapper}>
+        <TouchableOpacity
+          style={styles.verticalTitleWrapper}
+          activeOpacity={0.85}
+          onPress={() => onPress(item.id)}
+        >
           <Text style={[styles.verticalPackageTitle, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
             {displayTitle}
           </Text>
-        </View>
+        </TouchableOpacity>
 
-        {/* Footer Row: Price Breakdown & Reshaped Tactile Gradient Pill CTA */}
+        {/* Footer Row: Price Breakdown & Interactive BookVisitSelector */}
         <View style={styles.verticalCardFooter}>
           <View style={styles.priceColumn}>
-            <Text style={[styles.verticalCurrentPrice, { color: colors.text }]} numberOfLines={1}>{item.price}</Text>
+            <Text style={[styles.verticalCurrentPrice, { color: colors.text }]}>{item.price}</Text>
 
             <View style={styles.subPriceRow}>
               {item.originalPrice ? (
-                <Text style={styles.originalPriceText} numberOfLines={1}>{item.originalPrice}</Text>
+                <Text style={styles.verticalOriginalPriceText}>{item.originalPrice}</Text>
               ) : null}
 
               {item.discount ? (
-                <View style={[styles.discountTag, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
-                  <Text style={styles.discountTagText}>{item.discount}</Text>
+                <View style={[styles.verticalDiscountTag, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
+                  <Text style={styles.verticalDiscountTagText}>{item.discount}</Text>
                 </View>
               ) : null}
             </View>
           </View>
 
-          {/* Reshaped Tactile Gradient Pill Action Button */}
-          <TouchableOpacity
-            style={[
-              styles.reshapedPillBtn,
-              isHospitalVariant && { shadowColor: '#14CE65', shadowOpacity: 0.35 },
-            ]}
-            onPress={() => onAddPress ? onAddPress(item) : onPress(item.id)}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={btnGradientColors as [string, string, ...string[]]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.reshapedPillBtnGradient}
-            >
-              <Text style={[styles.reshapedPillBtnText, { color: btnTextColor }]}>{buttonLabel}</Text>
-              <ChevronRight size={11} color={btnTextColor} />
-            </LinearGradient>
-          </TouchableOpacity>
+          {/* Interactive BookVisitSelector Button */}
+          <BookVisitSelector
+            buttonLabel={buttonLabel}
+            onBookPress={(patient) => {
+              if (onAddPress) onAddPress({ ...item, assignedPatient: patient } as any);
+            }}
+            onCountChange={(count, patient) => {
+              if (count > 0 && onAddPress) {
+                onAddPress({ ...item, assignedPatient: patient, quantity: count } as any);
+              }
+            }}
+          />
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   horizontalZomatoCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 5,
+    shadowRadius: 6,
     elevation: 2,
+  },
+  hospitalHorizontalCard: {
+    borderRadius: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 0,
+  },
+  minimalDividerWithBreaks: {
+    height: 1,
+    marginHorizontal: 16,
+    marginTop: 14,
   },
   zomatoTopInfoRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  zomatoLeftColumn: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  zomatoRightImageCol: {
-    width: 118,
+  zomatoLeftImageCol: {
+    width: scale(163),
     alignItems: 'center',
+    position: 'relative',
   },
   zomatoImageContainer: {
     width: '100%',
-    height: 122,
-    borderRadius: 16,
+    height: verticalScale(156),
+    borderRadius: 18,
     overflow: 'hidden',
     backgroundColor: '#F3F4F6',
   },
   zomatoThumbnailImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 16,
+  },
+  zomatoRightContentCol: {
+    flex: 1,
+    paddingLeft: 14,
+    justifyContent: 'space-between',
   },
   zomatoTitleText: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.15,
-    lineHeight: 21,
-    marginBottom: 3,
-  },
-
-  zomatoPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-    marginTop: 2,
-    marginBottom: 4,
-  },
-  zomatoPriceText: {
     fontFamily: Fonts.semiBold,
-    fontSize: 15.5,
+    fontSize: 16,
     fontWeight: '600',
     letterSpacing: -0.15,
-  },
-  zomatoDescText: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    lineHeight: 17,
-    fontWeight: '400',
+    lineHeight: 22,
     marginBottom: 6,
   },
-  zomatoMoreText: {
-    fontFamily: Fonts.medium,
-    fontWeight: '500',
-    color: '#64748B',
-  },
-  zomatoBottomActionRow: {
+  highlightTagsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+    marginVertical: 4,
+  },
+  tagItemCol: {
+    alignItems: 'center',
+    width: 44,
+  },
+  tagIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 3,
+  },
+  tagItemLabel: {
+    fontSize: 9,
+    fontFamily: Fonts.medium,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 11.5,
+  },
+  tagMoreBox: {
+    width: 34,
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  tagMoreCountText: {
+    fontSize: 11.5,
+    fontFamily: Fonts.bold,
+    fontWeight: '800',
+  },
+  tagMoreLabelText: {
+    fontSize: 8.5,
+    fontFamily: Fonts.regular,
+    marginTop: 1,
+  },
+  zomatoPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 7,
     marginTop: 6,
   },
-  zomatoLeftIcons: {
+  zomatoPriceText: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  originalPriceText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12.5,
+    textDecorationLine: 'line-through',
+    color: '#94A3B8',
+  },
+  discountTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  discountTagText: {
+    fontSize: 10.5,
+    fontFamily: Fonts.bold,
+    fontWeight: '700',
+    color: '#E11D48',
+  },
+  cardDivider: {
+    height: 1,
+    borderTopWidth: 1,
+    marginVertical: 12,
+  },
+  cardBottomActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  leftActionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  zomatoIconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  actionBoxBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  zomatoRightAddWrapper: {
+  rightActionBtnWrapper: {
+    width: scale(163),
     alignItems: 'center',
-    width: 118,
-  },
-  zomatoRowAddBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    width: 98,
-    height: 34,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    shadowColor: '#E11D48',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  zomatoAddText: {
-    fontFamily: Fonts.bold,
-    color: '#E11D48',
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.2,
-  },
-  zomatoCustomisableText: {
-    fontFamily: Fonts.medium,
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#94A3B8',
-    marginTop: 3,
   },
   verticalCard: {
-    width: 174,
-    height: 198,
+    width: scale(174),
+    height: verticalScale(281),
     borderRadius: 18,
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
@@ -375,7 +543,7 @@ const styles = StyleSheet.create({
   },
   verticalImageContainer: {
     width: '100%',
-    height: 105,
+    height: verticalScale(148),
     backgroundColor: '#E2E8F0',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
@@ -427,19 +595,19 @@ const styles = StyleSheet.create({
     gap: 3,
     marginTop: 1,
   },
-  originalPriceText: {
+  verticalOriginalPriceText: {
     fontFamily: Fonts.regular,
     fontSize: 10,
     color: '#94A3B8',
     textDecorationLine: 'line-through',
     fontWeight: '400',
   },
-  discountTag: {
+  verticalDiscountTag: {
     paddingHorizontal: 3,
     paddingVertical: 1,
     borderRadius: 3,
   },
-  discountTagText: {
+  verticalDiscountTagText: {
     fontFamily: Fonts.semiBold,
     color: '#EF4444',
     fontSize: 8.5,

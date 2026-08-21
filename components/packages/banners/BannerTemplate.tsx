@@ -5,9 +5,10 @@ import { ChevronLeft } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { verticalScale } from '@/utils/responsive';
 
 export interface BannerTemplateProps {
-  image: string;
+  image: any;
   offerHighlight: string;
   offerSubtitle: string;
   onBack?: () => void;
@@ -24,13 +25,9 @@ export default function BannerTemplate({
   return (
     <View style={styles.bannerContainer}>
       <Image
-        source={{ uri: image }}
+        source={typeof image === 'string' ? { uri: image } : image}
         style={styles.bannerImage}
         contentFit="cover"
-      />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.7)']}
-        style={styles.gradientOverlay}
       />
 
       <SafeAreaView edges={['top']} style={styles.headerBar}>
@@ -49,10 +46,10 @@ export default function BannerTemplate({
 
 const styles = StyleSheet.create({
   bannerContainer: {
-    height: 230,
+    height: verticalScale(250),
     position: 'relative',
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     overflow: 'hidden',
   },
   bannerImage: {

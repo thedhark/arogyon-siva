@@ -8,7 +8,7 @@ interface Props {
 export default function OrthoBanner({ onBack }: Props) {
   return (
     <BannerTemplate
-      image="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=1000"
+      image={require('../../../assets/images/package-banners/bones_and_joints.png')}
       offerHighlight="FREE BONE DENSITY SCAN UNLOCKED"
       offerSubtitle="Joint Care, Fractures & Orthopedic Surgery"
       onBack={onBack}

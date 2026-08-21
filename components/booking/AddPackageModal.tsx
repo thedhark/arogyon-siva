@@ -40,10 +40,6 @@ export default function AddPackageModal({
   const { colors, isDark } = useTheme();
   const addCartItem = useBookingStore(state => state.addCartItem);
 
-  const [selectedDateTime, setSelectedDateTime] = useState({
-    date: 'Today Aug 11',
-    time: '08:00 AM (Fasting)',
-  });
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   if (!packageItem) return null;
@@ -86,8 +82,6 @@ export default function AddPackageModal({
       originalPrice: pkgPrice,
       savingsAmount: savings,
       image: pkgImage,
-      selectedDate: selectedDateTime.date,
-      selectedTime: selectedDateTime.time,
       hospitalName: hospitalName,
     });
 
@@ -100,13 +94,11 @@ export default function AddPackageModal({
       type: 'package',
       itemId: packageItem.id || `pkg-${Date.now()}`,
       title: pkgTitle,
-      subtitle: `${packageItem.category || 'Package'} • Health Checkup`,
+      subtitle: `${packageItem.category || 'Package'} • Health Package`,
       price: pkgPrice,
       originalPrice: originalPrice,
       savingsAmount: savings,
       image: pkgImage,
-      selectedDate: selectedDateTime.date,
-      selectedTime: selectedDateTime.time,
       hospitalName: hospitalName,
     });
 
@@ -150,12 +142,11 @@ export default function AddPackageModal({
               <PackageFeaturesGrid isDark={isDark} style={{ marginHorizontal: 16 }} />
             </Animated.View>
 
-            {/* 4. Select Assessment Date & Time Selector */}
+            {/* 4. Hospital Care Journey Card */}
             <Animated.View entering={FadeInDown.delay(125)}>
               <PackageAssessmentCard
                 isDark={isDark}
                 style={{ marginHorizontal: 16 }}
-                onSelectDateTime={(date, time) => setSelectedDateTime({ date, time })}
               />
             </Animated.View>
 

@@ -48,7 +48,10 @@
     },
     "extra": {
       "appVariant": "patient",
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "5d778190-9765-4732-90de-bac30268ba62"
+      }
     },
     "owner": "bhalaladev"
   }

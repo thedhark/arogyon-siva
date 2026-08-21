@@ -25,7 +25,7 @@ export const Colors = {
     },
   },
   light: {
-    background: '#FDFBFF', // M3 Surface
+    background: '#FFFFFF', // Pure White M3 Surface
     surface: '#F3F4F9',    // M3 Surface Container
     surfaceElevated: '#EBECE1', // M3 Surface Container High
     surfaceGlass: 'rgba(243, 244, 249, 0.95)', // Solid-like fallback

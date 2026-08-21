@@ -66,9 +66,9 @@ export default function AppointmentItemCard({
 
           <View style={styles.timeRow}>
             {item.title.toLowerCase().includes('package') ? (
-              <Calendar size={13} color="#6B7280" style={{ marginRight: 4 }} />
+              <Calendar size={12} color="#6B7280" style={{ marginRight: 4 }} />
             ) : (
-              <Clock size={13} color="#6B7280" style={{ marginRight: 4 }} />
+              <Clock size={12} color="#6B7280" style={{ marginRight: 4 }} />
             )}
             <Text style={styles.timeText}>
               {item.dateStr || 'Today, Aug 11'} • {item.timeStr || '10:00 AM'}
@@ -83,9 +83,9 @@ export default function AppointmentItemCard({
         <TouchableOpacity
           style={styles.closeBtn}
           onPress={() => onRemoveItem(item.id)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <X size={16} color="#9CA3AF" />
+          <X size={15} color="#9CA3AF" />
         </TouchableOpacity>
       </View>
 
@@ -112,7 +112,7 @@ export default function AppointmentItemCard({
           </Text>
         </View>
 
-        <ChevronRight size={18} color="#9CA3AF" />
+        <ChevronRight size={15} color="#9CA3AF" />
       </TouchableOpacity>
     </View>
   );
@@ -120,9 +120,9 @@ export default function AppointmentItemCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -134,67 +134,67 @@ const styles = StyleSheet.create({
   mainRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   itemAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginRight: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 10,
   },
   infoCol: {
     flex: 1,
-    paddingRight: 8,
+    paddingRight: 6,
   },
   itemTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 2,
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 1,
   },
   itemSubtitle: {
-    fontSize: 12.5,
+    fontSize: 11.5,
     color: '#6B7280',
     fontWeight: '500',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     fontWeight: '500',
   },
   priceText: {
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   closeBtn: {
-    padding: 4,
+    padding: 2,
   },
   patientSubCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   patientAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: 8,
   },
   patientInfo: {
     flex: 1,
   },
   patientLine1: {
-    fontSize: 13,
+    fontSize: 12,
   },
   patientLine2: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     color: '#6B7280',
     marginTop: 1,
   },

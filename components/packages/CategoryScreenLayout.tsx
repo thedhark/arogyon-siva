@@ -11,6 +11,7 @@ import { getCategoryById } from '@/constants/package-data';
 import PackageItemCard from '@/components/packages/cards/PackageItemCard';
 import AddPackageModal from '@/components/booking/AddPackageModal';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const MOCK_HOSPITALS = [
   {
@@ -39,6 +40,12 @@ const MOCK_HOSPITALS = [
   }
 ];
 
+export interface SubCategoryFilter {
+  id: string;
+  name: string;
+  iconName: string;
+}
+
 interface CategoryScreenLayoutProps {
   categorySlug: string;
 }
@@ -65,15 +72,15 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
   const displayedPackages = filteredPackages.length > 0 ? filteredPackages : categoryData.packages;
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#0D0E11' : '#F4F6F8' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#0D0E11' : '#FFFFFF' }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
         
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <Image source={{ uri: categoryData.heroImage }} style={styles.heroImage} contentFit="cover" />
-          <LinearGradient
-            colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.7)']}
-            style={styles.heroGradient}
+          <Image
+            source={resolveImageSource(categoryData.heroImage)}
+            style={styles.heroImage}
+            contentFit="cover"
           />
           
           <SafeAreaView edges={['top']} style={styles.headerBar}>
@@ -197,7 +204,7 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
               <View style={styles.hospitalHeader}>
                 <View style={styles.hospitalInfoLeft}>
                   <View style={styles.hospitalLogoContainer}>
-                    <Image source={hospital.logo} style={styles.hospitalLogo} contentFit="contain" />
+                    <Image source={resolveImageSource(hospital.logo)} style={styles.hospitalLogo} contentFit="contain" />
                   </View>
                   <View style={styles.hospitalTitleBox}>
                     <View style={styles.hospitalNameRow}>
@@ -279,8 +286,8 @@ const styles = StyleSheet.create({
   heroSection: {
     height: 230,
     position: 'relative',
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     overflow: 'hidden',
     marginBottom: 16,
   },

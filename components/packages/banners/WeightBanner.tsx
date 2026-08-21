@@ -16,13 +16,9 @@ export default function WeightBanner({ onBack }: Props) {
   return (
     <View style={styles.bannerContainer}>
       <Image
-        source={{ uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1000' }}
+        source={require('../../../assets/images/package-banners/weight_management.png')}
         style={styles.bannerImage}
         contentFit="cover"
-      />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.7)']}
-        style={styles.gradientOverlay}
       />
 
       <SafeAreaView edges={['top']} style={styles.headerBar}>
@@ -41,7 +37,7 @@ export default function WeightBanner({ onBack }: Props) {
 
 const styles = StyleSheet.create({
   bannerContainer: {
-    height: 230,
+    height: 300,
     position: 'relative',
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,

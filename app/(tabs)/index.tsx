@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, Platform, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { useTheme } from '@/hooks/useTheme';
+import { getDynamicTopInset } from '@/utils/responsive';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import PremiumSearchBar from '@/components/PremiumSearchBar';
-import FamilyBanner from '@/components/FamilyBanner';
+import SpotlightBanner from '@/components/SpotlightBanner';
 import CategoryGrid from '@/components/CategoryGrid';
 import DirectoryHeader from '@/components/DirectoryHeader';
 import DirectoryContent from '@/components/DirectoryContent';
@@ -21,7 +22,6 @@ import ExploreFilters from '@/components/ExploreFilters';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import { useGlass } from '@/contexts/GlassContext';
-import AndroidGlassView from '@/components/AndroidGlassView';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -113,7 +113,9 @@ export default function HomeScreen() {
     );
 
     let backgroundColor = 'transparent';
-    if (supportsLiquidGlass || Platform.OS === 'ios') {
+    if (Platform.OS === 'android') {
+      backgroundColor = isDark ? (progress > 0.05 ? '#121212' : 'transparent') : (progress > 0.05 ? '#FFFFFF' : 'transparent');
+    } else if (supportsLiquidGlass || Platform.OS === 'ios') {
       backgroundColor = isDark ? `rgba(18,18,18,${progress * 0.4})` : `rgba(255,255,255,${progress * 0.4})`;
     } else {
       backgroundColor = isDark ? `rgba(18,18,18,${progress * 0.4})` : `rgba(255,255,255,${progress * 0.4})`;
@@ -127,8 +129,9 @@ export default function HomeScreen() {
       top: interpolate(progress, [0, 1], [0, -statusBarHeight * 0.8]),
       backgroundColor,
       borderRadius: 0,
-      borderWidth: StyleSheet.hairlineWidth * progress,
-      borderColor: isDark ? `rgba(255,255,255,${progress * 0.15})` : `rgba(0,0,0,${progress * 0.08})`,
+      borderWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth * progress,
+      borderBottomWidth: Platform.OS === 'android' ? (progress > 0.5 ? 1 : 0) : StyleSheet.hairlineWidth * progress,
+      borderColor: isDark ? (Platform.OS === 'android' ? '#27272A' : `rgba(255,255,255,${progress * 0.15})`) : (Platform.OS === 'android' ? '#E5E7EB' : `rgba(0,0,0,${progress * 0.08})`),
       overflow: 'hidden',
     };
   });
@@ -203,7 +206,7 @@ export default function HomeScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: getDynamicTopInset(insets.top) }]}
           stickyHeaderIndices={[5]}
           bounces={false}
           overScrollMode="never"
@@ -224,12 +227,12 @@ export default function HomeScreen() {
             <RecommendedPlans />
           </View>
 
-          {/* Index 2: Family Banner (Spotlight) */}
+          {/* Index 2: Spotlight Banner (50% OFF Offers & Direct Access) */}
           <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>SPOTLIGHT</Text>
             </View>
-            <FamilyBanner />
+            <SpotlightBanner />
           </Animated.View>
 
           {/* Index 3: Category Grid (Specialties) */}
@@ -240,7 +243,7 @@ export default function HomeScreen() {
             <CategoryGrid />
           </Animated.View>
 
-          {/* Index 3.5: Arogyon Labs & Lenskart Banner (Matching FamilyBanner width) */}
+          {/* Index 3.5: Arogyon Labs & Lenskart Banner */}
           <Animated.View entering={FadeInDown.delay(400)} style={{ paddingHorizontal: 12, marginBottom: 16 }}>
             <LabsBanner />
           </Animated.View>
@@ -258,9 +261,7 @@ export default function HomeScreen() {
             <Animated.View style={categoriesStickyStyle}>
               <Animated.View style={categoriesWrapperStyle}>
                 <Animated.View style={backgroundContainerStyle} pointerEvents="none">
-                  {Platform.OS === 'android' ? (
-                    <AndroidGlassView animatedProps={animatedBlurProps} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                  ) : supportsLiquidGlass ? (
+                  {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
                     <Animated.View style={[StyleSheet.absoluteFill, categoriesGlassStyle]}>
                       <GlassView glassEffectStyle="regular" colorScheme={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                     </Animated.View>
@@ -287,7 +288,7 @@ export default function HomeScreen() {
 
         </Animated.ScrollView>
 
-        <FloatingCartBar bottomOffset={Platform.OS === 'ios' ? 90 : 75} />
+        <FloatingCartBar variant="home" bottomOffset={Platform.OS === 'ios' ? 90 : 75} />
       </View>
     </AnimatedScreen>
   );

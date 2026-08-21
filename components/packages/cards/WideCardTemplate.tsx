@@ -5,13 +5,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
+import { resolveImageSource } from '@/utils/imageUtils';
+import { scale, verticalScale } from '@/utils/responsive';
 
 export interface WideCardTemplateProps {
   title: string;
   subtitle: string;
   badgeText: string;
   badgeColor?: string;
-  image: string;
+  image: any;
   colors: [string, string, ...string[]];
   categorySlug: string;
   onPress?: () => void;
@@ -68,7 +70,7 @@ export default function WideCardTemplate({
             end={{ x: 0.6, y: 0 }} 
             style={styles.imageGradientOverlay} 
           />
-          <Image source={{ uri: image }} style={styles.image} contentFit="cover" />
+          <Image source={resolveImageSource(image)} style={styles.image} contentFit="cover" />
         </View>
 
         <View style={styles.btnWrapper}>
@@ -89,7 +91,7 @@ export default function WideCardTemplate({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    height: 140,
+    height: verticalScale(158),
     borderRadius: 22,
     marginBottom: 16,
     shadowColor: 'transparent',

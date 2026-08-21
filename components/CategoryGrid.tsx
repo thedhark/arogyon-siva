@@ -1,13 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageSourcePropType, Platform } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { scale } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate, Extrapolation } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
-import AndroidGlassView from '@/components/AndroidGlassView';
-import { SPECIALTY_ILLUSTRATIONS } from '@/constants/medical-illustrations';
 
 type CategoryItem = {
   id: number;
@@ -15,30 +14,53 @@ type CategoryItem = {
   image: string | ImageSourcePropType;
 };
 
+const CATEGORY_ICON_IMAGES = {
+  generalPhysician: require('../assets/images/category-icons/general-physician.png'),
+  dentistry: require('../assets/images/category-icons/dentist.png'),
+  gynecology: require('../assets/images/category-icons/womens-health.png'),
+  dermatology: require('../assets/images/category-icons/skin-specialist.png'),
+  ophthalmology: require('../assets/images/category-icons/eye-specialist.png'),
+  entCare: require('../assets/images/category-icons/ent.png'),
+  pediatrics: require('../assets/images/category-icons/child-care.png'),
+  psychiatry: require('../assets/images/category-icons/mental-wellness.png'),
+  veterinary: require('../assets/images/category-icons/veterinary.png'),
+  mensHealth: require('../assets/images/category-icons/mens-health.png'),
+  orthopedics: require('../assets/images/category-icons/bones-joints.png'),
+  neurology: require('../assets/images/category-icons/brain-nerves.png'),
+  urology: require('../assets/images/category-icons/urinary-issues.png'),
+  pulmonology: require('../assets/images/category-icons/lungs-breathing.png'),
+  cardiology: require('../assets/images/category-icons/heart-specialist.png'),
+  gastroenterology: require('../assets/images/category-icons/stomach-digestion.png'),
+  diabetology: require('../assets/images/category-icons/diabetes.png'),
+  oncology: require('../assets/images/category-icons/cancer-specialist.png'),
+  plasticSurgery: require('../assets/images/category-icons/plastic-surgery.png'),
+  hairPlantation: require('../assets/images/category-icons/hair.png'),
+};
+
 const GENERAL_CARE: CategoryItem[] = [
-  { id: 1, name: 'General Physician', image: SPECIALTY_ILLUSTRATIONS.generalPhysician },
-  { id: 4, name: 'Dentist', image: SPECIALTY_ILLUSTRATIONS.dentistry },
-  { id: 9, name: "Women's Health", image: SPECIALTY_ILLUSTRATIONS.gynecology },
-  { id: 18, name: 'Skin Specialist', image: SPECIALTY_ILLUSTRATIONS.dermatology },
-  { id: 3, name: 'Eye Specialist', image: SPECIALTY_ILLUSTRATIONS.ophthalmology },
-  { id: 19, name: 'Ear, Nose & Throat', image: SPECIALTY_ILLUSTRATIONS.entCare },
-  { id: 7, name: 'Child Care', image: SPECIALTY_ILLUSTRATIONS.pediatrics },
-  { id: 20, name: 'Mental Wellness', image: SPECIALTY_ILLUSTRATIONS.psychiatry },
-  { id: 39, name: 'Veterinary', image: SPECIALTY_ILLUSTRATIONS.veterinary },
-  { id: 33, name: "Men's Health", image: SPECIALTY_ILLUSTRATIONS.sexualHealth },
+  { id: 1, name: 'General Physician', image: CATEGORY_ICON_IMAGES.generalPhysician },
+  { id: 4, name: 'Dentist', image: CATEGORY_ICON_IMAGES.dentistry },
+  { id: 9, name: "Women's Health", image: CATEGORY_ICON_IMAGES.gynecology },
+  { id: 18, name: 'Skin Specialist', image: CATEGORY_ICON_IMAGES.dermatology },
+  { id: 3, name: 'Eye Specialist', image: CATEGORY_ICON_IMAGES.ophthalmology },
+  { id: 19, name: 'Ear, Nose & Throat', image: CATEGORY_ICON_IMAGES.entCare },
+  { id: 7, name: 'Child Care', image: CATEGORY_ICON_IMAGES.pediatrics },
+  { id: 20, name: 'Mental Wellness', image: CATEGORY_ICON_IMAGES.psychiatry },
+  { id: 39, name: 'Veterinary', image: CATEGORY_ICON_IMAGES.veterinary },
+  { id: 33, name: "Men's Health", image: CATEGORY_ICON_IMAGES.mensHealth },
 ];
 
 const ADVANCED_CARE: CategoryItem[] = [
-  { id: 8, name: 'Bones & Joints', image: SPECIALTY_ILLUSTRATIONS.orthopedics },
-  { id: 10, name: 'Brain & Nerves', image: SPECIALTY_ILLUSTRATIONS.neurology },
-  { id: 17, name: 'Urinary Issues', image: SPECIALTY_ILLUSTRATIONS.urology },
-  { id: 23, name: 'Lungs & Breathing', image: SPECIALTY_ILLUSTRATIONS.pulmonology },
-  { id: 2, name: 'Heart Specialist', image: SPECIALTY_ILLUSTRATIONS.cardiology },
-  { id: 22, name: 'Stomach & Digestion', image: SPECIALTY_ILLUSTRATIONS.gastroenterology },
-  { id: 21, name: 'Diabetes', image: SPECIALTY_ILLUSTRATIONS.diabetology },
-  { id: 6, name: 'Cancer Specialist', image: SPECIALTY_ILLUSTRATIONS.oncology },
-  { id: 40, name: 'Plastic Surgery', image: SPECIALTY_ILLUSTRATIONS.plasticSurgery },
-  { id: 41, name: 'Hair', image: SPECIALTY_ILLUSTRATIONS.hairPlantation },
+  { id: 8, name: 'Bones & Joints', image: CATEGORY_ICON_IMAGES.orthopedics },
+  { id: 10, name: 'Brain & Nerves', image: CATEGORY_ICON_IMAGES.neurology },
+  { id: 17, name: 'Urinary Issues', image: CATEGORY_ICON_IMAGES.urology },
+  { id: 23, name: 'Lungs & Breathing', image: CATEGORY_ICON_IMAGES.pulmonology },
+  { id: 2, name: 'Heart Specialist', image: CATEGORY_ICON_IMAGES.cardiology },
+  { id: 22, name: 'Stomach & Digestion', image: CATEGORY_ICON_IMAGES.gastroenterology },
+  { id: 21, name: 'Diabetes Management', image: CATEGORY_ICON_IMAGES.diabetology },
+  { id: 6, name: 'Cancer Specialist', image: CATEGORY_ICON_IMAGES.oncology },
+  { id: 40, name: 'Plastic Surgery', image: CATEGORY_ICON_IMAGES.plasticSurgery },
+  { id: 41, name: 'Hair', image: CATEGORY_ICON_IMAGES.hairPlantation },
 ];
 
 const getImageSource = (image: CategoryItem['image']) =>
@@ -141,7 +163,7 @@ export default function CategoryGrid() {
               style={StyleSheet.absoluteFillObject} 
             />
           ) : (
-            <AndroidGlassView style={StyleSheet.absoluteFillObject} />
+            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: isDark ? '#1C1F22' : '#F1F5F9' }]} />
           )}
 
           {containerWidth > 0 && (
@@ -170,6 +192,7 @@ export default function CategoryGrid() {
           </TouchableOpacity>
         </View>
       </View>
+
       <ScrollView 
         ref={scrollViewRef}
         horizontal 
@@ -186,11 +209,19 @@ export default function CategoryGrid() {
                 <TouchableOpacity 
                   key={cat.id} 
                   style={styles.categoryCard}
-                  activeOpacity={0.7}
+                  activeOpacity={0.75}
                   onPress={() => router.push(`/category/${cat.id}` as any)}
                 >
-                  <View style={[styles.imageWrapper, { backgroundColor: isDark ? '#252528' : '#F3F4F6' }]}>
-                    <Image source={getImageSource(cat.image)} style={styles.categoryImage} resizeMode="cover" />
+                  <View 
+                    style={[
+                      styles.imageWrapper,
+                      {
+                        backgroundColor: isDark ? '#1C1F22' : '#F3F8FA',
+                        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(148, 163, 184, 0.28)',
+                      },
+                    ]}
+                  >
+                    <Image source={getImageSource(cat.image)} style={styles.categoryImage} resizeMode="contain" />
                   </View>
                   <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={2}>
                     {cat.name}
@@ -221,44 +252,42 @@ const styles = StyleSheet.create({
     marginHorizontal: -12,
   },
   scrollContent: {
-    paddingHorizontal: 12,
-    gap: 8,
+    paddingHorizontal: 14,
+    gap: 14,
   },
   column: {
-    gap: 8,
+    gap: 14,
   },
   categoryCard: {
-    width: 68,
-    height: 104,
-    padding: 0,
+    width: scale(96),
     alignItems: 'center',
-    justifyContent: 'flex-start',
   },
   imageWrapper: {
-    width: 64,
-    height: 64,
-    marginBottom: 6,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-    overflow: 'hidden',
+    width: scale(88),
+    height: scale(88),
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 24,
+    borderCurve: 'continuous',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   categoryImage: {
     width: '100%',
     height: '100%',
-    aspectRatio: 1,
-    borderRadius: 20,
   },
   categoryName: {
-    fontSize: 11,
+    marginTop: 8,
+    fontSize: 12.5,
     fontWeight: '600',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 16,
+    width: '100%',
   },
   segmentContainer: {
     flexDirection: 'row',

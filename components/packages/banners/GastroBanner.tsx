@@ -8,7 +8,7 @@ interface Props {
 export default function GastroBanner({ onBack }: Props) {
   return (
     <BannerTemplate
-      image="https://images.unsplash.com/photo-1512678080530-7760d81faba6?q=80&w=1000"
+      image={require('../../../assets/images/package-banners/cancer.png')}
       offerHighlight="FREE LIVER FUNCTION PANEL UNLOCKED"
       offerSubtitle="Endoscopy, Gut Health & Digestive Care"
       onBack={onBack}

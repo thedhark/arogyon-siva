@@ -157,7 +157,7 @@ export default function LabsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: isDark ? '#121214' : '#F8FAFC' }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: isDark ? '#121214' : '#FFFFFF' }]}>
       {/* Header */}
       <LabHeader
         searchQuery={searchQuery}

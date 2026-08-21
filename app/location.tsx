@@ -323,7 +323,7 @@ export default function LocationSelectScreen() {
   const borderColor = isDark ? '#333333' : '#F1F5F9';
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       
       {/* Toast Notification */}
       {toastMessage && (

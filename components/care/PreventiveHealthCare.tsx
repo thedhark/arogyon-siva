@@ -143,12 +143,12 @@ export default function PreventiveHealthCare({ colors, isDark }: Props) {
         {/* Full-Bleed Hero Cover Image Banner */}
         <View style={styles.heroCoverContainer}>
           <Image
-            source="https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=1000"
+            source={require('../../assets/images/package-banners/health_checkups.png')}
             style={styles.heroCoverImage}
             contentFit="cover"
           />
           <LinearGradient
-            colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.85)']}
+            colors={['transparent', 'transparent', 'transparent']}
             style={styles.heroCoverGradient}
           >
             {/* Top Action Buttons Bar */}
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroCoverContainer: {
-    height: 232,
+    height: 300,
     width: '100%',
     position: 'relative',
     borderBottomLeftRadius: 28,

@@ -61,12 +61,12 @@ export default function AddOnPackageCard({ item, isAdded, onToggle }: AddOnPacka
           >
             {isAdded ? (
               <>
-                <Check size={14} color="#10B981" />
+                <Check size={12} color="#10B981" />
                 <Text style={[styles.actionBtnText, { color: '#10B981' }]}>Added</Text>
               </>
             ) : (
               <>
-                <Plus size={14} color="#F43F5E" />
+                <Plus size={12} color="#F43F5E" />
                 <Text style={[styles.actionBtnText, { color: '#F43F5E' }]}>Add</Text>
               </>
             )}
@@ -79,19 +79,19 @@ export default function AddOnPackageCard({ item, isAdded, onToggle }: AddOnPacka
 
 const styles = StyleSheet.create({
   card: {
-    width: 240,
-    borderRadius: 16,
+    width: 190,
+    borderRadius: 14,
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowRadius: 4,
     elevation: 2,
-    marginRight: 12,
+    marginRight: 10,
   },
   imageContainer: {
-    height: 120,
+    height: 85,
     width: '100%',
     position: 'relative',
   },
@@ -101,34 +101,34 @@ const styles = StyleSheet.create({
   },
   discountBadge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
+    top: 6,
+    left: 6,
     backgroundColor: '#F43F5E',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
   discountBadgeText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 9.5,
     fontWeight: '800',
   },
   body: {
-    padding: 12,
+    padding: 10,
     justifyContent: 'space-between',
     flex: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   summary: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     color: '#6B7280',
-    lineHeight: 16,
-    marginBottom: 10,
-    height: 32,
+    lineHeight: 14,
+    marginBottom: 8,
+    height: 28,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -136,25 +136,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   price: {
-    fontSize: 16,
+    fontSize: 13.5,
     fontWeight: '800',
   },
   originalPrice: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#9CA3AF',
     textDecorationLine: 'line-through',
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
+    gap: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
     borderWidth: 1.5,
   },
   actionBtnText: {
-    fontSize: 13,
+    fontSize: 11.5,
     fontWeight: '700',
   },
 });

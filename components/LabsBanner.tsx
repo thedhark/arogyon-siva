@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { scale, verticalScale } from '@/utils/responsive';
 
 // Native exact replica of Lenskart Double-Lens Logo from the user's HTML SVG
 const LenskartLogo = () => (
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
-    height: 155,
+    height: verticalScale(172),
     backgroundColor: '#000000',
     borderRadius: 40,
     overflow: 'hidden',

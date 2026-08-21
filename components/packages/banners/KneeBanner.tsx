@@ -16,13 +16,9 @@ export default function KneeBanner({ onBack }: Props) {
   return (
     <View style={styles.bannerContainer}>
       <Image
-        source={{ uri: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=1000' }}
+        source={require('../../../assets/images/package-banners/bones_and_joints.png')}
         style={styles.bannerImage}
         contentFit="cover"
-      />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.7)']}
-        style={styles.gradientOverlay}
       />
 
       <SafeAreaView edges={['top']} style={styles.headerBar}>
@@ -43,8 +39,8 @@ const styles = StyleSheet.create({
   bannerContainer: {
     height: 230,
     position: 'relative',
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     overflow: 'hidden',
   },
   bannerImage: {

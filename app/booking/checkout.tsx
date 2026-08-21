@@ -27,7 +27,6 @@ import AddOnPackageCard from '@/components/packages/cards/AddOnPackageCard';
 import { PackageItem, getAddOnScreeningPackages } from '@/constants/package-data';
 
 import AppointmentItemCard, { AppointmentItem, AssignedPatient } from '@/components/booking/AppointmentItemCard';
-import AppointmentScheduleCard from '@/components/booking/AppointmentScheduleCard';
 import WhoIsAppointmentForModal, { FamilyMemberItem } from '@/components/booking/WhoIsAppointmentForModal';
 import AddFamilyMemberModal, { NewFamilyMemberPayload } from '@/components/booking/AddFamilyMemberModal';
 import MemberAddedSuccessModal from '@/components/booking/MemberAddedSuccessModal';
@@ -354,7 +353,7 @@ export default function CheckoutScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
@@ -434,14 +433,6 @@ export default function CheckoutScreen() {
             })}
           </>
         )}
-
-        {/* Schedule Card */}
-        <AppointmentScheduleCard
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          onPressDate={() => {}}
-          onPressTime={() => {}}
-        />
 
         {/* Add Health Packages & Care Plans Carousel */}
         <View style={styles.packagesHeaderRow}>
@@ -620,34 +611,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(0,0,0,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 150,
+    paddingTop: 4,
+    paddingBottom: 140,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
-    paddingHorizontal: 4,
+    marginBottom: 8,
+    paddingHorizontal: 2,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -656,26 +647,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
     color: '#0D9488',
   },
   packagesHeaderRow: {
-    marginTop: 10,
-    marginBottom: 10,
-    paddingHorizontal: 4,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingHorizontal: 2,
   },
   packagesSubheader: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   packagesHorizontalRow: {
     paddingRight: 16,
   },
   card: {
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 14,
+    padding: 12,
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -693,34 +684,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12,
+    marginRight: 10,
   },
   couponIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#FDF2F8',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   couponTitleText: {
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '700',
   },
   couponSubtitleText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#9CA3AF',
-    marginTop: 2,
+    marginTop: 1,
   },
   couponSavedText: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#10B981',
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 1,
   },
   removeCouponBtn: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
     color: '#EF4444',
   },
@@ -728,39 +719,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   paymentLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
     fontWeight: '500',
   },
   paymentValue: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '700',
   },
   divider: {
     height: 1,
     backgroundColor: '#F3F4F6',
-    marginVertical: 10,
+    marginVertical: 8,
   },
   paymentTotalLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
   },
   paymentTotalValue: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
   },
   secureRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
+    marginTop: 8,
     gap: 4,
   },
   secureText: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#10B981',
     fontWeight: '600',
   },

@@ -26,8 +26,12 @@ export const MEDICAL_ILLUSTRATIONS: Record<string, string> = {
   oncology: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=400',
   senior: 'https://images.unsplash.com/photo-1581579438747-1dc8d1e058ca?q=80&w=400',
   womensHealth: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=400',
+  womens: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=400',
   urology: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=400',
-  thyroid: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=400'
+  thyroid: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=400',
+  knee: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400',
+  pediatric: 'https://images.unsplash.com/photo-1585842378054-ea89c09c9527?q=80&w=400',
+  weight: 'https://images.unsplash.com/photo-1526506159807-1c6f28f15eb3?q=80&w=400',
 };
 
 export const SPECIALTY_ILLUSTRATIONS: Record<string, string> = {

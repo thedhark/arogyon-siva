@@ -39,7 +39,11 @@ export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: st
         style={styles.leftGroup}
       >
         <View style={[styles.glassPillContainer, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)', borderWidth: StyleSheet.hairlineWidth }]}>
-          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          {Platform.OS === 'ios' ? (
+            <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          ) : (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.85)' }]} />
+          )}
           <View style={styles.glassPill}>
             <MapIcon size={14} color="#F43F5E" strokeWidth={3} />
             <Text style={[styles.locationText, { color: colors.text, marginLeft: 6, maxWidth: 180 }]} numberOfLines={1}>
