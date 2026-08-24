@@ -91,7 +91,7 @@ export default function WideCardTemplate({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    height: verticalScale(158),
+    height: 154,
     borderRadius: 22,
     marginBottom: 16,
     shadowColor: 'transparent',

@@ -78,7 +78,7 @@ const TREATMENTS_ACCORDION = [
   },
   {
     title: 'Tele-Health & Remote Opinions',
-    items: ['1:1 Video Consultation with Chief Medical Officer', 'Comprehensive MRI / CT Scan Review', 'Multidisciplinary Tumor Board Opinion', 'Prescription & Treatment Plan Translation'],
+    items: ['1:1 Specialist Consultation & Case Review', 'Comprehensive MRI / CT Scan Review', 'Multidisciplinary Tumor Board Opinion', 'Prescription & Treatment Plan Translation'],
   },
   {
     title: 'Travel, Visa & Stay Services',
@@ -235,7 +235,7 @@ export default function InternationalPatientCare({ colors, isDark }: Props) {
             headerIconBg="#D6EBF8"
             headerIconColor="#0284C7"
             title="Request Medical Assistance"
-            subtitle="Get video opinion & visa support within 24 hours"
+            subtitle="Get expert medical opinion & visa support within 24 hours"
             fields={[
               {
                 key: 'service',

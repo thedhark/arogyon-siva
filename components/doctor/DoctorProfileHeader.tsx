@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, Share as RNShare } from 'react-native';
-import { ArrowLeft, Bookmark, Share2, Star, CheckCircle2, MapPin, Globe, ShieldCheck, Award, Users, Video, Building2, Home } from 'lucide-react-native';
+import { ArrowLeft, Bookmark, Share2, Star, CheckCircle2, MapPin, Globe, ShieldCheck, Award, Users, Building2, Home } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';

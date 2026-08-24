@@ -140,6 +140,8 @@ export default function HospitalProfile() {
 
   const [selectedDoctorForVisit, setSelectedDoctorForVisit] = useState<any>(null);
   const [selectedPackageForAdd, setSelectedPackageForAdd] = useState<any>(null);
+  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const prevScrollYRef = useRef(0);
 
   const toggleDocLike = (docId: any) => {
     setLikedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
@@ -170,8 +172,20 @@ export default function HospitalProfile() {
   };
 
   const handleScroll = (event: any) => {
-    if (isManualScrolling.current) return;
     const scrollY = event.nativeEvent.contentOffset.y;
+    const delta = scrollY - prevScrollYRef.current;
+
+    // Scroll-responsive footer toggle
+    if (scrollY <= 30) {
+      setIsFooterVisible(true);
+    } else if (delta > 12 && scrollY > 50) {
+      setIsFooterVisible(false);
+    } else if (delta < -12) {
+      setIsFooterVisible(true);
+    }
+    prevScrollYRef.current = scrollY;
+
+    if (isManualScrolling.current) return;
     if (packagesYPos > 0) {
       if (scrollY >= packagesYPos - 140 && activeTab !== 'Packages') {
         setActiveTab('Packages');
@@ -460,7 +474,7 @@ export default function HospitalProfile() {
       </ScrollView>
 
       {/* Sticky AROGYON GOLD Delivery & Service Footer Banner matching user screenshot */}
-      {!hasCartItems && <HospitalGoldFooter isDark={isDark} />}
+      {!hasCartItems && <HospitalGoldFooter isDark={isDark} visible={isFooterVisible} />}
 
       {/* Menu Filter Button */}
       {!hasCartItems && (

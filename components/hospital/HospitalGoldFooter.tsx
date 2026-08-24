@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Truck, Crown, ChevronRight, Sparkles, ShieldCheck } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
@@ -11,6 +11,7 @@ interface HospitalGoldFooterProps {
   title?: string;
   subtitle?: string;
   isDark?: boolean;
+  visible?: boolean;
 }
 
 export default function HospitalGoldFooter({
@@ -18,14 +19,33 @@ export default function HospitalGoldFooter({
   title = 'Get FREE Home Pickup above ₹499',
   subtitle = 'with AROGYON GOLD',
   isDark: isDarkProp,
+  visible = true,
 }: HospitalGoldFooterProps) {
   const theme = useTheme();
   const isDark = isDarkProp ?? theme.isDark;
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom > 0 ? insets.bottom : Platform.OS === 'ios' ? 12 : 8;
+  const slideAnim = useRef(new Animated.Value(visible ? 0 : 120)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: visible ? 0 : 120,
+      tension: 65,
+      friction: 11,
+      useNativeDriver: true,
+    }).start();
+  }, [visible, slideAnim]);
 
   return (
-    <View style={styles.wrapper}>
+    <Animated.View 
+      style={[
+        styles.wrapper,
+        {
+          transform: [{ translateY: slideAnim }],
+        }
+      ]}
+      pointerEvents={visible ? 'auto' : 'none'}
+    >
       {/* Background LinearGradient spanning entire bottom edge seamlessly */}
       <LinearGradient
         colors={
@@ -101,7 +121,7 @@ export default function HospitalGoldFooter({
           </View>
         </TouchableOpacity>
       </LinearGradient>
-    </View>
+    </Animated.View>
   );
 }
 

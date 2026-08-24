@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
-import PlanCard from '@/components/PlanCard';
-
-const { width } = Dimensions.get('window');
+import PlanCard, { PLAN_CARD_WIDTH, PLAN_CARD_HEIGHT } from '@/components/PlanCard';
+import { scale, moderateScale } from '@/utils/responsive';
 
 export default function RecommendedPlans() {
   const { colors, isDark } = useTheme();
@@ -52,7 +51,7 @@ export default function RecommendedPlans() {
           onPress={() => router.push('/(tabs)/package' as any)}
         >
           <View style={styles.seeAllIconContainer}>
-            <ChevronRight size={18} color="#2FA882" />
+            <ChevronRight size={scale(18)} color="#2FA882" />
           </View>
           <Text style={[styles.seeAllCardTitle, { color: isDark ? '#A3E6CD' : '#1B5E45' }]}>See All</Text>
         </TouchableOpacity>
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: moderateScale(11, 0.2),
     fontWeight: '500',
     letterSpacing: 2.2,
     textTransform: 'uppercase',
@@ -81,28 +80,28 @@ const styles = StyleSheet.create({
     marginHorizontal: -12,
   },
   plansGrid: {
-    gap: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    gap: scale(12),
+    paddingHorizontal: scale(12),
+    paddingVertical: scale(10),
   },
   seeAllCard: {
-    width: width * 0.28,
-    height: 180,
-    borderRadius: 24,
+    width: PLAN_CARD_WIDTH,
+    height: PLAN_CARD_HEIGHT,
+    borderRadius: scale(20),
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 10,
+    gap: scale(8),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     elevation: 2,
   },
   seeAllIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(18),
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -113,7 +112,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   seeAllCardTitle: {
-    fontSize: 12,
+    fontSize: moderateScale(12, 0.2),
     fontWeight: '700',
   },
 });

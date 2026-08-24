@@ -23,6 +23,7 @@ import { useProfileStore } from '@/hooks/useProfileStore';
 import PaymentGatewayModal, { PaymentDetails } from '@/components/booking/PaymentGatewayModal';
 import CouponOverlay from '@/components/packages/CouponOverlay';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
+import { useScrollFooter } from '@/hooks/useScrollFooter';
 import AddOnPackageCard from '@/components/packages/cards/AddOnPackageCard';
 import { PackageItem, getAddOnScreeningPackages } from '@/constants/package-data';
 
@@ -65,9 +66,10 @@ export default function CheckoutScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [lastAddedMember, setLastAddedMember] = useState<{ name: string; gender: string } | null>(null);
 
-  // Date and Time schedule state
   const [selectedDate, setSelectedDate] = useState<string>((date as string) || 'Tue, 11 Aug 2025');
   const [selectedTime, setSelectedTime] = useState<string>((time as string) || '10:00 AM');
+
+  const { isFooterVisible, scrollProps } = useScrollFooter({ threshold: 12, topThreshold: 30 });
 
   // Build full family members list including self
   const selfMember: FamilyMemberItem = {
@@ -372,7 +374,11 @@ export default function CheckoutScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        {...scrollProps}
+      >
         {/* Appointments / Packages Header */}
         <View style={styles.sectionHeaderRow}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -553,6 +559,7 @@ export default function CheckoutScreen() {
         ctaText="Proceed to Pay"
         ctaIcon="shield"
         onPressCTA={() => setShowPaymentModal(true)}
+        visible={isFooterVisible}
       />
 
       {/* Who is this appointment for? Modal */}

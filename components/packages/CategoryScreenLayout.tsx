@@ -12,6 +12,7 @@ import PackageItemCard from '@/components/packages/cards/PackageItemCard';
 import AddPackageModal from '@/components/booking/AddPackageModal';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
 import { resolveImageSource } from '@/utils/imageUtils';
+import { scale } from '@/utils/responsive';
 
 const MOCK_HOSPITALS = [
   {
@@ -284,7 +285,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingBottom: 60 },
   heroSection: {
-    height: 230,
+    width: '100%',
+    aspectRatio: 4 / 3,
     position: 'relative',
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
@@ -292,6 +294,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -308,9 +314,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   heroImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    ...StyleSheet.absoluteFillObject,
   },
   heroGradient: {
     ...StyleSheet.absoluteFillObject,
@@ -458,7 +462,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   packageCardWrapper: {
-    width: 174,
+    width: scale(205),
     marginRight: 12,
   },
   packagesScrollContent: {

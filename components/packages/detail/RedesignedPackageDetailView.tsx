@@ -14,6 +14,7 @@ import PackageAboutCard from '@/components/packages/detail/PackageAboutCard';
 import PackageInclusionsCard from '@/components/packages/detail/PackageInclusionsCard';
 import SimilarPackagesCard from '@/components/packages/detail/SimilarPackagesCard';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
+import { useScrollFooter } from '@/hooks/useScrollFooter';
 
 import { useBookingStore } from '@/hooks/useBookingStore';
 
@@ -58,6 +59,7 @@ export default function RedesignedPackageDetailView({
   const { colors, isDark } = useTheme();
   const addCartItem = useBookingStore(state => state.addCartItem);
 
+  const { isFooterVisible, scrollProps } = useScrollFooter({ threshold: 12, topThreshold: 30 });
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleShare = async () => {
@@ -108,7 +110,12 @@ export default function RedesignedPackageDetailView({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' }]} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false} 
+        bounces={false}
+        {...scrollProps}
+      >
         {/* 1. Edge-to-Edge Scenic Hero Image Banner */}
         <Animated.View entering={FadeInDown.delay(50)}>
           <PackageHeroBanner
@@ -211,6 +218,7 @@ export default function RedesignedPackageDetailView({
         ctaIcon="bag"
         onPressTokenCTA={handleReserveToken}
         onPressCTA={handleBookFull}
+        visible={isFooterVisible}
       />
     </SafeAreaView>
   );

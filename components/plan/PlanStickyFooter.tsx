@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,21 +7,36 @@ interface Props {
   price: string;
   subtitle?: string;
   onSubscribe: () => void;
+  visible?: boolean;
 }
 
-export default function PlanStickyFooter({ price, subtitle, onSubscribe }: Props) {
+export default function PlanStickyFooter({ price, subtitle, onSubscribe, visible = true }: Props) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const slideAnim = useRef(new Animated.Value(visible ? 0 : 120)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: visible ? 0 : 120,
+      tension: 65,
+      friction: 11,
+      useNativeDriver: true,
+    }).start();
+  }, [visible, slideAnim]);
 
   return (
-    <View style={[
-      styles.container, 
-      { 
-        backgroundColor: isDark ? '#121212' : '#FFFFFF',
-        borderTopColor: isDark ? '#2A2A2A' : '#F3F4F6',
-        paddingBottom: Platform.OS === 'ios' ? insets.bottom : 20,
-      }
-    ]}>
+    <Animated.View 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: isDark ? '#121212' : '#FFFFFF',
+          borderTopColor: isDark ? '#2A2A2A' : '#F3F4F6',
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 20,
+          transform: [{ translateY: slideAnim }],
+        }
+      ]}
+      pointerEvents={visible ? 'auto' : 'none'}
+    >
       <View style={styles.priceContainer}>
         <Text style={[styles.price, { color: colors.text }]}>{price}</Text>
         {subtitle && (
@@ -32,7 +47,7 @@ export default function PlanStickyFooter({ price, subtitle, onSubscribe }: Props
       <TouchableOpacity activeOpacity={0.8} style={styles.subscribeBtn} onPress={onSubscribe}>
         <Text style={styles.subscribeText}>Start Plan</Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 

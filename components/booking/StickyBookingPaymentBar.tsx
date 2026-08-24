@@ -22,6 +22,8 @@ export interface StickyBookingPaymentBarProps {
   onPressTokenCTA?: () => void;
   disabled?: boolean;
   variant?: 'default' | 'hospital';
+  visible?: boolean;
+  animatedTranslateY?: Animated.Value;
 }
 
 const OFFERS = [
@@ -47,6 +49,8 @@ export default function StickyBookingPaymentBar({
   onPressTokenCTA,
   disabled = false,
   variant = 'default',
+  visible = true,
+  animatedTranslateY,
 }: StickyBookingPaymentBarProps) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -61,6 +65,17 @@ export default function StickyBookingPaymentBar({
   
   const [offerIndex, setOfferIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(visible ? 0 : 160)).current;
+
+  // Responsive slide on scroll visibility change
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: visible ? 0 : 160,
+      tension: 65,
+      friction: 11,
+      useNativeDriver: true,
+    }).start();
+  }, [visible, slideAnim]);
 
   // Auto-swipe / cycle offers every 2.8 seconds
   useEffect(() => {
@@ -110,7 +125,15 @@ export default function StickyBookingPaymentBar({
   const IconComp = currentOffer.icon;
 
   return (
-    <View style={styles.fixedWrapper}>
+    <Animated.View 
+      style={[
+        styles.fixedWrapper,
+        {
+          transform: [{ translateY: animatedTranslateY ?? slideAnim }],
+        },
+      ]}
+      pointerEvents={visible ? 'auto' : 'none'}
+    >
       {/* Auto-Swiping & Manual Swipeable Coupon / Offer Banner */}
       <TouchableOpacity
         activeOpacity={0.88}
@@ -241,7 +264,7 @@ export default function StickyBookingPaymentBar({
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

@@ -26,8 +26,7 @@ export default function ExpertCareModule({
           onSelectCategory={
             onSpecialityPress
               ? (id) => {
-                  if (id === 'pregnancy') onSpecialityPress('Gynaecologist');
-                  else if (id === 'surgery') onSpecialityPress('Sports Physiotherapist');
+                  if (id === 'surgery') onSpecialityPress('Sports Physiotherapist');
                   else if (id === 'foreign') onSpecialityPress('Cardiologist');
                   else if (id === 'opinion') onSpecialityPress('Neurologist');
                 }

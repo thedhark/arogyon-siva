@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Platform, Dimensions, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { getDynamicTopInset } from '@/utils/responsive';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import PremiumSearchBar from '@/components/PremiumSearchBar';
 import SpotlightBanner from '@/components/SpotlightBanner';
-import CategoryGrid from '@/components/CategoryGrid';
 import DirectoryHeader from '@/components/DirectoryHeader';
 import DirectoryContent from '@/components/DirectoryContent';
 import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, useAnimatedProps, interpolate, Extrapolation, withTiming } from 'react-native-reanimated';
@@ -36,6 +36,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [activeDirectoryTab, setActiveDirectoryTab] = useState('All');
   const [currentCity, setCurrentCity] = useState<string>('Detecting location...');
+  const [isCategoriesModalVisible, setIsCategoriesModalVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -68,6 +69,7 @@ export default function HomeScreen() {
   const lastScrollY = useSharedValue(0);
   const isScrollingDown = useSharedValue(false);
   const categoriesY = useSharedValue(0);
+  const filtersY = useSharedValue(0);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -86,7 +88,20 @@ export default function HomeScreen() {
   });
 
   const supportsLiquidGlass = isLiquidGlassAvailable();
-  const statusBarHeight = insets.top > 0 ? insets.top : 24;
+  const statusBarHeight = insets.top > 0 ? insets.top : (Platform.OS === 'android' ? 24 : 44);
+
+  // Status Bar Backdrop: Opacity increases smoothly from 0 to 1 as soon as user starts scrolling down
+  const statusBarCoverStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, 35],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+    };
+  });
 
   const categoriesStickyStyle = useAnimatedStyle(() => {
     const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
@@ -98,8 +113,8 @@ export default function HomeScreen() {
     );
     return {
       paddingHorizontal: 0,
-      paddingTop: interpolate(progress, [0, 1], [12, 0]),
-      paddingBottom: interpolate(progress, [0, 1], [12, 24]),
+      paddingTop: interpolate(progress, [0, 1], [4, 0]),
+      paddingBottom: interpolate(progress, [0, 1], [4, 6]),
     };
   });
 
@@ -185,23 +200,64 @@ export default function HomeScreen() {
     };
   });
 
-  const animatedFiltersStyle = useAnimatedStyle(() => {
-    const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
-    const isSticky = scrollY.value >= triggerPoint;
-    // Only hide if sticky AND scrolling down
-    const shouldHide = isSticky && isScrollingDown.value;
+  const inlineFiltersY = useSharedValue(0);
 
-    // The filter pill itself is now ~28px tall. We use 38px to keep it tight and minimal.
+  const stickyFiltersAnimatedStyle = useAnimatedStyle(() => {
+    if (inlineFiltersY.value === 0) return { height: 0, opacity: 0 };
+    const trigger = inlineFiltersY.value - statusBarHeight - 85;
+    const progress = interpolate(
+      scrollY.value,
+      [trigger - 10, trigger + 15],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
     return {
-      height: withTiming(shouldHide ? 0 : 38, { duration: 300 }),
-      opacity: withTiming(shouldHide ? 0 : 1, { duration: 250 }),
+      height: interpolate(progress, [0, 1], [0, 36]),
+      opacity: progress,
       overflow: 'hidden',
+    };
+  });
+
+  const inlineFiltersAnimatedStyle = useAnimatedStyle(() => {
+    if (inlineFiltersY.value === 0) return { opacity: 1 };
+    const trigger = inlineFiltersY.value - statusBarHeight - 85;
+    const progress = interpolate(
+      scrollY.value,
+      [trigger - 10, trigger + 15],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity: 1 - progress,
     };
   });
 
   return (
     <AnimatedScreen entrance="up">
       <View style={[styles.screen, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
+        {/* Dynamic Status Bar Shield: Fades smoothly from 0 to 1 as user scrolls down */}
+        <Animated.View
+          style={[
+            styles.statusBarCover,
+            {
+              height: statusBarHeight,
+              backgroundColor: isDark ? '#121212' : '#FFFFFF',
+            },
+            statusBarCoverStyle,
+          ]}
+          pointerEvents="none"
+        >
+          {Platform.OS === 'ios' && (
+            <BlurView
+              intensity={90}
+              tint={isDark ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            />
+          )}
+        </Animated.View>
+
         <Animated.ScrollView
           onScroll={scrollHandler}
           scrollEventThrottle={16}
@@ -228,27 +284,38 @@ export default function HomeScreen() {
           </View>
 
           {/* Index 2: Spotlight Banner (50% OFF Offers & Direct Access) */}
-          <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
-            <View style={styles.sectionHeader}>
+          <Animated.View entering={FadeInDown.delay(200)} style={{ marginBottom: 16 }}>
+            <View style={[styles.sectionHeader, { paddingHorizontal: 16 }]}>
               <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>SPOTLIGHT</Text>
             </View>
             <SpotlightBanner />
           </Animated.View>
 
-          {/* Index 3: Category Grid (Specialties) */}
-          <Animated.View entering={FadeInDown.delay(300)} style={{ paddingHorizontal: 16, marginBottom: 4 }}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>EXPLORE CATEGORIES</Text>
-            </View>
-            <CategoryGrid />
-          </Animated.View>
-
-          {/* Index 3.5: Arogyon Labs & Lenskart Banner */}
-          <Animated.View entering={FadeInDown.delay(400)} style={{ paddingHorizontal: 12, marginBottom: 16 }}>
+          {/* Index 3: Arogyon Labs & Lenskart Banner (Positioned directly below Spotlight Banner) */}
+          <Animated.View entering={FadeInDown.delay(250)} style={{ paddingHorizontal: 12, marginBottom: 16 }}>
             <LabsBanner />
           </Animated.View>
 
-          {/* Index 5: Sticky Explore Categories & Filters */}
+          {/* Index 4: Category Section Header: What's On Your Mind? (Scrolls naturally away when scrolling down) */}
+          <Animated.View entering={FadeInDown.delay(280)} style={styles.categorySectionHeaderContainer}>
+            <Text style={[styles.categorySectionTitle, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
+              WHAT'S ON YOUR MIND?
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setIsCategoriesModalVisible(true);
+              }}
+              activeOpacity={0.7}
+              style={styles.categoryActionBtn}
+            >
+              <Text style={[styles.categoryActionLabel, { color: isDark ? '#34D399' : '#059669' }]}>
+                17+ Specialties
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Index 5: Sticky Explore Categories & Dynamic Docked Filters (Now contains only pills without text clutter) */}
           <View
             onLayout={(e) => {
               const y = e.nativeEvent.layout.y;
@@ -256,7 +323,7 @@ export default function HomeScreen() {
                 categoriesY.value = y;
               }
             }}
-            style={{ zIndex: 10 }}
+            style={{ zIndex: 10, marginBottom: 8 }}
           >
             <Animated.View style={categoriesStickyStyle}>
               <Animated.View style={categoriesWrapperStyle}>
@@ -272,16 +339,33 @@ export default function HomeScreen() {
                 <ExploreCategories
                   activeTab={activeDirectoryTab}
                   onTabChange={setActiveDirectoryTab}
-                  style={{ marginBottom: 0, paddingVertical: 12 }}
+                  isModalVisible={isCategoriesModalVisible}
+                  onModalVisibilityChange={setIsCategoriesModalVisible}
+                  style={{ marginBottom: 0, paddingVertical: 4 }}
                 />
-                <Animated.View style={animatedFiltersStyle}>
-                  <ExploreFilters />
+                <Animated.View style={stickyFiltersAnimatedStyle}>
+                  <View style={{ paddingBottom: 4 }}>
+                    <ExploreFilters />
+                  </View>
                 </Animated.View>
               </Animated.View>
             </Animated.View>
           </View>
 
-          {/* Index 7: Directory Content */}
+          {/* Index 5: Inline Explore Filters (Below Banner) */}
+          <Animated.View 
+            onLayout={(e) => {
+              const y = e.nativeEvent.layout.y;
+              if (Math.abs(inlineFiltersY.value - y) > 1) {
+                inlineFiltersY.value = y;
+              }
+            }}
+            style={[{ marginBottom: 12 }, inlineFiltersAnimatedStyle]}
+          >
+            <ExploreFilters />
+          </Animated.View>
+
+          {/* Index 6: Directory Content */}
           <View style={{ paddingHorizontal: 12 }}>
             <DirectoryContent activeTab={activeDirectoryTab} />
           </View>
@@ -315,5 +399,35 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 2.2,
     textTransform: 'uppercase',
+  },
+  categorySectionHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  categorySectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  categoryActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoryActionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: -0.1,
+  },
+  statusBarCover: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 99,
   },
 });

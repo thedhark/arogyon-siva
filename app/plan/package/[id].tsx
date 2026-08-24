@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Text, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import Animated, { useAnimatedScrollHandler, useSharedValue, FadeInUp } from 'react-native-reanimated';
+import Animated, { useAnimatedScrollHandler, useSharedValue, FadeInUp, runOnJS } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 
 import AnimatedScreen from '@/components/AnimatedScreen';
@@ -18,11 +18,24 @@ export default function PlanDetailsScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   
+  const [isFooterVisible, setIsFooterVisible] = useState(true);
   const scrollY = useSharedValue(0);
+  const prevScrollY = useSharedValue(0);
   
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
+      const currentY = event.contentOffset.y;
+      scrollY.value = currentY;
+      const delta = currentY - prevScrollY.value;
+
+      if (currentY <= 30) {
+        runOnJS(setIsFooterVisible)(true);
+      } else if (delta > 12 && currentY > 50) {
+        runOnJS(setIsFooterVisible)(false);
+      } else if (delta < -12) {
+        runOnJS(setIsFooterVisible)(true);
+      }
+      prevScrollY.value = currentY;
     },
   });
 
@@ -73,6 +86,7 @@ export default function PlanDetailsScreen() {
         price="₹1,999" 
         subtitle="One time payment"
         onSubscribe={() => router.push('/booking/checkout')}
+        visible={isFooterVisible}
       />
     </AnimatedScreen>
   );

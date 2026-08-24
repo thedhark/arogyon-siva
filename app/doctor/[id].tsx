@@ -8,6 +8,7 @@ import { useBookingStore } from '@/hooks/useBookingStore';
 import DoctorProfileHeader from '@/components/doctor/DoctorProfileHeader';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
+import { useScrollFooter } from '@/hooks/useScrollFooter';
 
 const DATES = [
   { id: '1', day: 'Today', date: 'Aug 14' },
@@ -29,12 +30,14 @@ export default function DoctorProfile() {
   const getDoctor = useBookingStore(state => state.getDoctor);
   const doctorData = getDoctor(id as string);
   
-  const [consultType, setConsultType] = useState<'In-Clinic' | 'Video Consult'>('In-Clinic');
+  const consultType = 'In-Clinic';
   const [selectedDate, setSelectedDate] = useState(DATES[0]);
   const [selectedTime, setSelectedTime] = useState(TIME_SLOTS[1]);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [requestNotes, setRequestNotes] = useState('');
   const [isBookmarked, setIsBookmarked] = useState(false);
+
+  const { isFooterVisible, scrollProps } = useScrollFooter({ threshold: 12, topThreshold: 30 });
 
   if (!doctorData) {
     return (
@@ -44,9 +47,9 @@ export default function DoctorProfile() {
     );
   }
 
-  const baseFee = parseFloat(doctorData.fee) || 699;
-  const selectedService = doctorData.services?.find((s: any) => s.id === selectedServiceId);
-  const servicePriceNum = selectedService ? parseFloat(selectedService.price.replace(/[^0-9.]/g, '')) || 0 : 0;
+  const baseFee = doctorData ? parseInt(doctorData.fee.replace(/[^0-9]/g, '')) || 500 : 500;
+  const selectedService = (doctorData?.services || []).find((s: any) => s.id === selectedServiceId);
+  const servicePriceNum = selectedService ? (parseInt(selectedService.price.replace(/[^0-9]/g, '')) || 0) : 0;
   const totalFee = baseFee + servicePriceNum;
   const originalFee = Math.round(totalFee * 2.5);
 
@@ -74,7 +77,11 @@ export default function DoctorProfile() {
     <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        {...scrollProps}
+      >
         <DoctorProfileHeader 
           doctorData={doctorData}
           colors={colors}
@@ -167,6 +174,7 @@ export default function DoctorProfile() {
         ctaText="ADD VISIT"
         ctaIcon="calendar"
         onPressCTA={handleBook}
+        visible={isFooterVisible}
       />
 
       <FloatingCartBar bottomOffset={80} />

@@ -37,21 +37,24 @@ export default function WeightBanner({ onBack }: Props) {
 
 const styles = StyleSheet.create({
   bannerContainer: {
-    height: 300,
+    width: '100%',
+    aspectRatio: 4 / 3,
     position: 'relative',
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
     overflow: 'hidden',
   },
   bannerImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    ...StyleSheet.absoluteFillObject,
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
   headerBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 16,
     paddingTop: 8,
     zIndex: 10,

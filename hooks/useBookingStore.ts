@@ -43,7 +43,7 @@ export interface Appointment {
   status: 'upcoming' | 'completed' | 'cancelled';
   confirmationStatus?: 'visit_requested' | 'awaiting_approval' | 'confirmed';
   fee: string;
-  type: string; // 'In-Clinic' | 'Video Consult'
+  type: string; // 'In-Clinic' | 'Hospital Visit'
   image: string;
   paymentId?: string;
   paymentMethod?: string;
@@ -189,6 +189,175 @@ const initialDoctors: Record<string, Doctor> = {
       { id: 's2', name: 'Acne & Skin Care Therapy', price: '₹1,200' },
       { id: 's3', name: 'Hair Loss Treatment Session', price: '₹1,800' }
     ]
+  },
+  'doc-rohan': {
+    id: 'doc-rohan',
+    name: 'Dr. Rohan Verma',
+    verified: true,
+    speciality: 'General Physician',
+    experience: '12+ Years Experience',
+    rating: '4.6',
+    reviews: '1.4K',
+    location: 'Indiranagar, Di Table Hospitals',
+    distance: '1.2 km',
+    patients: '12,000+',
+    languages: 'English, Hindi',
+    about: 'Renowned general physician specializing in acute illnesses, lifestyle disorders, preventative health checkups, and chronic fever management.',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&q=80',
+    fee: '600',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'General Consultation', price: '₹600' },
+      { id: 's2', name: 'Full Vital Screening Review', price: '₹950' },
+      { id: 's3', name: 'Preventive Health Assessment', price: '₹1,200' }
+    ]
+  },
+  'doc-priya': {
+    id: 'doc-priya',
+    name: 'Dr. Priya Sharma',
+    verified: true,
+    speciality: 'Internal Medicine & Physician',
+    experience: '9+ Years Experience',
+    rating: '4.5',
+    reviews: '980',
+    location: 'Koramangala, HealthPlus Clinic',
+    distance: '2.1 km',
+    patients: '9,500+',
+    languages: 'English, Hindi, Kannada',
+    about: 'Senior internal medicine practitioner with comprehensive expertise in metabolic management, seasonal infections, and chronic adult care.',
+    image: 'https://images.unsplash.com/photo-1594824813573-246434de83fb?w=800&q=80',
+    fee: '550',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Internal Medicine Consult', price: '₹550' },
+      { id: 's2', name: 'Diabetes Management Plan', price: '₹800' }
+    ]
+  },
+  'doc-neha': {
+    id: 'doc-neha',
+    name: 'Dr. Neha Iyer',
+    verified: true,
+    speciality: 'Consultant Physician',
+    experience: '8+ Years Experience',
+    rating: '4.4',
+    reviews: '740',
+    location: 'Indiranagar, CityCare Clinic',
+    distance: '1.9 km',
+    patients: '8,200+',
+    languages: 'English, Tamil, Hindi',
+    about: 'Specialized consultant physician with extensive experience in primary healthcare, family medicine, and seasonal infection treatment.',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80',
+    fee: '500',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'General Physician Consultation', price: '₹500' },
+      { id: 's2', name: 'Comprehensive Health Check', price: '₹850' }
+    ]
+  },
+  'doc-kavitha': {
+    id: 'doc-kavitha',
+    name: 'Dr. Kavitha Reddy',
+    verified: true,
+    speciality: 'Senior Gynecologist & OBG',
+    experience: '14+ Years Experience',
+    rating: '4.9',
+    reviews: '2.1K',
+    location: 'Jayanagar, Cloudnine Hospital',
+    distance: '2.8 km',
+    patients: '15,000+',
+    languages: 'English, Telugu, Hindi',
+    about: 'Leading expert in obstetrics and gynecology, maternal health, prenatal guidance, and PCOS hormonal balancing.',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80',
+    fee: '700',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Antenatal Consultation', price: '₹700' },
+      { id: 's2', name: 'PCOS & Hormone Screen', price: '₹1,100' }
+    ]
+  },
+  'doc-mehra': {
+    id: 'doc-mehra',
+    name: 'Dr. Rohan Mehra',
+    verified: true,
+    speciality: 'Consultant Dermatologist',
+    experience: '10+ Years Experience',
+    rating: '4.9',
+    reviews: '1.8K',
+    location: 'Koramangala, Kaya Skin Clinic',
+    distance: '2.3 km',
+    patients: '14,000+',
+    languages: 'English, Hindi',
+    about: 'Expert in clinical dermatology, acne therapies, laser treatments, and advanced hair restoration protocols.',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80',
+    fee: '650',
+    hospitalId: 'hosp-2',
+    services: [
+      { id: 's1', name: 'Dermatology Consultation', price: '₹650' },
+      { id: 's2', name: 'Acne & Glow Protocol', price: '₹1,250' }
+    ]
+  },
+  'doc-sanjay': {
+    id: 'doc-sanjay',
+    name: 'Dr. Sanjay Sen',
+    verified: true,
+    speciality: 'Senior Pediatrician',
+    experience: '16+ Years Experience',
+    rating: '4.9',
+    reviews: '2.5K',
+    location: "Marathahalli, Rainbow Children's Hospital",
+    distance: '3.6 km',
+    patients: '18,000+',
+    languages: 'English, Hindi, Bengali',
+    about: 'Pediatric and neonatal specialist dedicated to comprehensive infant wellness, developmental milestones, and child vaccinations.',
+    image: 'https://images.unsplash.com/photo-1614608682850-e0d6ed316d47?w=800&q=80',
+    fee: '600',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Pediatric Consultation', price: '₹600' },
+      { id: 's2', name: 'Growth & Nutrition Review', price: '₹900' }
+    ]
+  },
+  'doc-shruti': {
+    id: 'doc-shruti',
+    name: 'Dr. Shruti Deshmukh',
+    verified: true,
+    speciality: 'Chief Dental Surgeon',
+    experience: '9+ Years Experience',
+    rating: '4.9',
+    reviews: '1.1K',
+    location: 'HSR Layout, Clove Dental Care',
+    distance: '2.1 km',
+    patients: '13,000+',
+    languages: 'English, Hindi, Marathi',
+    about: 'Chief dental surgeon with specialization in preventive orthodontics, smile aesthetics, implants, and root canals.',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
+    fee: '450',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Dental Examination & Scaler', price: '₹450' },
+      { id: 's2', name: 'Laser Teeth Whitening', price: '₹1,500' }
+    ]
+  },
+  'doc-nair': {
+    id: 'doc-nair',
+    name: 'Dr. Rajesh Nair',
+    verified: true,
+    speciality: 'Senior Eye Surgeon & Lasik',
+    experience: '18+ Years Experience',
+    rating: '4.9',
+    reviews: '2.8K',
+    location: "Koramangala, Dr. Agarwal's Eye Hospital",
+    distance: '2.4 km',
+    patients: '16,000+',
+    languages: 'English, Malayalam, Tamil',
+    about: 'Renowned ophthalmologist and refractive surgeon with thousands of successful cataract and SMILE/Lasik procedures.',
+    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=800&q=80',
+    fee: '600',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Comprehensive Eye Examination', price: '₹600' },
+      { id: 's2', name: 'Lasik Suitability Assessment', price: '₹1,000' }
+    ]
   }
 };
 
@@ -275,7 +444,7 @@ const initialAppointments: Appointment[] = [
     time: '11:30 AM',
     status: 'completed',
     fee: '800',
-    type: 'Video Consult',
+    type: 'In-Clinic',
     image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=800',
     paymentId: 'PAY-WLT-773192',
     paymentMethod: 'Arogyon Wallet',

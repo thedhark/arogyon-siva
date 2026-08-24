@@ -12,7 +12,7 @@ import Animated, {
   Extrapolation,
   runOnJS,
 } from 'react-native-reanimated';
-import { Home, Calendar, Heart, Activity, Sparkles } from 'lucide-react-native';
+import { Grid, HeartPulse, Award, Heart } from 'lucide-react-native';
 import Svg, { Path, Defs, LinearGradient, Stop, Mask, Rect, Circle, Line, Polyline } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
@@ -33,83 +33,22 @@ const TAB_META: Record<string, { label: string }> = {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-function CustomCalendarIcon({ size, color, fill, strokeWidth, isDark }: { size: number, color: string, fill: string, strokeWidth: number, isDark: boolean }) {
-  const isFilled = fill !== 'transparent' && fill !== 'none';
-  const innerStroke = isDark ? '#1e1e1e' : '#ffffff';
-  const extraLineStroke = isFilled ? innerStroke : 'transparent';
-  
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill={isFilled ? fill : 'none'} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <Defs>
-        <LinearGradient id="active-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#9bf229" />
-          <Stop offset="100%" stopColor="#14ce65" />
-        </LinearGradient>
-      </Defs>
-      <Rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill={isFilled ? fill : 'none'} stroke={color} />
-      <Line x1="16" y1="2" x2="16" y2="6" stroke={color} />
-      <Line x1="8" y1="2" x2="8" y2="6" stroke={color} />
-      <Line x1="3" y1="10" x2="21" y2="10" stroke={isFilled ? innerStroke : color} />
-      
-      {/* Bullet points for tasks */}
-      <Line x1="7" y1="14" x2="7.01" y2="14" stroke={extraLineStroke} strokeWidth={strokeWidth} />
-      <Line x1="11" y1="14" x2="17" y2="14" stroke={extraLineStroke} strokeWidth={strokeWidth * 0.8} />
-      
-      <Line x1="7" y1="18" x2="7.01" y2="18" stroke={extraLineStroke} strokeWidth={strokeWidth} />
-      <Line x1="11" y1="18" x2="17" y2="18" stroke={extraLineStroke} strokeWidth={strokeWidth * 0.8} />
-    </Svg>
-  );
-}
-
-function ActiveHomeIcon({ size, strokeWidth, isDark, color }: { size: number, strokeWidth: number, isDark: boolean, color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <Path d="M9 22V12h6v10" />
-    </Svg>
-  );
-}
-
-function ActiveHeartIcon({ size, strokeWidth, color }: { size: number, strokeWidth: number, color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </Svg>
-  );
-}
-
-function ActiveActivityIcon({ size, strokeWidth, color }: { size: number, strokeWidth: number, color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      <Polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </Svg>
-  );
-}
-
-function getTabIcon(routeName: string, color: string, isFocused: boolean, isDark: boolean) {
+function getTabIcon(routeName: string, color: string, isFocused: boolean) {
   const size = 22;
-  const stroke = isFocused ? 2.5 : 2;
-  const fill = isFocused ? color : 'transparent';
-  
-  if (isFocused) {
-    switch (routeName) {
-      case 'index': return <ActiveHomeIcon size={size} strokeWidth={stroke} isDark={isDark} color={color} />;
-      case 'package': return <CustomCalendarIcon size={size} color={color} fill={color} strokeWidth={stroke} isDark={isDark} />;
-      case 'care': return <ActiveHeartIcon size={size} strokeWidth={stroke} color={color} />;
-      case 'experts': return <Sparkles size={size} color={color} fill={color} strokeWidth={stroke} />;
-      case 'today': return <ActiveHeartIcon size={size} strokeWidth={stroke} color={color} />;
-      default: return <ActiveHomeIcon size={size} strokeWidth={stroke} isDark={isDark} color={color} />;
-    }
-  }
+  const strokeWidth = isFocused ? 2.4 : 1.9;
 
-  // Inactive states
   switch (routeName) {
-    case 'index': return <Home size={size} color={color} fill={fill} strokeWidth={stroke} />;
-    case 'package': return <CustomCalendarIcon size={size} color={color} fill={fill} strokeWidth={stroke} isDark={isDark} />;
-    case 'care': return <Heart size={size} color={color} fill={fill} strokeWidth={stroke} />;
-    case 'experts': return <Sparkles size={size} color={color} fill={fill} strokeWidth={stroke} />;
-    case 'today': return <Heart size={size} color={color} fill={fill} strokeWidth={stroke} />;
-    default: return <Home size={size} color={color} fill={fill} strokeWidth={stroke} />;
+    case 'index':
+      return <Grid size={size} color={color} strokeWidth={strokeWidth} />;
+    case 'package':
+      return <HeartPulse size={size} color={color} strokeWidth={strokeWidth} />;
+    case 'experts':
+      return <Award size={size} color={color} strokeWidth={strokeWidth} />;
+    case 'care':
+    case 'today':
+      return <Heart size={size} color={color} strokeWidth={strokeWidth} />;
+    default:
+      return <Grid size={size} color={color} strokeWidth={strokeWidth} />;
   }
 }
 
@@ -123,16 +62,16 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
       <Svg width={45} height={21} viewBox="0 0 94 44">
         <Defs>
           <LinearGradient id="o-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#9bf229" />
-            <Stop offset="100%" stopColor="#14ce65" />
+            <Stop offset="0%" stopColor="#38BDF8" />
+            <Stop offset="100%" stopColor="#2563EB" />
           </LinearGradient>
           <Mask id="heart-mask">
             <Rect width="94" height="44" fill="white" />
             <Path d="M 22 14 C 15 8, 7 13, 9 21 C 11 28, 19 33, 22 37 C 25 33, 33 28, 35 21 C 37 13, 29 8, 22 14 Z" fill="black" />
           </Mask>
           <LinearGradient id="n-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#1ad561" />
-            <Stop offset="100%" stopColor="#009f68" />
+            <Stop offset="0%" stopColor="#3B82F6" />
+            <Stop offset="100%" stopColor="#1D4ED8" />
           </LinearGradient>
         </Defs>
         <Circle cx="22" cy="22" r="22" fill="url(#o-grad)" mask="url(#heart-mask)" />
@@ -162,9 +101,9 @@ function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDrag
   }, [isFocused]);
 
   const animatedIconStyle = useAnimatedStyle(() => {
-    const isHoveredScrub = isDragging.value && hoverIndex.value === tabIndex;
-    const bubbleScale = withSpring(isHoveredScrub ? 1.15 : (1 + 0.05 * pointerHoverProgress.value), { damping: 14, stiffness: 280 });
-    const bubbleY = withSpring(isHoveredScrub ? -3 : (-1 * pointerHoverProgress.value), { damping: 14, stiffness: 280 });
+    const isHoveredScrub = isDragging?.value && hoverIndex?.value === tabIndex;
+    const bubbleScale = isHoveredScrub ? 1.15 : (1 + 0.05 * pointerHoverProgress.value);
+    const bubbleY = isHoveredScrub ? -3 : (-1 * pointerHoverProgress.value);
 
     return {
       opacity: 0.85 + 0.15 * focusProgress.value,
@@ -183,9 +122,9 @@ function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDrag
   }));
 
   const pointerHoverStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(pointerHoverProgress.value * (isFocused ? 0 : 0.15), { duration: 150 }),
+    opacity: pointerHoverProgress.value * (isFocused ? 0 : 0.15),
     transform: [
-      { scale: withSpring(0.95 + 0.05 * pointerHoverProgress.value, { damping: 15, stiffness: 300 }) },
+      { scale: 0.95 + 0.05 * pointerHoverProgress.value },
     ],
   }));
 
@@ -208,7 +147,7 @@ function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDrag
     >
       <Animated.View style={[styles.hoverBackdrop, pointerHoverStyle, { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.1)' }]} pointerEvents="none" />
       <Animated.View style={animatedIconStyle}>
-        {getTabIcon(route.name, isFocused ? activeIconColor : inactiveColor, isFocused, isDark)}
+        {getTabIcon(route.name, isFocused ? activeIconColor : inactiveColor, isFocused)}
       </Animated.View>
       <Animated.View style={[styles.textCapsule, animatedTextStyle]}>
         <Text style={[styles.tabLabel, { color: isFocused ? (isDark ? '#FFFFFF' : '#0F172A') : inactiveColor, fontWeight: isFocused ? '800' : '600' }]}>
@@ -629,6 +568,8 @@ const styles = StyleSheet.create({
   tabSlot: {
     flex: 1,
     height: '100%',
+    zIndex: 10,
+    elevation: 2,
   },
   logoContainer: {
     width: 62,
@@ -703,13 +644,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     overflow: 'hidden',
     zIndex: 0,
+    elevation: 0,
   },
   activeIndicatorShadow: {
-    shadowColor: '#FFFFFF',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.28,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 0,
   },
   indicatorSheen: {
     borderRadius: 25,
@@ -720,7 +662,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: '100%',
     paddingTop: 4,
-    zIndex: 1,
+    zIndex: 10,
+    elevation: 2,
   },
   textCapsule: {
     marginTop: 2,

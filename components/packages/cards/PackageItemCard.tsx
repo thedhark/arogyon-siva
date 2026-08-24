@@ -298,11 +298,11 @@ export default function PackageItemCard({
         styles.verticalCard,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#FFFFFF',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
         },
       ]}
     >
-      {/* Top Full-Width Cover Banner Image (Clickable to view package) */}
+      {/* Top Full-Width Cover Banner Image (Seamless with card container) */}
       <TouchableOpacity
         style={styles.verticalImageContainer}
         activeOpacity={0.9}
@@ -315,22 +315,28 @@ export default function PackageItemCard({
         />
       </TouchableOpacity>
 
-      {/* Card Content Body */}
+      {/* Card Content Body - zero unnecessary gap from image */}
       <View style={styles.verticalCardBody}>
         <TouchableOpacity
           style={styles.verticalTitleWrapper}
           activeOpacity={0.85}
           onPress={() => onPress(item.id)}
         >
-          <Text style={[styles.verticalPackageTitle, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+          <Text
+            style={[styles.verticalPackageTitle, { color: isDark ? '#F1F5F9' : '#1E293B' }]}
+            numberOfLines={titleNumberOfLines ?? 1}
+            ellipsizeMode="tail"
+          >
             {displayTitle}
           </Text>
         </TouchableOpacity>
 
-        {/* Footer Row: Price Breakdown & Interactive BookVisitSelector */}
+        {/* Footer Row: Price Breakdown & Book > Button */}
         <View style={styles.verticalCardFooter}>
           <View style={styles.priceColumn}>
-            <Text style={[styles.verticalCurrentPrice, { color: colors.text }]}>{item.price}</Text>
+            <Text style={[styles.verticalCurrentPrice, { color: isDark ? '#FFFFFF' : '#1E293B' }]}>
+              {item.price}
+            </Text>
 
             <View style={styles.subPriceRow}>
               {item.originalPrice ? (
@@ -338,25 +344,36 @@ export default function PackageItemCard({
               ) : null}
 
               {item.discount ? (
-                <View style={[styles.verticalDiscountTag, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
+                <View
+                  style={[
+                    styles.verticalDiscountTag,
+                    { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2' },
+                  ]}
+                >
                   <Text style={styles.verticalDiscountTagText}>{item.discount}</Text>
                 </View>
               ) : null}
             </View>
           </View>
 
-          {/* Interactive BookVisitSelector Button */}
-          <BookVisitSelector
-            buttonLabel={buttonLabel}
-            onBookPress={(patient) => {
-              if (onAddPress) onAddPress({ ...item, assignedPatient: patient } as any);
-            }}
-            onCountChange={(count, patient) => {
-              if (count > 0 && onAddPress) {
-                onAddPress({ ...item, assignedPatient: patient, quantity: count } as any);
+          {/* Add Pill Button */}
+          <TouchableOpacity
+            style={[
+              styles.verticalBookBtn,
+              { backgroundColor: isDark ? '#334155' : '#334155' },
+            ]}
+            activeOpacity={0.85}
+            onPress={() => {
+              if (onAddPress) {
+                onAddPress(item);
+              } else {
+                onPress(item.id);
               }
             }}
-          />
+          >
+            <Text style={styles.verticalBookBtnText}>{ctaText ?? 'Add'}</Text>
+            <Plus size={13} color="#FFFFFF" strokeWidth={2.6} />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -527,11 +544,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   verticalCard: {
-    width: scale(174),
-    height: verticalScale(281),
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    width: '100%',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     marginVertical: 4,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -539,16 +555,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
-    justifyContent: 'space-between',
   },
   verticalImageContainer: {
     width: '100%',
-    height: verticalScale(148),
+    height: verticalScale(130),
     backgroundColor: '#E2E8F0',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
     overflow: 'hidden',
   },
   bannerImage: {
@@ -556,87 +569,78 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   verticalCardBody: {
-    flex: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   verticalTitleWrapper: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   verticalPackageTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 12.5,
+    fontSize: 15,
     fontWeight: '700',
-    lineHeight: 16,
-    marginBottom: 2,
-    letterSpacing: -0.15,
+    letterSpacing: -0.2,
+    lineHeight: 20,
   },
   verticalCardFooter: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    gap: 4,
+    gap: 6,
   },
   priceColumn: {
     flex: 1,
     justifyContent: 'center',
-    marginRight: 2,
   },
   verticalCurrentPrice: {
     fontFamily: Fonts.bold,
-    fontSize: 13.5,
-    fontWeight: '700',
-    letterSpacing: -0.2,
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 2,
   },
   subPriceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    marginTop: 1,
+    gap: 5,
   },
   verticalOriginalPriceText: {
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 12,
     color: '#94A3B8',
     textDecorationLine: 'line-through',
     fontWeight: '400',
   },
   verticalDiscountTag: {
-    paddingHorizontal: 3,
-    paddingVertical: 1,
-    borderRadius: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
   },
   verticalDiscountTagText: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.bold,
     color: '#EF4444',
-    fontSize: 8.5,
+    fontSize: 10.5,
     fontWeight: '700',
   },
-  reshapedPillBtn: {
-    borderRadius: 999,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-    flexShrink: 0,
-  },
-  reshapedPillBtnGradient: {
+  verticalBookBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
-    paddingHorizontal: 7,
-    paddingVertical: 4.5,
+    gap: 3,
+    paddingHorizontal: 13,
+    paddingVertical: 7.5,
     borderRadius: 999,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  reshapedPillBtnText: {
+  verticalBookBtnText: {
+    color: '#FFFFFF',
     fontFamily: Fonts.bold,
-    fontSize: 9.5,
+    fontSize: 12.5,
     fontWeight: '700',
     letterSpacing: -0.1,
   },

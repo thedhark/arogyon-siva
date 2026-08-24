@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Star } from 'lucide-react-native';
-
 import { resolveImageSource } from '@/utils/imageUtils';
+import { scale, moderateScale } from '@/utils/responsive';
 
 interface Props {
   type: 'doctor' | 'hospital' | 'package';
@@ -82,11 +82,11 @@ export default function RecommendationCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: 170,
-    borderRadius: 16,
+    width: scale(170),
+    borderRadius: scale(16),
     borderWidth: 1,
     overflow: 'hidden',
-    marginRight: 16,
+    marginRight: scale(16),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 120,
+    height: scale(120),
     backgroundColor: '#F3F4F6',
   },
   image: {
@@ -103,22 +103,22 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   content: {
-    padding: 12,
+    padding: scale(12),
     flex: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: moderateScale(14, 0.2),
     fontWeight: '800',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 11,
+    fontSize: moderateScale(11, 0.2),
     color: '#6B7280',
     marginBottom: 6,
-    height: 30, // Fixed height for 2 lines
+    height: scale(30),
   },
   infoText: {
-    fontSize: 11,
+    fontSize: moderateScale(11, 0.2),
     color: '#6B7280',
     marginBottom: 6,
   },
@@ -129,20 +129,20 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   ratingText: {
-    fontSize: 11,
+    fontSize: moderateScale(11, 0.2),
     fontWeight: '700',
     color: '#374151',
   },
   reviewsText: {
-    fontSize: 11,
+    fontSize: moderateScale(11, 0.2),
     color: '#6B7280',
   },
   priceContainer: {
     marginTop: 'auto',
-    marginBottom: 12,
+    marginBottom: scale(12),
   },
   priceLabel: {
-    fontSize: 10,
+    fontSize: moderateScale(10, 0.2),
     color: '#6B7280',
     marginBottom: 2,
   },
@@ -152,24 +152,24 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   price: {
-    fontSize: 16,
+    fontSize: moderateScale(16, 0.2),
     fontWeight: '800',
   },
   originalPrice: {
-    fontSize: 11,
+    fontSize: moderateScale(11, 0.2),
     color: '#9CA3AF',
     textDecorationLine: 'line-through',
     marginBottom: 2,
   },
   discountText: {
-    fontSize: 10,
+    fontSize: moderateScale(10, 0.2),
     fontWeight: '700',
     color: '#10B981',
     marginTop: 2,
   },
   button: {
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: scale(8),
+    borderRadius: scale(8),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonText: {
-    fontSize: 12,
+    fontSize: moderateScale(12, 0.2),
     fontWeight: '700',
   }
 });

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { ChevronRight } from 'lucide-react-native';
-
+import { ChevronRight, ShieldCheck, Tag } from 'lucide-react-native';
 import { resolveImageSource } from '@/utils/imageUtils';
 
 interface Props {
@@ -26,137 +25,176 @@ export default function CategoryPackageListItem({
   isDark,
 }: Props) {
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.88}
       style={[
-        styles.verticalPackageCard,
+        styles.card,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: 'transparent',
+          borderColor: isDark ? '#2C2C2E' : '#E5E7EB',
+          shadowColor: isDark ? '#000000' : '#1E293B',
         },
       ]}
+      onPress={onPress}
     >
-      <View style={styles.cardRow}>
-        {/* Image */}
-        <Image
-          source={resolveImageSource(image, 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=200')}
-          style={styles.verticalPackageImage}
-          resizeMode="cover"
-        />
+      <View style={styles.cardContent}>
+        {/* Left Image with Discount Tag */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={resolveImageSource(image, 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=200')}
+            style={styles.packageImage}
+            resizeMode="cover"
+          />
+          {discount && (
+            <View style={styles.discountBadge}>
+              <Tag size={10} color="#FFFFFF" />
+              <Text style={styles.discountBadgeText}>{discount}</Text>
+            </View>
+          )}
+        </View>
 
-        {/* Content */}
-        <View style={styles.verticalPackageContent}>
+        {/* Right Info Section */}
+        <View style={styles.infoSection}>
+          {/* Title */}
           <Text style={[styles.packageTitle, { color: colors.text }]} numberOfLines={2}>
             {title}
           </Text>
 
-          {/* Price & View Package Action Row */}
-          <View style={styles.priceAndActionRow}>
-            <View style={styles.priceLeft}>
-              <Text style={[styles.currentPrice, { color: colors.text }]}>{price}</Text>
-              {originalPrice && (
-                <Text style={[styles.originalPrice, { color: isDark ? '#9CA3AF' : '#999999' }]}>
-                  {originalPrice}
-                </Text>
-              )}
-              {discount && (
-                <View style={[styles.discountBadge, { backgroundColor: isDark ? '#3B1E1E' : '#FEF2F2' }]}>
-                  <Text style={styles.discountText}>{discount}</Text>
-                </View>
-              )}
+          {/* Feature Highlight Pill */}
+          <View style={styles.featureRow}>
+            <ShieldCheck size={12} color="#10B981" />
+            <Text style={[styles.featureText, { color: isDark ? '#9CA3AF' : '#64748B' }]}>
+              Expert Doctor Verified
+            </Text>
+          </View>
+
+          {/* Pricing & CTA Row */}
+          <View style={styles.bottomRow}>
+            <View style={styles.priceColumn}>
+              <View style={styles.priceInline}>
+                <Text style={[styles.currentPrice, { color: colors.text }]}>{price}</Text>
+                {originalPrice && (
+                  <Text style={[styles.originalPrice, { color: isDark ? '#6B7280' : '#94A3B8' }]}>
+                    {originalPrice}
+                  </Text>
+                )}
+              </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.viewPackageBtn}
-              onPress={onPress}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.viewPackageText}>View package</Text>
-              <ChevronRight size={14} color="#EF4444" />
+            <TouchableOpacity style={styles.viewBtn} onPress={onPress} activeOpacity={0.8}>
+              <Text style={styles.viewBtnText}>View Details</Text>
+              <ChevronRight size={13} color="#6366F1" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  verticalPackageCard: {
-    borderRadius: 16,
-    borderWidth: 0,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 14,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: 'hidden',
   },
-  cardRow: {
+  cardContent: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
+    alignItems: 'center',
   },
-  verticalPackageImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+  imageContainer: {
+    position: 'relative',
   },
-  verticalPackageContent: {
+  packageImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+  },
+  discountBadge: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    right: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.92)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 3,
+  },
+  discountBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  infoSection: {
     flex: 1,
     justifyContent: 'space-between',
+    minHeight: 96,
   },
   packageTitle: {
     fontSize: 14,
     fontWeight: '800',
-    marginBottom: 4,
-    lineHeight: 18,
+    lineHeight: 19,
+    letterSpacing: -0.1,
   },
-  priceAndActionRow: {
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  featureText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 6,
+    alignItems: 'flex-end',
+    marginTop: 2,
   },
-  priceLeft: {
+  priceColumn: {
+    justifyContent: 'flex-end',
+  },
+  priceInline: {
     flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    flex: 1,
-    gap: 4,
+    alignItems: 'baseline',
+    gap: 6,
   },
   currentPrice: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '900',
+    letterSpacing: -0.3,
   },
   originalPrice: {
-    fontSize: 11,
+    fontSize: 12,
     textDecorationLine: 'line-through',
     fontWeight: '600',
   },
-  discountBadge: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  discountText: {
-    color: '#EF4444',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  viewPackageBtn: {
+  viewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 10,
     gap: 2,
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 8,
-    marginLeft: 4,
   },
-  viewPackageText: {
-    color: '#EF4444',
+  viewBtnText: {
+    color: '#6366F1',
     fontSize: 12,
     fontWeight: '700',
   },

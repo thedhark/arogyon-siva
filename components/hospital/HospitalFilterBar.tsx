@@ -11,6 +11,7 @@ interface Props {
   onToggleAvailableToday: () => void;
   onOpenFilterModal: () => void;
   onOpenSpecialtyModal: () => void;
+  categoryEmoji?: string;
 }
 
 export default function HospitalFilterBar({
@@ -21,6 +22,7 @@ export default function HospitalFilterBar({
   onToggleAvailableToday,
   onOpenFilterModal,
   onOpenSpecialtyModal,
+  categoryEmoji = '❤️',
 }: Props) {
   const { colors, isDark } = useTheme();
 
@@ -85,7 +87,7 @@ export default function HospitalFilterBar({
         onPress={onOpenSpecialtyModal}
         activeOpacity={0.7}
       >
-        <Text style={{ fontSize: 13, marginRight: 2 }}>❤️</Text>
+        <Text style={{ fontSize: 13, marginRight: 2 }}>{categoryEmoji}</Text>
         <Text
           style={[
             styles.chipText,

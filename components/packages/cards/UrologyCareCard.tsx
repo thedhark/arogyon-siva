@@ -71,7 +71,7 @@ export default function UrologyCareCard({ onPress }: CardProps) {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    height: verticalScale(152),
+    height: 152,
     borderRadius: Platform.OS === 'android' ? 22 : 16,
     marginBottom: 14,
     shadowColor: '#000',

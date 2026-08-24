@@ -14,6 +14,8 @@ export interface FrequentlyBookedItem {
 }
 
 interface Props {
+  items?: FrequentlyBookedItem[];
+  title?: string;
   onItemPress?: (item: FrequentlyBookedItem) => void;
 }
 
@@ -44,9 +46,11 @@ const FREQUENTLY_BOOKED_ITEMS: FrequentlyBookedItem[] = [
   },
 ];
 
-export default function FrequentlyBookedSection({ onItemPress }: Props) {
+export default function FrequentlyBookedSection({ items, title = 'Frequently booked together', onItemPress }: Props) {
   const { colors, isDark } = useTheme();
   const [selectedDetailsItem, setSelectedDetailsItem] = useState<FrequentlyBookedItem | null>(null);
+
+  const displayItems = items && items.length > 0 ? items : FREQUENTLY_BOOKED_ITEMS;
 
   const handleOpenDetails = (item: FrequentlyBookedItem) => {
     setSelectedDetailsItem(item);
@@ -65,7 +69,7 @@ export default function FrequentlyBookedSection({ onItemPress }: Props) {
   return (
     <View style={styles.container}>
       <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Frequently booked together
+        {title}
       </Text>
 
       <ScrollView
@@ -73,7 +77,7 @@ export default function FrequentlyBookedSection({ onItemPress }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
-        {FREQUENTLY_BOOKED_ITEMS.map((item) => (
+        {displayItems.map((item) => (
           <TouchableOpacity
             key={item.id}
             style={[
@@ -232,7 +236,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    minHeight: 140,
+    height: 146,
   },
   topRow: {
     flexDirection: 'row',

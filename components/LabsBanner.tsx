@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { scale, verticalScale } from '@/utils/responsive';
 
+import { useTheme } from '@/hooks/useTheme';
+
 // Native exact replica of Lenskart Double-Lens Logo from the user's HTML SVG
 const LenskartLogo = () => (
   <View style={styles.logoContainer}>
@@ -19,15 +21,10 @@ const LenskartLogo = () => (
 
 export default function LabsBanner() {
   const router = useRouter();
+  const { isDark } = useTheme();
 
   return (
     <View style={styles.wrapper}>
-      {/* Top Indicator Line (mocking UI element above banner) */}
-      <View style={styles.topIndicatorContainer}>
-        <View style={[styles.indicatorBar, { backgroundColor: '#E5E7EB' }]} />
-        <View style={[styles.indicatorBar, { backgroundColor: '#0B1A45' }]} />
-      </View>
-
       {/* Main Banner Container */}
       <TouchableOpacity 
         activeOpacity={0.92} 
@@ -89,6 +86,12 @@ export default function LabsBanner() {
           </View>
         </View>
       </TouchableOpacity>
+
+      {/* Bottom Indicator Lines (placed below banner) */}
+      <View style={styles.indicatorContainer}>
+        <View style={[styles.indicatorBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : '#E5E7EB' }]} />
+        <View style={[styles.indicatorBar, { backgroundColor: isDark ? '#60A5FA' : '#0B1A45' }]} />
+      </View>
     </View>
   );
 }
@@ -97,14 +100,14 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 4,
   },
-  topIndicatorContainer: {
+  indicatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    marginBottom: 10,
+    marginTop: 10,
   },
   indicatorBar: {
     height: 4,
@@ -121,11 +124,11 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
-    height: verticalScale(172),
+    height: verticalScale(131),
     backgroundColor: '#000000',
-    borderRadius: 40,
+    borderRadius: 28,
     overflow: 'hidden',
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: '#000000',
     position: 'relative',
     justifyContent: 'center',
@@ -142,91 +145,91 @@ const styles = StyleSheet.create({
   contentContainer: {
     position: 'relative',
     zIndex: 10,
-    width: '65%',
-    paddingLeft: 24,
-    paddingRight: 8,
+    width: '68%',
+    paddingLeft: 20,
+    paddingRight: 6,
     justifyContent: 'center',
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 6,
+    marginRight: 5,
   },
   lensOuter: {
-    width: 19,
-    height: 19,
-    borderRadius: 9.5,
-    borderWidth: 2.2,
+    width: 17,
+    height: 17,
+    borderRadius: 8.5,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
   lensInnerDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 1.75,
     backgroundColor: '#FFFFFF',
   },
   brandName: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     fontFamily: Platform.OS === 'ios' ? 'Inter' : 'sans-serif',
   },
   headingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headingWhite: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 19,
     fontWeight: '900',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     fontFamily: Platform.OS === 'ios' ? 'Montserrat' : 'sans-serif',
   },
   headingOrange: {
     color: '#F05845',
-    fontSize: 24,
+    fontSize: 19,
     fontWeight: '900',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     fontFamily: Platform.OS === 'ios' ? 'Montserrat' : 'sans-serif',
   },
   subheadingContainer: {
-    marginTop: 2,
+    marginTop: 1,
   },
   subheadingLine1: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '500',
     letterSpacing: -0.2,
-    lineHeight: 17,
+    lineHeight: 14.5,
   },
   subheadingLine2: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: -0.2,
-    lineHeight: 18,
+    lineHeight: 15.5,
   },
   tcContainer: {
     position: 'absolute',
-    bottom: 12,
-    right: 20,
+    bottom: 10,
+    right: 16,
     zIndex: 20,
   },
   tcText: {
     color: '#FFFFFF',
     opacity: 0.8,
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '500',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
 });

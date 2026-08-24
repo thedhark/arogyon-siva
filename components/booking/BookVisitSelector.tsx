@@ -67,6 +67,15 @@ export default function BookVisitSelector({
     return [];
   });
 
+  // Keep selectedIds in sync if controlled via initialSelectedIds or initialCount
+  React.useEffect(() => {
+    if (initialSelectedIds !== undefined) {
+      setSelectedIds(initialSelectedIds);
+    } else if (initialCount === 0) {
+      setSelectedIds([]);
+    }
+  }, [initialSelectedIds ? initialSelectedIds.join(',') : '', initialCount]);
+
   const [isPeopleModalOpen, setIsPeopleModalOpen] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
@@ -375,10 +384,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   compactInitialBookBtn: {
-    width: 136,
-    height: 42,
-    borderRadius: 11,
-    gap: 5,
+    width: 104,
+    height: 32,
+    borderRadius: 8,
+    gap: 3,
+    paddingHorizontal: 4,
+    borderWidth: 1.2,
   },
   initialBookBtnText: {
     fontFamily: Fonts.bold,
@@ -388,8 +399,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   compactInitialBookBtnText: {
-    fontSize: 13,
-    letterSpacing: 0.2,
+    fontSize: 10.5,
+    letterSpacing: 0.1,
   },
   mainPill: {
     width: 136,
@@ -410,11 +421,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   compactMainPill: {
-    width: 136,
-    height: 42,
-    borderRadius: 11,
-    paddingHorizontal: 9,
-    paddingLeft: 7,
+    width: 104,
+    height: 32,
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingLeft: 4,
   },
   singleMemberContent: {
     flexDirection: 'row',
@@ -431,10 +442,10 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF', // Crisp white halo
   },
   compactSingleAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1.2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1,
     borderColor: '#FFFFFF',
   },
   singleNameText: {
@@ -446,7 +457,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   compactSingleNameText: {
-    fontSize: 12,
+    fontSize: 11,
+    letterSpacing: -0.2,
   },
   multiMemberContent: {
     flexDirection: 'row',
@@ -467,10 +479,10 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF', // Crisp white halo around all stacked avatars
   },
   compactStackedAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1.2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
     borderColor: '#FFFFFF',
   },
   stackedAvatarOverlap: {
@@ -487,7 +499,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   compactPeopleCountText: {
-    fontSize: 11.5,
+    fontSize: 10.5,
   },
   overflowText: {
     fontFamily: Fonts.bold,
@@ -497,6 +509,6 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   compactOverflowText: {
-    fontSize: 10.5,
+    fontSize: 9.5,
   },
 });

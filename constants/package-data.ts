@@ -1048,15 +1048,42 @@ export function getCategoryById(inputSlug: string): CategoryIndex {
 }
 
 /**
- * Looks up a specific package by its package ID across all categories.
+ * Looks up a specific package by its package ID across all categories and offers.
  */
 export function getPackageById(packageId: string): PackageItem {
   const targetId = (packageId || '').toLowerCase().trim();
 
+  // 1. Search in main category registry
   for (const key in CATEGORY_INDEX_REGISTRY) {
     const category = CATEGORY_INDEX_REGISTRY[key];
     const found = category.packages.find((p) => p.id.toLowerCase() === targetId);
     if (found) return found;
+  }
+
+  // 2. Search in mock / offer packages
+  try {
+    const { OFFER_PACKAGES } = require('@/constants/offers-data');
+    if (OFFER_PACKAGES && Array.isArray(OFFER_PACKAGES)) {
+      const offerPkg = OFFER_PACKAGES.find((p: any) => p.id.toLowerCase() === targetId);
+      if (offerPkg) {
+        return {
+          id: offerPkg.id,
+          categoryId: offerPkg.categoryId || 'health-checkups',
+          title: offerPkg.title,
+          price: `₹${offerPkg.discountedPrice}`,
+          originalPrice: `₹${offerPkg.originalPrice}`,
+          discount: `${offerPkg.discountPercentage}% OFF`,
+          image: offerPkg.image,
+          hospitalName: offerPkg.hospitalName,
+          hospitalLocation: offerPkg.hospitalLocation,
+          testsCount: offerPkg.testsCount,
+          inclusions: offerPkg.inclusions,
+          summary: offerPkg.summary,
+        };
+      }
+    }
+  } catch (e) {
+    // Ignore and fallback
   }
 
   // Default fallback mock package

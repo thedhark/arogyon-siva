@@ -30,6 +30,7 @@ import {
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
+import { useScrollFooter } from '@/hooks/useScrollFooter';
 
 type PaymentMethodType = 'upi' | 'card' | 'netbanking' | 'wallet';
 
@@ -44,8 +45,9 @@ export default function GlobalPaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { colors, isDark } = useTheme();
-
   const bookAppointment = useBookingStore(state => state.bookAppointment);
+
+  const { isFooterVisible, scrollProps } = useScrollFooter({ threshold: 12, topThreshold: 30 });
 
   const amount = (params.totalPayable as string) || '699';
   const doctorId = (params.doctorId as string) || 'doc-1';
@@ -145,7 +147,11 @@ export default function GlobalPaymentScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        {...scrollProps}
+      >
         
         {/* Payable Amount Summary Banner */}
         <View style={[styles.amountBanner, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#E5E7EB' }]}>
@@ -357,6 +363,7 @@ export default function GlobalPaymentScreen() {
         ctaIcon="check"
         onPressCTA={handlePayNow}
         disabled={isProcessing}
+        visible={isFooterVisible}
       />
     </SafeAreaView>
   );
