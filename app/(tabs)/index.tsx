@@ -16,7 +16,6 @@ import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHan
 import HomeHeader from '@/components/HomeHeader';
 
 import RecommendedPlans from '@/components/RecommendedPlans';
-import LabsBanner from '@/components/LabsBanner';
 import ExploreCategories from '@/components/ExploreCategories';
 import ExploreFilters from '@/components/ExploreFilters';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -291,10 +290,6 @@ export default function HomeScreen() {
             <SpotlightBanner />
           </Animated.View>
 
-          {/* Index 3: Arogyon Labs & Lenskart Banner (Positioned directly below Spotlight Banner) */}
-          <Animated.View entering={FadeInDown.delay(250)} style={{ paddingHorizontal: 12, marginBottom: 16 }}>
-            <LabsBanner />
-          </Animated.View>
 
           {/* Index 4: Category Section Header: What's On Your Mind? (Scrolls naturally away when scrolling down) */}
           <Animated.View entering={FadeInDown.delay(280)} style={styles.categorySectionHeaderContainer}>
