@@ -138,7 +138,7 @@ export default function TrustedDoctorCard({ doctor }: TrustedDoctorCardProps) {
           <View style={styles.selectorWrapper}>
             <BookVisitSelector
               compact
-              buttonLabel="VISIT  +"
+              buttonLabel="VISIT"
               initialSelectedIds={
                 existingCartItem?.assignedPatientId
                   ? [existingCartItem.assignedPatientId]

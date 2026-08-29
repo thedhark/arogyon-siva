@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { ChevronRight, X, Percent } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBookingStore } from '@/hooks/useBookingStore';
+import { useTabBarStore } from '@/hooks/useTabBarStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
 
@@ -18,17 +20,40 @@ interface FloatingCartBarProps {
 export default function FloatingCartBar({
   variant = 'hospital',
   onPressContinue,
-  bottomOffset = 0,
+  bottomOffset,
   onDismiss,
 }: FloatingCartBarProps) {
   const router = useRouter();
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const cartItems = useBookingStore((state) => state.cartItems);
+  const isTabBarVisible = useTabBarStore((state) => state.isTabBarVisible);
   const [isDismissed, setIsDismissed] = useState(false);
   const [prevCount, setPrevCount] = useState(cartItems?.length || 0);
 
   const bottomPadding = insets.bottom > 0 ? insets.bottom : Platform.OS === 'ios' ? 14 : 8;
+
+  const defaultBaseBottom = variant === 'home' 
+    ? (bottomOffset !== undefined && bottomOffset > 0 ? bottomOffset : (Platform.OS === 'ios' ? 108 : 98))
+    : (bottomOffset !== undefined ? bottomOffset : 0);
+  const hiddenBaseBottom = variant === 'home'
+    ? (Platform.OS === 'ios' ? 30 : 18)
+    : (bottomOffset !== undefined ? bottomOffset : 0);
+
+  const targetBottom = isTabBarVisible ? defaultBaseBottom : hiddenBaseBottom;
+  const animBottom = useSharedValue(targetBottom);
+
+  useEffect(() => {
+    animBottom.value = withSpring(targetBottom, {
+      damping: 20,
+      stiffness: 220,
+      mass: 0.6,
+    });
+  }, [targetBottom]);
+
+  const animatedBottomStyle = useAnimatedStyle(() => ({
+    bottom: animBottom.value,
+  }));
 
   // If new items are added to cart, re-show the floating bar
   useEffect(() => {
@@ -73,7 +98,7 @@ export default function FloatingCartBar({
   // -------------------------------------------------------------
   if (variant === 'home') {
     return (
-      <View style={[styles.homeWrapper, { bottom: bottomOffset }]}>
+      <Animated.View style={[styles.homeWrapper, animatedBottomStyle]}>
         <View
           style={[
             styles.homeContainer,
@@ -152,7 +177,7 @@ export default function FloatingCartBar({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Animated.View>
     );
   }
 
@@ -169,7 +194,7 @@ export default function FloatingCartBar({
   const itemsText = `${itemCount} care added`;
 
   return (
-    <View style={[styles.detailWrapper, { bottom: bottomOffset }]}>
+    <Animated.View style={[styles.detailWrapper, animatedBottomStyle]}>
       <View
         style={[
           styles.detailContainerCard,
@@ -240,7 +265,7 @@ export default function FloatingCartBar({
           </View>
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

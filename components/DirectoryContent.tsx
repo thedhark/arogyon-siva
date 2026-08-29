@@ -50,9 +50,6 @@ export default function DirectoryContent({ activeTab }: { activeTab: string }) {
         <Text style={[styles.countHeader, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
           {headerTitle}
         </Text>
-        <Text style={[styles.featuredLabel, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>
-          Verified & Partnered
-        </Text>
       </View>
 
       {filteredData.length > 0 ? (
@@ -77,7 +74,7 @@ export default function DirectoryContent({ activeTab }: { activeTab: string }) {
 const styles = StyleSheet.create({
   container: {
     paddingTop: 4,
-    paddingBottom: 80,
+    paddingBottom: 130,
     gap: 12,
     minHeight: 600,
   },
@@ -94,12 +91,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 2.2,
     textTransform: 'uppercase',
-  },
-  featuredLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 0.3,
-    marginTop: 2,
   },
   emptyState: {
     height: 200,

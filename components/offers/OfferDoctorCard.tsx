@@ -214,22 +214,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.3,
   },
-  instantBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-  instantBadgeText: {
-    color: '#059669',
-    fontSize: 10.5,
-    fontWeight: '700',
-  },
   clinicBadge: {
     flexDirection: 'row',
     alignItems: 'center',

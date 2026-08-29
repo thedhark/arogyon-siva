@@ -60,6 +60,13 @@ export interface Appointment {
   assignedPatientGender?: string;
   assignedPatientAge?: string;
   assignedPatientAvatar?: string;
+  refundId?: string;
+  refundAmount?: number;
+  refundStatus?: 'initiated' | 'processing' | 'credited';
+  refundMode?: string;
+  arnNumber?: string;
+  refundInitiatedDate?: string;
+  refundEstimatedDate?: string;
 }
 
 export interface PackageBooking {
@@ -114,6 +121,7 @@ interface BookingState {
   bookAppointment: (details: Omit<Appointment, 'id' | 'status'> & Partial<Appointment>) => string;
   bookPackage: (details: Omit<PackageBooking, 'id' | 'bookingDate'>) => string;
   cancelAppointment: (id: string) => void;
+  rescheduleAppointment: (id: string, newDate: string, newTime: string) => void;
   getAppointment: (id: string) => Appointment | undefined;
   addCartItem: (item: Omit<CartItem, 'id'>) => string;
   updateCartItemPatient: (cartItemId: string, patientInfo: Partial<CartItem>) => void;
@@ -137,7 +145,7 @@ const initialDoctors: Record<string, Doctor> = {
     patients: '5000+',
     languages: 'English, Hindi, Kannada',
     about: 'A delightful and highly recommended specialist in sports injury rehabilitation, post-surgical recovery, spinal realignment, and chronic joint pain management. Layered with modern bio-mechanical assessments and a delicate blend of personalized recovery techniques.',
-    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=800',
     fee: '699',
     hospitalId: 'hosp-1',
     services: [
@@ -159,7 +167,7 @@ const initialDoctors: Record<string, Doctor> = {
     patients: '10K+',
     languages: 'English, Tamil, Hindi',
     about: 'Renowned expert in women\'s health, high-risk pregnancy management, laparoscopic surgeries, and modern fertility counseling. Trusted by thousands of families for compassionate care.',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?q=80&w=800',
     fee: '800',
     hospitalId: 'hosp-1',
     services: [
@@ -181,7 +189,7 @@ const initialDoctors: Record<string, Doctor> = {
     patients: '8000+',
     languages: 'English, Kannada, Hindi',
     about: 'Specialist in clinical dermatology, laser skin therapies, acne scar treatment, and advance hair care procedures. Delivers holistic skincare tailored to individual patient needs.',
-    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?q=80&w=800',
     fee: '750',
     hospitalId: 'hosp-2',
     services: [
@@ -207,7 +215,7 @@ const initialDoctors: Record<string, Doctor> = {
     fee: '600',
     hospitalId: 'hosp-1',
     services: [
-      { id: 's1', name: 'General Consultation', price: '₹600' },
+      { id: 's1', name: 'General In-Clinic Consultation', price: '₹600' },
       { id: 's2', name: 'Full Vital Screening Review', price: '₹950' },
       { id: 's3', name: 'Preventive Health Assessment', price: '₹1,200' }
     ]
@@ -230,7 +238,30 @@ const initialDoctors: Record<string, Doctor> = {
     hospitalId: 'hosp-1',
     services: [
       { id: 's1', name: 'Internal Medicine Consult', price: '₹550' },
-      { id: 's2', name: 'Diabetes Management Plan', price: '₹800' }
+      { id: 's2', name: 'Diabetes Management Plan', price: '₹800' },
+      { id: 's3', name: 'Blood Pressure & Lipid Review', price: '₹950' }
+    ]
+  },
+  'doc-arjun': {
+    id: 'doc-arjun',
+    name: 'Dr. Arjun Mehta',
+    verified: true,
+    speciality: 'Senior General Physician',
+    experience: '11+ Years Experience',
+    rating: '4.7',
+    reviews: '1.6K',
+    location: 'Whitefield, CareWell Hospital',
+    distance: '3.4 km',
+    patients: '15,000+',
+    languages: 'English, Hindi',
+    about: 'Experienced clinical specialist dedicated to holistic family healthcare, metabolic disease reversal, and proactive annual health maintenance.',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80',
+    fee: '650',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Physician Consultation', price: '₹650' },
+      { id: 's2', name: 'Executive Health Check', price: '₹1,100' },
+      { id: 's3', name: 'Post-Viral Recovery Consult', price: '₹850' }
     ]
   },
   'doc-neha': {
@@ -267,12 +298,35 @@ const initialDoctors: Record<string, Doctor> = {
     patients: '15,000+',
     languages: 'English, Telugu, Hindi',
     about: 'Leading expert in obstetrics and gynecology, maternal health, prenatal guidance, and PCOS hormonal balancing.',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=800&q=80',
     fee: '700',
     hospitalId: 'hosp-1',
     services: [
       { id: 's1', name: 'Antenatal Consultation', price: '₹700' },
-      { id: 's2', name: 'PCOS & Hormone Screen', price: '₹1,100' }
+      { id: 's2', name: 'PCOS & Hormone Screen', price: '₹1,100' },
+      { id: 's3', name: 'Fertility & Pre-Conception Counseling', price: '₹1,400' }
+    ]
+  },
+  'doc-ananya': {
+    id: 'doc-ananya',
+    name: 'Dr. Ananya Rao',
+    verified: true,
+    speciality: 'Obstetrician & Women Care',
+    experience: '11+ Years Experience',
+    rating: '4.8',
+    reviews: '1.3K',
+    location: 'Indiranagar, Motherhood Hospital',
+    distance: '2.2 km',
+    patients: '11,200+',
+    languages: 'English, Kannada, Hindi',
+    about: 'Specialist in advanced maternal-fetal medicine, high-risk pregnancy delivery, and laparoscopic gynecological procedures.',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
+    fee: '800',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Obstetric Consultation', price: '₹800' },
+      { id: 's2', name: 'High-Risk Pregnancy Evaluation', price: '₹1,250' },
+      { id: 's3', name: 'Post-Natal Wellness Check', price: '₹950' }
     ]
   },
   'doc-mehra': {
@@ -288,12 +342,35 @@ const initialDoctors: Record<string, Doctor> = {
     patients: '14,000+',
     languages: 'English, Hindi',
     about: 'Expert in clinical dermatology, acne therapies, laser treatments, and advanced hair restoration protocols.',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=800&q=80',
     fee: '650',
     hospitalId: 'hosp-2',
     services: [
       { id: 's1', name: 'Dermatology Consultation', price: '₹650' },
-      { id: 's2', name: 'Acne & Glow Protocol', price: '₹1,250' }
+      { id: 's2', name: 'Acne & Glow Protocol', price: '₹1,250' },
+      { id: 's3', name: 'Hair Fall & PRP Assessment', price: '₹1,800' }
+    ]
+  },
+  'doc-rajesh': {
+    id: 'doc-rajesh',
+    name: 'Dr. Rajesh Kumar',
+    verified: true,
+    speciality: 'Dermatology & Cosmetology',
+    experience: '8+ Years Experience',
+    rating: '4.7',
+    reviews: '890',
+    location: 'Indiranagar, Oliva Skin Clinic',
+    distance: '1.8 km',
+    patients: '8,900+',
+    languages: 'English, Kannada, Hindi',
+    about: 'Specialist in aesthetic cosmetology, anti-pigmentation regimens, skin allergy management, and modern dermatological laser therapies.',
+    image: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?w=800&q=80',
+    fee: '600',
+    hospitalId: 'hosp-2',
+    services: [
+      { id: 's1', name: 'Derma & Aesthetic Consult', price: '₹600' },
+      { id: 's2', name: 'Skin Allergy Mapping', price: '₹950' },
+      { id: 's3', name: 'Pigmentation Therapy Consult', price: '₹1,400' }
     ]
   },
   'doc-sanjay': {
@@ -314,7 +391,30 @@ const initialDoctors: Record<string, Doctor> = {
     hospitalId: 'hosp-1',
     services: [
       { id: 's1', name: 'Pediatric Consultation', price: '₹600' },
-      { id: 's2', name: 'Growth & Nutrition Review', price: '₹900' }
+      { id: 's2', name: 'Growth & Nutrition Review', price: '₹900' },
+      { id: 's3', name: 'Vaccination Schedule Assessment', price: '₹750' }
+    ]
+  },
+  'doc-arjun-reddy': {
+    id: 'doc-arjun-reddy',
+    name: 'Dr. Arjun Reddy',
+    verified: true,
+    speciality: 'Joint & Orthopedic Surgeon',
+    experience: '13+ Years Experience',
+    rating: '4.8',
+    reviews: '1.9K',
+    location: 'Yeshwanthpur, Sparsh Hospital',
+    distance: '4.2 km',
+    patients: '10,500+',
+    languages: 'English, Telugu, Kannada',
+    about: 'Renowned orthopedic surgeon specializing in robotic knee replacements, arthroscopic sports surgeries, and spinal disc management.',
+    image: 'https://images.unsplash.com/photo-1584467735874-9549f75f9227?w=800&q=80',
+    fee: '750',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Orthopedic Consultation', price: '₹750' },
+      { id: 's2', name: 'Joint Pain & Mobility Screening', price: '₹1,150' },
+      { id: 's3', name: 'Arthritis Care Management Plan', price: '₹1,500' }
     ]
   },
   'doc-shruti': {
@@ -330,12 +430,13 @@ const initialDoctors: Record<string, Doctor> = {
     patients: '13,000+',
     languages: 'English, Hindi, Marathi',
     about: 'Chief dental surgeon with specialization in preventive orthodontics, smile aesthetics, implants, and root canals.',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&q=80',
     fee: '450',
     hospitalId: 'hosp-1',
     services: [
       { id: 's1', name: 'Dental Examination & Scaler', price: '₹450' },
-      { id: 's2', name: 'Laser Teeth Whitening', price: '₹1,500' }
+      { id: 's2', name: 'Laser Teeth Whitening', price: '₹1,500' },
+      { id: 's3', name: 'Invisible Aligners Scan & Consult', price: '₹999' }
     ]
   },
   'doc-nair': {
@@ -356,7 +457,115 @@ const initialDoctors: Record<string, Doctor> = {
     hospitalId: 'hosp-1',
     services: [
       { id: 's1', name: 'Comprehensive Eye Examination', price: '₹600' },
-      { id: 's2', name: 'Lasik Suitability Assessment', price: '₹1,000' }
+      { id: 's2', name: 'Lasik Suitability Assessment', price: '₹1,000' },
+      { id: 's3', name: 'Digital Eye Strain Therapy Plan', price: '₹800' }
+    ]
+  },
+  'doc-murthy': {
+    id: 'doc-murthy',
+    name: 'Dr. Vivek Murthy',
+    verified: true,
+    speciality: 'Senior Interventional Cardiologist',
+    experience: '17+ Years Experience',
+    rating: '4.9',
+    reviews: '3.2K',
+    location: 'Bannerghatta Road, Fortis Heart Institute',
+    distance: '4.8 km',
+    patients: '20,000+',
+    languages: 'English, Hindi, Kannada',
+    about: 'Senior interventional cardiologist specializing in preventive cardiovascular screenings, angioplasty, hypertension management, and heart health optimization.',
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80',
+    fee: '900',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Cardiology Consultation', price: '₹900' },
+      { id: 's2', name: 'ECG & Echo Assessment Review', price: '₹1,400' },
+      { id: 's3', name: 'Cardiac Preventive Health Plan', price: '₹1,900' }
+    ]
+  },
+  'doc-amit': {
+    id: 'doc-amit',
+    name: 'Dr. Amit Shah',
+    verified: true,
+    speciality: 'Clinical Neuropsychiatrist',
+    experience: '11+ Years Experience',
+    rating: '4.8',
+    reviews: '1.2K',
+    location: 'Koramangala, MindPeers Wellness Center',
+    distance: '1.5 km',
+    patients: '7,800+',
+    languages: 'English, Hindi, Gujarati',
+    about: 'Empathetic neuropsychiatrist providing evidence-based cognitive and medical therapies for anxiety, depression, burnout, and insomnia.',
+    image: 'https://images.unsplash.com/photo-1607990281513-2c110aef5ba8?w=800&q=80',
+    fee: '850',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Mental Health Evaluation', price: '₹850' },
+      { id: 's2', name: 'Anxiety & Sleep Therapy Review', price: '₹1,200' },
+      { id: 's3', name: 'Holistic Stress Resilience Plan', price: '₹1,600' }
+    ]
+  },
+  'doc-rv': {
+    id: 'doc-rv',
+    name: 'Dr. Ramesh Verma',
+    verified: true,
+    speciality: 'Senior Cardiologist',
+    experience: '15+ Years Experience',
+    rating: '4.9',
+    reviews: '2.4K',
+    location: 'Banjara Hills, Apollo Hospitals',
+    distance: '2.0 km',
+    patients: '16,000+',
+    languages: 'English, Hindi, Telugu',
+    about: 'Specialized consultant cardiologist with deep expertise in non-invasive imaging, lipid disorders, and coronary artery disease prevention.',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80',
+    fee: '800',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Cardiology Consultation', price: '₹800' },
+      { id: 's2', name: 'Cardiac Stress Assessment', price: '₹1,500' }
+    ]
+  },
+  'doc-as': {
+    id: 'doc-as',
+    name: 'Dr. Ananya Sharma',
+    verified: true,
+    speciality: 'Nephrologist & Urologist',
+    experience: '13+ Years Experience',
+    rating: '4.8',
+    reviews: '1.7K',
+    location: 'Banjara Hills, CARE Hospitals',
+    distance: '3.2 km',
+    patients: '12,500+',
+    languages: 'English, Hindi',
+    about: 'Leading nephrology and renal health expert with experience in kidney stone management, renal dialysis protocols, and hypertension.',
+    image: 'https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=800&q=80',
+    fee: '900',
+    hospitalId: 'hosp-1',
+    services: [
+      { id: 's1', name: 'Nephrology Consultation', price: '₹900' },
+      { id: 's2', name: 'Kidney Function Review', price: '₹1,200' }
+    ]
+  },
+  'doc-sr': {
+    id: 'doc-sr',
+    name: 'Dr. Sandeep Reddy',
+    verified: true,
+    speciality: 'Neurologist',
+    experience: '14+ Years Experience',
+    rating: '4.8',
+    reviews: '1.9K',
+    location: 'Secunderabad, KIMS Hospitals',
+    distance: '4.5 km',
+    patients: '14,000+',
+    languages: 'English, Hindi, Telugu',
+    about: 'Senior neurologist specializing in migraine management, neuromuscular care, stroke rehabilitation, and neuro-diagnostics.',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
+    fee: '700',
+    hospitalId: 'hosp-2',
+    services: [
+      { id: 's1', name: 'Neurology Consultation', price: '₹700' },
+      { id: 's2', name: 'Headache & Migraine Protocol', price: '₹1,100' }
     ]
   }
 };
@@ -610,7 +819,34 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   cancelAppointment: (id) => {
     set((state) => ({
       appointments: state.appointments.map(app => 
-        app.id === id ? { ...app, status: 'cancelled', paymentStatus: 'refunded' } : app
+        app.id === id ? {
+          ...app,
+          status: 'cancelled',
+          paymentStatus: 'refunded',
+          refundId: `REF-${Date.now().toString().slice(-6)}`,
+          refundAmount: app.totalPaid || parseFloat(app.fee) || 699,
+          refundStatus: 'processing',
+          refundMode: app.paymentMethod || 'Original Source (UPI)',
+          arnNumber: `ARN-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+          refundInitiatedDate: new Date().toISOString(),
+          refundEstimatedDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        } : app
+      )
+    }));
+  },
+
+  rescheduleAppointment: (id, newDate, newTime) => {
+    set((state) => ({
+      appointments: state.appointments.map(app =>
+        app.id === id
+          ? {
+              ...app,
+              date: newDate,
+              time: newTime,
+              status: 'upcoming',
+              confirmationStatus: 'confirmed',
+            }
+          : app
       )
     }));
   },

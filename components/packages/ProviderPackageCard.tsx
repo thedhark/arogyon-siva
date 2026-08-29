@@ -116,7 +116,14 @@ export default function ProviderPackageCard({
                 </View>
               )}
               <Text style={[styles.priceLabel, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>Package Price</Text>
-              <Text style={[styles.priceValue, { color: colors.text }]}>{startingPrice}</Text>
+              <Text
+                style={[styles.priceValue, { color: colors.text }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+              >
+                {startingPrice}
+              </Text>
             </View>
           </View>
 
@@ -155,13 +162,13 @@ export default function ProviderPackageCard({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     flexDirection: 'row',
     overflow: 'hidden',
     borderWidth: 1,
@@ -202,7 +209,8 @@ const styles = StyleSheet.create({
   },
   priceSection: {
     alignItems: 'flex-end',
-    minWidth: 70,
+    minWidth: 85,
+    flexShrink: 0,
   },
   bottomRow: {
     flexDirection: 'row',

@@ -28,7 +28,7 @@ const DEFAULT_RECOMMENDED_DOCTORS: DoctorData[] = [
     hospitalName: 'Apollo Hospitals, Banjara Hills',
     location: 'Banjara Hills, Hyderabad',
     languages: 'English • Hindi • Telugu',
-    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400',
     availableSlots: ['10:00 AM', '12:30 PM', '05:00 PM'],
   },
   {
@@ -40,7 +40,7 @@ const DEFAULT_RECOMMENDED_DOCTORS: DoctorData[] = [
     hospitalName: 'CARE Hospitals, Banjara Hills',
     location: 'Banjara Hills, Hyderabad',
     languages: 'English • Hindi',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1591604021695-0c69b7c05981?q=80&w=400',
     availableSlots: ['09:30 AM', '01:00 PM', '06:30 PM'],
   },
   {
@@ -52,7 +52,7 @@ const DEFAULT_RECOMMENDED_DOCTORS: DoctorData[] = [
     hospitalName: 'KIMS Hospitals, Secunderabad',
     location: 'Secunderabad, Hyderabad',
     languages: 'English • Hindi • Telugu',
-    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400',
     availableSlots: ['10:30 AM', '02:00 PM', '07:00 PM'],
   },
 ];
@@ -275,7 +275,7 @@ export default function HospitalExperts({
                       key={item.id}
                       style={[
                         styles.modalItemRow,
-                        isSelected && { backgroundColor: isDark ? '#2E1065' : '#FEF2F2' },
+                        isSelected && { backgroundColor: isDark ? '#172554' : '#EFF6FF' },
                       ]}
                       onPress={() => {
                         setSelectedSpec(item.id);
@@ -286,14 +286,14 @@ export default function HospitalExperts({
                         style={[
                           styles.modalItemText,
                           {
-                            color: isSelected ? '#E11D48' : colors.text,
+                            color: isSelected ? (isDark ? '#60A5FA' : '#1D4ED8') : colors.text,
                             fontWeight: isSelected ? '800' : '600',
                           },
                         ]}
                       >
                         {item.name}
                       </Text>
-                      {isSelected && <CheckCircle2 size={18} color="#E11D48" />}
+                      {isSelected && <CheckCircle2 size={18} color={isDark ? '#60A5FA' : '#2563EB'} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -334,27 +334,33 @@ export default function HospitalExperts({
                 <TouchableOpacity
                   style={[
                     styles.modalFilterOption,
-                    isHighlyRecommended && { backgroundColor: isDark ? '#31121F' : '#FFF1F2' },
+                    isHighlyRecommended && { 
+                      backgroundColor: isDark ? '#172554' : '#EFF6FF',
+                      borderColor: isDark ? '#2563EB' : '#BFDBFE',
+                    },
                   ]}
                   onPress={() => setIsHighlyRecommended(!isHighlyRecommended)}
                 >
                   <Text style={[styles.modalOptionText, { color: colors.text }]}>
                     ⭐ Highly Recommended Only
                   </Text>
-                  {isHighlyRecommended && <CheckCircle2 size={18} color="#E11D48" />}
+                  {isHighlyRecommended && <CheckCircle2 size={18} color={isDark ? '#60A5FA' : '#2563EB'} />}
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     styles.modalFilterOption,
-                    isAvailableToday && { backgroundColor: isDark ? '#31121F' : '#FFF1F2' },
+                    isAvailableToday && { 
+                      backgroundColor: isDark ? '#172554' : '#EFF6FF',
+                      borderColor: isDark ? '#2563EB' : '#BFDBFE',
+                    },
                   ]}
                   onPress={() => setIsAvailableToday(!isAvailableToday)}
                 >
                   <Text style={[styles.modalOptionText, { color: colors.text }]}>
                     📅 Available Today Only
                   </Text>
-                  {isAvailableToday && <CheckCircle2 size={18} color="#E11D48" />}
+                  {isAvailableToday && <CheckCircle2 size={18} color={isDark ? '#60A5FA' : '#2563EB'} />}
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -457,7 +463,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   applyBtn: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#2563EB',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',

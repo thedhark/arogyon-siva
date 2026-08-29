@@ -204,7 +204,7 @@ export default function PackagesOfferScreen() {
                   variant="hospital"
                   onPress={() => handlePackagePress(pkg.id)}
                   onAddPress={() => handleAddPackage(pkg)}
-                  ctaText="ADD PACKAGE"
+                  ctaText="ADD"
                 />
               </Animated.View>
             ))

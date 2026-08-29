@@ -29,7 +29,6 @@ import HospitalPackages from '@/components/hospital/HospitalPackages';
 import HospitalInfoModal from '@/components/hospital/HospitalInfoModal';
 import HospitalOffersBanner from '@/components/hospital/HospitalOffersBanner';
 import HospitalOffersModal from '@/components/hospital/HospitalOffersModal';
-import HospitalGoldFooter from '@/components/hospital/HospitalGoldFooter';
 
 import AddVisitModal from '@/components/booking/AddVisitModal';
 import AddPackageModal from '@/components/booking/AddPackageModal';
@@ -140,7 +139,6 @@ export default function HospitalProfile() {
 
   const [selectedDoctorForVisit, setSelectedDoctorForVisit] = useState<any>(null);
   const [selectedPackageForAdd, setSelectedPackageForAdd] = useState<any>(null);
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
   const prevScrollYRef = useRef(0);
 
   const toggleDocLike = (docId: any) => {
@@ -173,16 +171,6 @@ export default function HospitalProfile() {
 
   const handleScroll = (event: any) => {
     const scrollY = event.nativeEvent.contentOffset.y;
-    const delta = scrollY - prevScrollYRef.current;
-
-    // Scroll-responsive footer toggle
-    if (scrollY <= 30) {
-      setIsFooterVisible(true);
-    } else if (delta > 12 && scrollY > 50) {
-      setIsFooterVisible(false);
-    } else if (delta < -12) {
-      setIsFooterVisible(true);
-    }
     prevScrollYRef.current = scrollY;
 
     if (isManualScrolling.current) return;
@@ -297,12 +285,12 @@ export default function HospitalProfile() {
           {/* Overlapping Brand Badge / Profile Logo Floating Over Curved Bottom */}
           <View style={[
             styles.profileBadgeWrapper,
-            { borderColor: isDark ? '#121212' : '#FFFFFF', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }
+            { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }
           ]}>
             {(hospitalData as any).logo ? (
               <Image source={{ uri: (hospitalData as any).logo }} style={styles.profileLogoImage} resizeMode="contain" />
             ) : (
-              <View style={[styles.profileLogoPlaceholder, { backgroundColor: isDark ? '#E11D48' : '#00A981' }]}>
+              <View style={[styles.profileLogoPlaceholder, { backgroundColor: isDark ? '#2563EB' : '#1D4ED8' }]}>
                 <Text style={styles.profileLogoText}>
                   {getInitials(hospitalData.name)}
                 </Text>
@@ -351,7 +339,7 @@ export default function HospitalProfile() {
 
           {/* Hospital Offers Banner Bar */}
           <HospitalOffersBanner
-            offersCount={6}
+            offersCount={5}
             onPress={() => setIsOffersModalOpen(true)}
             isDark={isDark}
           />
@@ -362,8 +350,8 @@ export default function HospitalProfile() {
               style={[
                 styles.segmentTrack, 
                 { 
-                  backgroundColor: isDark ? '#1C1929' : '#F1F5F9',
-                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0',
+                  backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : '#F0F7FF',
+                  borderColor: isDark ? 'rgba(59, 130, 246, 0.25)' : '#DBEAFE',
                 }
               ]}
               onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
@@ -380,10 +368,10 @@ export default function HospitalProfile() {
                           outputRange: [4, ((trackWidth - 12) / 2) + 4],
                         })
                       }],
-                      backgroundColor: isDark ? '#2D283E' : '#FFFFFF',
-                      shadowColor: '#000',
+                      backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                      shadowColor: '#2563EB',
                       shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: isDark ? 0.35 : 0.08,
+                      shadowOpacity: isDark ? 0.35 : 0.1,
                       shadowRadius: 5,
                       elevation: 3,
                     }
@@ -399,7 +387,7 @@ export default function HospitalProfile() {
                 <Text style={[
                   styles.segmentText, 
                   { 
-                    color: activeTab === 'Experts' ? (isDark ? '#FFFFFF' : '#0F172A') : (isDark ? '#9CA3AF' : '#64748B'),
+                    color: activeTab === 'Experts' ? (isDark ? '#60A5FA' : '#1D4ED8') : (isDark ? '#94A3B8' : '#64748B'),
                     fontWeight: activeTab === 'Experts' ? '800' : '600'
                   }
                 ]}>
@@ -415,7 +403,7 @@ export default function HospitalProfile() {
                 <Text style={[
                   styles.segmentText, 
                   { 
-                    color: activeTab === 'Packages' ? (isDark ? '#FFFFFF' : '#0F172A') : (isDark ? '#9CA3AF' : '#64748B'),
+                    color: activeTab === 'Packages' ? (isDark ? '#60A5FA' : '#1D4ED8') : (isDark ? '#94A3B8' : '#64748B'),
                     fontWeight: activeTab === 'Packages' ? '800' : '600'
                   }
                 ]}>
@@ -434,7 +422,12 @@ export default function HospitalProfile() {
             colors={colors} 
             isDark={isDark} 
             searchQuery={searchFilterText}
-            onAddVisitPress={(doc) => setSelectedDoctorForVisit(doc)}
+            onAddVisitPress={(doc) => {
+              router.push({
+                pathname: '/doctor/[id]',
+                params: { id: doc.id },
+              });
+            }}
           />
         </View>
 
@@ -472,9 +465,6 @@ export default function HospitalProfile() {
           onAddPackagePress={(pkg) => setSelectedPackageForAdd(pkg)}
         />
       </ScrollView>
-
-      {/* Sticky AROGYON GOLD Delivery & Service Footer Banner matching user screenshot */}
-      {!hasCartItems && <HospitalGoldFooter isDark={isDark} visible={isFooterVisible} />}
 
       {/* Menu Filter Button */}
       {!hasCartItems && (
@@ -523,14 +513,14 @@ export default function HospitalProfile() {
                       key={sec.id}
                       style={[
                         styles.menuItemRow,
-                        isActive && { backgroundColor: isDark ? '#2A1F3D' : '#F3E8FF' }
+                        isActive && { backgroundColor: isDark ? '#172554' : '#EFF6FF' }
                       ]}
                       onPress={() => handleSelectMenuSection(sec)}
                     >
                       <Text
                         style={[
                           styles.menuItemTitle,
-                          { color: isActive ? '#E11D48' : colors.text, fontWeight: isActive ? '800' : '600' }
+                          { color: isActive ? (isDark ? '#60A5FA' : '#1D4ED8') : colors.text, fontWeight: isActive ? '800' : '600' }
                         ]}
                         numberOfLines={1}
                       >
@@ -539,7 +529,7 @@ export default function HospitalProfile() {
                       <Text
                         style={[
                           styles.menuItemCount,
-                          { color: isActive ? '#E11D48' : (isDark ? '#9CA3AF' : '#6B7280'), fontWeight: isActive ? '800' : '600' }
+                          { color: isActive ? (isDark ? '#60A5FA' : '#1D4ED8') : (isDark ? '#9CA3AF' : '#6B7280'), fontWeight: isActive ? '800' : '600' }
                         ]}
                       >
                         {sec.count}
@@ -638,12 +628,12 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 18,
-    borderWidth: 3.5,
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 9,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 6,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
@@ -784,7 +774,7 @@ const styles = StyleSheet.create({
   },
   floatingMenuBtn: {
     position: 'absolute',
-    bottom: 74,
+    bottom: 24,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',

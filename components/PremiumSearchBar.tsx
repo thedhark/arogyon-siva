@@ -136,7 +136,7 @@ export default function PremiumSearchBar() {
 
 const styles = StyleSheet.create({
   outerWrapper: {
-    marginBottom: 12,
+    marginBottom: 0,
   },
   container: {
     flexDirection: 'row',

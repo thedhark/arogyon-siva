@@ -10,7 +10,8 @@ import PremiumSearchBar from '@/components/PremiumSearchBar';
 import SpotlightBanner from '@/components/SpotlightBanner';
 import DirectoryHeader from '@/components/DirectoryHeader';
 import DirectoryContent from '@/components/DirectoryContent';
-import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, useAnimatedProps, interpolate, Extrapolation, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation, withTiming, runOnJS } from 'react-native-reanimated';
+import { useTabBarStore } from '@/hooks/useTabBarStore';
 
 // Extracted sections
 import HomeHeader from '@/components/HomeHeader';
@@ -23,7 +24,6 @@ import { BlurView } from 'expo-blur';
 import { useGlass } from '@/contexts/GlassContext';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const { width } = Dimensions.get('window');
 
@@ -64,21 +64,29 @@ export default function HomeScreen() {
     })();
   }, []);
 
+  const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
   const scrollY = useSharedValue(0);
   const lastScrollY = useSharedValue(0);
   const isScrollingDown = useSharedValue(false);
   const categoriesY = useSharedValue(0);
   const filtersY = useSharedValue(0);
 
+
+  const supportsLiquidGlass = isLiquidGlassAvailable();
+  const statusBarHeight = insets.top > 0 ? insets.top : (Platform.OS === 'android' ? 24 : 44);
+  const themeBgColor = isDark ? '#121212' : '#FDFDFD';
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const currentY = event.contentOffset.y;
 
-      // Track scroll direction with a small threshold to prevent jitter
-      if (currentY > lastScrollY.value + 5 && currentY > 0) {
+      // Track scroll direction with a threshold to prevent jitter
+      if (currentY > lastScrollY.value + 8 && currentY > 50) {
         isScrollingDown.value = true;
-      } else if (currentY < lastScrollY.value - 5) {
+        runOnJS(setTabBarVisible)(false);
+      } else if (currentY < lastScrollY.value - 6 || currentY <= 30) {
         isScrollingDown.value = false;
+        runOnJS(setTabBarVisible)(true);
       }
 
       lastScrollY.value = currentY;
@@ -86,189 +94,47 @@ export default function HomeScreen() {
     },
   });
 
-  const supportsLiquidGlass = isLiquidGlassAvailable();
-  const statusBarHeight = insets.top > 0 ? insets.top : (Platform.OS === 'android' ? 24 : 44);
-
-  // Status Bar Backdrop: Opacity increases smoothly from 0 to 1 as soon as user starts scrolling down
-  const statusBarCoverStyle = useAnimatedStyle(() => {
+  const animatedStatusBarBackdropStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       scrollY.value,
-      [0, 35],
+      [0, 40],
       [0, 1],
       Extrapolation.CLAMP
     );
-    return {
-      opacity,
-    };
-  });
-
-  const categoriesStickyStyle = useAnimatedStyle(() => {
-    const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
-    const progress = interpolate(
-      scrollY.value,
-      [triggerPoint - 20, triggerPoint],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      paddingHorizontal: 0,
-      paddingTop: interpolate(progress, [0, 1], [4, 0]),
-      paddingBottom: interpolate(progress, [0, 1], [4, 6]),
-    };
-  });
-
-  const backgroundContainerStyle = useAnimatedStyle(() => {
-    const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
-    const progress = interpolate(
-      scrollY.value,
-      [triggerPoint - 20, triggerPoint],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-
-    let backgroundColor = 'transparent';
-    if (Platform.OS === 'android') {
-      backgroundColor = isDark ? (progress > 0.05 ? '#121212' : 'transparent') : (progress > 0.05 ? '#FFFFFF' : 'transparent');
-    } else if (supportsLiquidGlass || Platform.OS === 'ios') {
-      backgroundColor = isDark ? `rgba(18,18,18,${progress * 0.4})` : `rgba(255,255,255,${progress * 0.4})`;
-    } else {
-      backgroundColor = isDark ? `rgba(18,18,18,${progress * 0.4})` : `rgba(255,255,255,${progress * 0.4})`;
-    }
-
-    return {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      top: interpolate(progress, [0, 1], [0, -statusBarHeight * 0.8]),
-      backgroundColor,
-      borderRadius: 0,
-      borderWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth * progress,
-      borderBottomWidth: Platform.OS === 'android' ? (progress > 0.5 ? 1 : 0) : StyleSheet.hairlineWidth * progress,
-      borderColor: isDark ? (Platform.OS === 'android' ? '#27272A' : `rgba(255,255,255,${progress * 0.15})`) : (Platform.OS === 'android' ? '#E5E7EB' : `rgba(0,0,0,${progress * 0.08})`),
-      overflow: 'hidden',
-    };
-  });
-
-  const categoriesWrapperStyle = useAnimatedStyle(() => {
-    const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
-    const progress = interpolate(
-      scrollY.value,
-      [triggerPoint - 20, triggerPoint],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: progress * 4 },
-      shadowOpacity: progress * 0.08,
-      shadowRadius: progress * 10,
-      elevation: Platform.OS === 'android' ? 0 : progress * 6,
-      transform: [
-        {
-          translateY: interpolate(progress, [0, 1], [0, statusBarHeight * 0.8])
-        }
-      ]
-    };
-  });
-
-  const categoriesGlassStyle = useAnimatedStyle(() => {
-    const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
-    const progress = interpolate(
-      scrollY.value,
-      [triggerPoint - 20, triggerPoint],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      opacity: progress,
-    };
-  });
-
-  const animatedBlurProps = useAnimatedProps(() => {
-    const triggerPoint = categoriesY.value > 0 ? categoriesY.value - statusBarHeight : 99999;
-    const progress = interpolate(
-      scrollY.value,
-      [triggerPoint - 20, triggerPoint],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      intensity: progress * 85,
-    };
-  });
-
-  const inlineFiltersY = useSharedValue(0);
-
-  const stickyFiltersAnimatedStyle = useAnimatedStyle(() => {
-    if (inlineFiltersY.value === 0) return { height: 0, opacity: 0 };
-    const trigger = inlineFiltersY.value - statusBarHeight - 85;
-    const progress = interpolate(
-      scrollY.value,
-      [trigger - 10, trigger + 15],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      height: interpolate(progress, [0, 1], [0, 36]),
-      opacity: progress,
-      overflow: 'hidden',
-    };
-  });
-
-  const inlineFiltersAnimatedStyle = useAnimatedStyle(() => {
-    if (inlineFiltersY.value === 0) return { opacity: 1 };
-    const trigger = inlineFiltersY.value - statusBarHeight - 85;
-    const progress = interpolate(
-      scrollY.value,
-      [trigger - 10, trigger + 15],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      opacity: 1 - progress,
-    };
+    return { opacity };
   });
 
   return (
     <AnimatedScreen entrance="up">
-      <View style={[styles.screen, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
+      <View style={[styles.screen, { backgroundColor: themeBgColor }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-        {/* Dynamic Status Bar Shield: Fades smoothly from 0 to 1 as user scrolls down */}
+        {/* Dynamic Status Bar Background: Opacity 0% to 100% smoothly on scroll */}
         <Animated.View
+          pointerEvents="none"
           style={[
-            styles.statusBarCover,
+            styles.statusBarBackdrop,
             {
               height: statusBarHeight,
-              backgroundColor: isDark ? '#121212' : '#FFFFFF',
+              backgroundColor: themeBgColor,
             },
-            statusBarCoverStyle,
+            animatedStatusBarBackdropStyle,
           ]}
-          pointerEvents="none"
-        >
-          {Platform.OS === 'ios' && (
-            <BlurView
-              intensity={90}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-        </Animated.View>
+        />
 
         <Animated.ScrollView
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scrollContent, { paddingTop: getDynamicTopInset(insets.top) }]}
-          stickyHeaderIndices={[5]}
+          stickyHeaderIndices={[4]}
+          style={[styles.scrollView, { marginTop: statusBarHeight }]}
+          contentContainerStyle={styles.scrollContent}
           bounces={false}
           overScrollMode="never"
         >
 
           {/* Index 0: Header & Search Bar */}
-          <View style={{ marginBottom: 12, paddingHorizontal: 16 }}>
+          <View style={{ marginBottom: 8, paddingHorizontal: 16 }}>
             <View style={{ marginBottom: 4 }}>
               <HomeHeader currentCity={currentCity} />
             </View>
@@ -278,20 +144,19 @@ export default function HomeScreen() {
           </View>
 
           {/* Index 1: Recommended Plans */}
-          <View style={{ paddingHorizontal: 16 }}>
+          <View style={{ marginBottom: 4 }}>
             <RecommendedPlans />
           </View>
 
           {/* Index 2: Spotlight Banner (50% OFF Offers & Direct Access) */}
-          <Animated.View entering={FadeInDown.delay(200)} style={{ marginBottom: 16 }}>
+          <Animated.View entering={FadeInDown.delay(200)} style={{ marginBottom: 12 }}>
             <View style={[styles.sectionHeader, { paddingHorizontal: 16 }]}>
               <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>SPOTLIGHT</Text>
             </View>
             <SpotlightBanner />
           </Animated.View>
 
-
-          {/* Index 4: Category Section Header: What's On Your Mind? (Scrolls naturally away when scrolling down) */}
+          {/* Index 3: Category Section Header: What's On Your Mind? & See More (Scrolls naturally) */}
           <Animated.View entering={FadeInDown.delay(280)} style={styles.categorySectionHeaderContainer}>
             <Text style={[styles.categorySectionTitle, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
               WHAT'S ON YOUR MIND?
@@ -305,69 +170,42 @@ export default function HomeScreen() {
               style={styles.categoryActionBtn}
             >
               <Text style={[styles.categoryActionLabel, { color: isDark ? '#34D399' : '#059669' }]}>
-                17+ Specialties
+                See More
               </Text>
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Index 5: Sticky Explore Categories & Dynamic Docked Filters (Now contains only pills without text clutter) */}
+          {/* Index 4: Sticky Explore Categories (Single instance, zero duplication, zero gap) */}
           <View
-            onLayout={(e) => {
-              const y = e.nativeEvent.layout.y;
-              if (Math.abs(categoriesY.value - y) > 1) {
-                categoriesY.value = y;
-              }
-            }}
-            style={{ zIndex: 10, marginBottom: 8 }}
+            style={[
+              styles.stickyCategoryWrapper,
+              {
+                backgroundColor: themeBgColor,
+              },
+            ]}
           >
-            <Animated.View style={categoriesStickyStyle}>
-              <Animated.View style={categoriesWrapperStyle}>
-                <Animated.View style={backgroundContainerStyle} pointerEvents="none">
-                  {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
-                    <Animated.View style={[StyleSheet.absoluteFill, categoriesGlassStyle]}>
-                      <GlassView glassEffectStyle="regular" colorScheme={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                    </Animated.View>
-                  ) : (
-                    <AnimatedBlurView animatedProps={animatedBlurProps} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                  )}
-                </Animated.View>
-                <ExploreCategories
-                  activeTab={activeDirectoryTab}
-                  onTabChange={setActiveDirectoryTab}
-                  isModalVisible={isCategoriesModalVisible}
-                  onModalVisibilityChange={setIsCategoriesModalVisible}
-                  style={{ marginBottom: 0, paddingVertical: 4 }}
-                />
-                <Animated.View style={stickyFiltersAnimatedStyle}>
-                  <View style={{ paddingBottom: 4 }}>
-                    <ExploreFilters />
-                  </View>
-                </Animated.View>
-              </Animated.View>
-            </Animated.View>
+            <ExploreCategories
+              activeTab={activeDirectoryTab}
+              onTabChange={setActiveDirectoryTab}
+              isModalVisible={isCategoriesModalVisible}
+              onModalVisibilityChange={setIsCategoriesModalVisible}
+              style={{ marginBottom: 2, paddingVertical: 2 }}
+            />
           </View>
 
-          {/* Index 5: Inline Explore Filters (Below Banner) */}
-          <Animated.View 
-            onLayout={(e) => {
-              const y = e.nativeEvent.layout.y;
-              if (Math.abs(inlineFiltersY.value - y) > 1) {
-                inlineFiltersY.value = y;
-              }
-            }}
-            style={[{ marginBottom: 12 }, inlineFiltersAnimatedStyle]}
-          >
+          {/* Index 5: Inline Explore Filters (Below Categories) */}
+          <View style={{ marginBottom: 6 }}>
             <ExploreFilters />
-          </Animated.View>
+          </View>
 
           {/* Index 6: Directory Content */}
-          <View style={{ paddingHorizontal: 12 }}>
+          <View style={{ paddingHorizontal: 12, paddingTop: 6 }}>
             <DirectoryContent activeTab={activeDirectoryTab} />
           </View>
 
         </Animated.ScrollView>
 
-        <FloatingCartBar variant="home" bottomOffset={Platform.OS === 'ios' ? 90 : 75} />
+        <FloatingCartBar variant="home" />
       </View>
     </AnimatedScreen>
   );
@@ -375,9 +213,22 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  scrollView: {
+    flex: 1,
+  },
+  statusBarBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+  },
+  stickyCategoryWrapper: {
+    zIndex: 50,
+  },
   scrollContent: {
-    paddingTop: Platform.OS === 'ios' ? 54 : 36,
-    paddingBottom: 100,
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'web' ? 40 : 140,
   },
   section: {
     marginBottom: 16,
@@ -387,7 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   sectionTitle: {
     fontSize: 11,
@@ -400,7 +251,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 4,
     marginTop: 4,
   },
   categorySectionTitle: {
@@ -417,12 +268,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: -0.1,
-  },
-  statusBarCover: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 99,
   },
 });

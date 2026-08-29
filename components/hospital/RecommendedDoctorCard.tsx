@@ -126,9 +126,9 @@ export default function RecommendedDoctorCard({
 
           {/* Single Clean Availability Line */}
           <View style={styles.availabilityRow}>
-            <Calendar size={12} color="#E11D48" style={styles.detailIcon} />
-            <Text style={styles.availabilityText}>
-              <Text style={styles.timeHighlight}>{availableTimeText}</Text>, 24 May 2024
+            <Calendar size={12} color={isDark ? '#60A5FA' : '#2563EB'} style={styles.detailIcon} />
+            <Text style={[styles.availabilityText, { color: isDark ? '#94A3B8' : '#475569' }]}>
+              Next avail: <Text style={[styles.timeHighlight, { color: isDark ? '#60A5FA' : '#1D4ED8' }]}>{availableTimeText}</Text>
             </Text>
           </View>
 
@@ -144,8 +144,8 @@ export default function RecommendedDoctorCard({
             >
               <Bookmark
                 size={16}
-                color={bookmarked ? '#E11D48' : (isDark ? '#CBD5E1' : '#475569')}
-                fill={bookmarked ? '#E11D48' : 'transparent'}
+                color={bookmarked ? (isDark ? '#60A5FA' : '#2563EB') : (isDark ? '#CBD5E1' : '#475569')}
+                fill={bookmarked ? (isDark ? '#60A5FA' : '#2563EB') : 'transparent'}
               />
             </TouchableOpacity>
 
@@ -179,7 +179,7 @@ export default function RecommendedDoctorCard({
           {/* Floating Action Button (Overlapping bottom edge of image) */}
           <View style={styles.floatingButtonContainer}>
             <BookVisitSelector
-              buttonLabel="ADD VISIT"
+              buttonLabel="VISIT"
               onBookPress={(patient) => onBookVisitPress(doctor, availableTimeText, patient, 1)}
               onCountChange={(count, patient) => {
                 if (count > 0) {
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   },
   timeHighlight: {
     fontFamily: Fonts.bold,
-    color: '#E11D48',
+    color: '#2563EB',
     fontWeight: '700',
   },
   leftActions: {

@@ -43,73 +43,73 @@ const MIND_CATEGORIES = [
     id: 'c0', 
     title: 'Under ₹500', 
     query: 'Under 500', 
-    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300' 
+    image: require('@/assets/images/category-icons/general-physician.png')
   },
   { 
     id: 'c1', 
     title: 'General Doctor', 
     query: 'General Physician', 
-    image: 'https://images.unsplash.com/photo-1666214280557-f1b5022eb634?q=80&w=300' 
+    image: require('@/assets/images/category-icons/general-physician.png')
   },
   { 
     id: 'c2', 
     title: 'Cardiologist', 
     query: 'Cardiologist', 
-    image: 'https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?q=80&w=300' 
+    image: require('@/assets/images/category-icons/heart-specialist.png')
   },
   { 
     id: 'c3', 
     title: 'Dermatologist', 
     query: 'Dermatologist', 
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=300' 
+    image: require('@/assets/images/category-icons/skin-specialist.png')
   },
   { 
     id: 'c4', 
     title: 'Pediatrician', 
     query: 'Pediatrician', 
-    image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=300' 
+    image: require('@/assets/images/category-icons/child-care.png')
   },
   { 
     id: 'c5', 
     title: 'Orthopedist', 
     query: 'Orthopedist', 
-    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=300' 
+    image: require('@/assets/images/category-icons/bones-joints.png')
   },
   { 
     id: 'c6', 
     title: 'Gynaecologist', 
     query: 'Gynaecologist', 
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=300' 
+    image: require('@/assets/images/category-icons/womens-health.png')
   },
   { 
     id: 'c7', 
     title: 'Dentist', 
     query: 'Dentist', 
-    image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=300' 
+    image: require('@/assets/images/category-icons/dentist.png')
   },
   { 
     id: 'c8', 
     title: 'Eye Specialist', 
     query: 'Ophthalmologist', 
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=300' 
+    image: require('@/assets/images/category-icons/eye-specialist.png')
   },
   { 
     id: 'c9', 
     title: 'ENT Specialist', 
     query: 'ENT', 
-    image: 'https://images.unsplash.com/photo-1631815588090-d4bfec5b1cdb?q=80&w=300' 
+    image: require('@/assets/images/category-icons/ent.png')
   },
   { 
     id: 'c10', 
     title: 'Neurologist', 
     query: 'Neurologist', 
-    image: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?q=80&w=300' 
+    image: require('@/assets/images/category-icons/brain-nerves.png')
   },
   { 
     id: 'c11', 
     title: 'Psychiatrist', 
     query: 'Psychiatrist', 
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300' 
+    image: require('@/assets/images/category-icons/mental-wellness.png')
   },
 ];
 
@@ -328,7 +328,7 @@ export default function SearchScreen() {
                     activeOpacity={0.8}
                   >
                     <View style={styles.categoryImageWrapper}>
-                      <Image source={{ uri: cat.image }} style={styles.categoryImage} />
+                      <Image source={typeof cat.image === 'string' ? { uri: cat.image } : cat.image} style={styles.categoryImage} />
                     </View>
                     <Text style={[styles.categoryTitle, { color: colors.text }]} numberOfLines={1}>
                       {cat.title}
@@ -495,6 +495,7 @@ const styles = StyleSheet.create({
   categoryImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 40,
     resizeMode: 'cover',
   },
   categoryTitle: {

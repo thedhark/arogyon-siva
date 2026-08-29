@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfileStore } from '@/hooks/useProfileStore';
-import Animated, { useAnimatedStyle, withSpring, interpolateColor, useDerivedValue, withTiming } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CreditCard, Smartphone } from 'lucide-react-native';
 

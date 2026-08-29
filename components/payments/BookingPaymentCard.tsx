@@ -8,9 +8,14 @@ import { formatDisplayDate } from '@/utils';
 interface BookingPaymentCardProps {
   appointment: Appointment;
   onViewInvoice: (appointment: Appointment) => void;
+  onTrackRefund?: (appointment: Appointment) => void;
 }
 
-export default function BookingPaymentCard({ appointment, onViewInvoice }: BookingPaymentCardProps) {
+export default function BookingPaymentCard({
+  appointment,
+  onViewInvoice,
+  onTrackRefund,
+}: BookingPaymentCardProps) {
   const { colors, isDark } = useTheme();
 
   const isRefunded = appointment.paymentStatus === 'refunded' || appointment.status === 'cancelled';
@@ -110,14 +115,27 @@ export default function BookingPaymentCard({ appointment, onViewInvoice }: Booki
           </Text>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.invoiceBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(16, 185, 129, 0.08)' }]}
-          onPress={() => onViewInvoice(appointment)}
-          activeOpacity={0.7}
-        >
-          <FileText size={15} color="#10B981" />
-          <Text style={styles.invoiceBtnText}>View Receipt</Text>
-        </TouchableOpacity>
+        <View style={styles.footerActions}>
+          {isRefunded && onTrackRefund && (
+            <TouchableOpacity 
+              style={[styles.refundBtn, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEF2F2' }]}
+              onPress={() => onTrackRefund(appointment)}
+              activeOpacity={0.7}
+            >
+              <RotateCcw size={13} color="#EF4444" strokeWidth={2.2} />
+              <Text style={styles.refundBtnText}>Track Refund</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity 
+            style={[styles.invoiceBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(16, 185, 129, 0.08)' }]}
+            onPress={() => onViewInvoice(appointment)}
+            activeOpacity={0.7}
+          >
+            <FileText size={14} color="#10B981" />
+            <Text style={styles.invoiceBtnText}>Receipt</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -228,6 +246,24 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     marginTop: 1,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  refundBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+  },
+  refundBtnText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '700',
   },
   invoiceBtn: {
     flexDirection: 'row',

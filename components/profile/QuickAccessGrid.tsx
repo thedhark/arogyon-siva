@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 
 const QUICK_ACTIONS = [
-  { id: '1', title: 'Appointments', route: '/appointments', icon: Calendar, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
+  { id: '1', title: 'Bookings', route: '/appointments', icon: Calendar, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
   { id: '2', title: 'Family Members', route: '/profile/family', icon: Users, color: '#3B82F6', bgColor: 'rgba(59, 130, 246, 0.1)' },
   { id: '3', title: 'Health Records', route: '/profile/records', icon: FileText, color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' },
   { id: '4', title: 'Addresses', route: '/profile/addresses', icon: MapPin, color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)' },

@@ -58,11 +58,10 @@ export default function PackageAboutCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     padding: 16,
     marginBottom: 10,
-    // Flat style with NO shadows/elevation per user requirement
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,

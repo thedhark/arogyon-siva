@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 import { LucideIcon } from 'lucide-react-native';
 
 export interface WhyItem {
@@ -79,13 +79,25 @@ const styles = StyleSheet.create({
   },
   cardItem: {
     width: '48.5%',
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     padding: 14,
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
     minHeight: 125,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 2,
+        shadowColor: '#000',
+      },
+    }),
   },
   iconContainer: {
     width: 42,

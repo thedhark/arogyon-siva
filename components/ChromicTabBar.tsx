@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { Platform, StyleSheet, View, Text, TouchableOpacity, Dimensions, BackHandler } from 'react-native';
+import { Platform, StyleSheet, View, Text, TouchableOpacity, Dimensions, BackHandler, useWindowDimensions } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -20,6 +20,9 @@ import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-ef
 import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import GlobalChatOverlay from './GlobalChatOverlay';
+import WebLeftSidebar from './web/WebLeftSidebar';
+import WebRightSidebar from './web/WebRightSidebar';
+import { useTabBarStore } from '@/hooks/useTabBarStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -59,14 +62,14 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
 
   return (
     <Animated.View style={[styles.logoWrapper, logoStyle]} pointerEvents="none">
-      <Svg width={45} height={21} viewBox="0 0 94 44">
+      <Svg width={43.5} height={21} viewBox="0 0 91 44">
         <Defs>
           <LinearGradient id="o-grad" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor="#38BDF8" />
             <Stop offset="100%" stopColor="#2563EB" />
           </LinearGradient>
           <Mask id="heart-mask">
-            <Rect width="94" height="44" fill="white" />
+            <Rect width="91" height="44" fill="white" />
             <Path d="M 22 14 C 15 8, 7 13, 9 21 C 11 28, 19 33, 22 37 C 25 33, 33 28, 35 21 C 37 13, 29 8, 22 14 Z" fill="black" />
           </Mask>
           <LinearGradient id="n-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -76,7 +79,7 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
         </Defs>
         <Circle cx="22" cy="22" r="22" fill="url(#o-grad)" mask="url(#heart-mask)" />
         <Path 
-          d="M 52 39.5 V 22 A 17.5 17.5 0 0 1 87 22 V 39.5" 
+          d="M 52 39.5 V 22 A 15.5 15.5 0 0 1 83 22 V 39.5" 
           fill="none" 
           stroke="url(#n-grad)" 
           strokeWidth="9" 
@@ -99,6 +102,10 @@ function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDrag
   useEffect(() => {
     focusProgress.value = withTiming(isFocused ? 1 : 0, { duration: 200 });
   }, [isFocused]);
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
 
   const animatedIconStyle = useAnimatedStyle(() => {
     const isHoveredScrub = isDragging?.value && hoverIndex?.value === tabIndex;
@@ -143,7 +150,7 @@ function TabItem({ route, isFocused, meta, onPress, hoverIndex, tabIndex, isDrag
       onPressIn={() => { pressScale.value = withTiming(0.92, { duration: 100 }); }}
       onPressOut={() => { pressScale.value = withTiming(1, { duration: 150 }); }}
       {...({ onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave } as any)}
-      style={[styles.tabButton, { transform: [{ scale: pressScale }] }]}
+      style={[styles.tabButton, buttonAnimatedStyle]}
     >
       <Animated.View style={[styles.hoverBackdrop, pointerHoverStyle, { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.1)' }]} pointerEvents="none" />
       <Animated.View style={animatedIconStyle}>
@@ -183,8 +190,28 @@ const generateAiResponse = (query: string): string => {
 
 export default function ChromicTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { isDark, colors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && windowWidth >= 1024;
   const supportsLiquidGlass = isLiquidGlassAvailable();
   const chatModeProgress = useSharedValue(0);
+  const isTabBarVisible = useTabBarStore((s) => s.isTabBarVisible);
+  const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
+  const tabBarScrollAnim = useSharedValue(0);
+
+  useEffect(() => {
+    tabBarScrollAnim.value = withSpring(isTabBarVisible ? 0 : 130, {
+      damping: 20,
+      stiffness: 220,
+      mass: 0.6,
+    });
+  }, [isTabBarVisible]);
+
+  const tabBarScrollAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: tabBarScrollAnim.value }],
+      opacity: interpolate(tabBarScrollAnim.value, [0, 90], [1, 0], Extrapolation.CLAMP),
+    };
+  });
 
   const visibleRoutes = state.routes.filter((route: any) => {
     const { options } = descriptors[route.key];
@@ -193,12 +220,13 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
 
   const handleLogoPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTabBarVisible(true);
     if (chatModeProgress.value > 0.5) {
       chatModeProgress.value = withTiming(0, { duration: 250 });
     } else {
       chatModeProgress.value = withTiming(1, { duration: 300 });
     }
-  }, []);
+  }, [setTabBarVisible]);
 
   const handleCloseChat = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -445,6 +473,7 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
 
             const onPress = () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setTabBarVisible(true);
               const event = navigation.emit({
                 type: 'tabPress',
                 target: route.key,
@@ -499,6 +528,10 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
     );
   };
 
+  if (isDesktopWeb) {
+    return null;
+  }
+
   return (
     <>
       <GlobalChatOverlay 
@@ -506,7 +539,7 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
         onClose={handleCloseChat} 
       />
 
-      <Animated.View style={[styles.fogBackground, fogStyle]} pointerEvents="none">
+      <Animated.View style={[styles.fogBackground, fogStyle, tabBarScrollAnimatedStyle]} pointerEvents="none">
         <ExpoLinearGradient
           colors={[
             isDark ? 'rgba(18,18,18,0)' : 'rgba(253,253,253,0)',
@@ -518,15 +551,17 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
         />
       </Animated.View>
 
-      {supportsLiquidGlass ? (
-        <GlassContainer spacing={24} style={styles.wrapper}>
-          {renderPillContainers()}
-        </GlassContainer>
-      ) : (
-        <Animated.View style={styles.wrapper}>
-          {renderPillContainers()}
-        </Animated.View>
-      )}
+      <Animated.View style={[styles.wrapperOuter, tabBarScrollAnimatedStyle]} pointerEvents="box-none">
+        {supportsLiquidGlass ? (
+          <GlassContainer spacing={24} style={styles.wrapper}>
+            {renderPillContainers()}
+          </GlassContainer>
+        ) : (
+          <View style={styles.wrapper}>
+            {renderPillContainers()}
+          </View>
+        )}
+      </Animated.View>
     </>
   );
 }
@@ -534,17 +569,19 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
 import { Keyboard } from 'react-native';
 
 const styles = StyleSheet.create({
-  wrapper: {
+  wrapperOuter: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: Platform.OS === 'ios' ? 34 : 24,
+    zIndex: 999,
+  },
+  wrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'center',
     paddingHorizontal: 20,
     gap: 24,
-    zIndex: 999,
   },
   fogBackground: {
     position: 'absolute',
@@ -563,7 +600,6 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     paddingLeft: 6,
     paddingRight: 12,
-    overflow: 'hidden',
   },
   tabSlot: {
     flex: 1,
@@ -578,7 +614,6 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   logoWrapper: {
     alignItems: 'center',
@@ -591,11 +626,12 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 12,
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
       },
       android: {
-        elevation: 4,
+        elevation: 8,
+        shadowColor: '#000000',
       },
     }),
   },
@@ -605,11 +641,14 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
+        shadowOpacity: 0.25,
+        shadowRadius: 14,
       },
       android: {
-        elevation: 4,
+        elevation: 8,
+        shadowColor: '#000000',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.12)',
       },
     }),
   },
@@ -628,6 +667,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.08,
         shadowRadius: 12,
       },
+      android: {
+        elevation: 8,
+        shadowColor: '#000000',
+      },
     }),
   },
   indicatorWrapper: {
@@ -642,16 +685,21 @@ const styles = StyleSheet.create({
     top: 6,
     bottom: 6,
     borderRadius: 25,
-    overflow: 'hidden',
     zIndex: 0,
-    elevation: 0,
   },
   activeIndicatorShadow: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+        shadowColor: '#000000',
+      },
+    }),
   },
   indicatorSheen: {
     borderRadius: 25,

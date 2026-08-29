@@ -28,6 +28,7 @@ export default function HospitalHeader({
   const insets = useSafeAreaInsets();
   const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleTextChange = (text: string) => {
@@ -55,43 +56,71 @@ export default function HospitalHeader({
         </View>
       </TouchableOpacity>
 
-      {/* Middle Section: Permanent Transparent Search Bar */}
-      <View style={styles.searchCapsule}>
-        {supportsLiquidGlass ? (
-          <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-        ) : Platform.OS === 'ios' ? (
-          <BlurView intensity={50} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-        ) : null}
-        <Search size={15} color="rgba(255, 255, 255, 0.7)" strokeWidth={2.2} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search experts, packages..."
-          placeholderTextColor="rgba(255, 255, 255, 0.6)"
-          value={searchQuery}
-          onChangeText={handleTextChange}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => handleTextChange('')} style={{ padding: 4 }}>
-            <X size={16} color="rgba(255, 255, 255, 0.6)" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Right Section: Three Dots Button */}
-      <TouchableOpacity
-        onPress={() => setIsMenuOpen(true)}
-        style={styles.circleBtnWrapper}
-        activeOpacity={0.8}
-      >
-        <View style={styles.circleBtn}>
+      {/* Expanded Search Bar Capsule (Only shown when Search icon is tapped) */}
+      {isSearchOpen ? (
+        <View style={styles.searchCapsule}>
           {supportsLiquidGlass ? (
             <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
           ) : Platform.OS === 'ios' ? (
-            <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+            <BlurView intensity={50} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
           ) : null}
-          <MoreVertical color="#FFFFFF" size={20} strokeWidth={2.2} />
+          <Search size={15} color="rgba(255, 255, 255, 0.7)" strokeWidth={2.2} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search experts, packages..."
+            placeholderTextColor="rgba(255, 255, 255, 0.6)"
+            value={searchQuery}
+            autoFocus
+            onChangeText={handleTextChange}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              handleTextChange('');
+              setIsSearchOpen(false);
+            }}
+            style={{ padding: 4 }}
+          >
+            <X size={16} color="rgba(255, 255, 255, 0.8)" />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      ) : (
+        <View style={{ flex: 1 }} />
+      )}
+
+      {/* Right Section: Circular Search Icon Button & Three Dots Button */}
+      <View style={styles.rightActionsRow}>
+        {!isSearchOpen && (
+          <TouchableOpacity
+            onPress={() => setIsSearchOpen(true)}
+            style={styles.circleBtnWrapper}
+            activeOpacity={0.8}
+          >
+            <View style={styles.circleBtn}>
+              {supportsLiquidGlass ? (
+                <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+              ) : Platform.OS === 'ios' ? (
+                <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+              ) : null}
+              <Search color="#FFFFFF" size={19} strokeWidth={2.3} />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={() => setIsMenuOpen(true)}
+          style={styles.circleBtnWrapper}
+          activeOpacity={0.8}
+        >
+          <View style={styles.circleBtn}>
+            {supportsLiquidGlass ? (
+              <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+            ) : Platform.OS === 'ios' ? (
+              <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+            ) : null}
+            <MoreVertical color="#FFFFFF" size={20} strokeWidth={2.2} />
+          </View>
+        </TouchableOpacity>
+      </View>
 
       {/* Three Dots Menu Modal */}
       {isMenuOpen && (
@@ -199,6 +228,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     paddingVertical: 0,
+  },
+  rightActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   menuOverlay: {
     flex: 1,

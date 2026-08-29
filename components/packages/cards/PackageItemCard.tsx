@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Share, Platform } from 'react-native';
 import {
   Plus,
   ChevronRight,
@@ -53,7 +53,7 @@ export default function PackageItemCard({
   const { colors, isDark } = useTheme();
   const [isSaved, setIsSaved] = useState(false);
   const displayTitle = (item.title || '').replace(/^1\s*x\s*/i, '');
-  const buttonLabel = ctaText ?? 'ADD PACKAGE';
+  const buttonLabel = ctaText ?? 'ADD';
 
   const handleShare = async () => {
     try {
@@ -204,10 +204,19 @@ export default function PackageItemCard({
 
               {/* Price & Discount Row */}
               <View style={styles.zomatoPriceRow}>
-                <Text style={[styles.zomatoPriceText, { color: colors.text }]}>{item.price}</Text>
+                <Text
+                  style={[styles.zomatoPriceText, { color: colors.text }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}
+                >
+                  {item.price}
+                </Text>
 
                 {item.originalPrice ? (
-                  <Text style={styles.originalPriceText}>{item.originalPrice}</Text>
+                  <Text style={styles.originalPriceText} numberOfLines={1}>
+                    {item.originalPrice}
+                  </Text>
                 ) : null}
 
                 {item.discount ? (
@@ -217,7 +226,7 @@ export default function PackageItemCard({
                       { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2' },
                     ]}
                   >
-                    <Text style={styles.discountTagText}>{item.discount}</Text>
+                    <Text style={styles.discountTagText} numberOfLines={1}>{item.discount}</Text>
                   </View>
                 ) : null}
               </View>
@@ -293,105 +302,95 @@ export default function PackageItemCard({
 
   // Default Vertical Banner Layout (For Packages tab & Category screens)
   return (
-    <View
+    <TouchableOpacity
       style={[
         styles.verticalCard,
         {
           backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)',
         },
       ]}
+      activeOpacity={0.92}
+      onPress={() => onPress(item.id)}
     >
-      {/* Top Full-Width Cover Banner Image (Seamless with card container) */}
-      <TouchableOpacity
-        style={styles.verticalImageContainer}
-        activeOpacity={0.9}
-        onPress={() => onPress(item.id)}
-      >
+      {/* Top Cover Banner Image */}
+      <View style={styles.verticalImageContainer}>
         <Image
           source={resolveImageSource(item.image)}
           style={styles.bannerImage}
           resizeMode="cover"
         />
-      </TouchableOpacity>
+        {item.discount ? (
+          <View style={styles.topImageDiscountBadge}>
+            <Text style={styles.topImageDiscountText}>{item.discount}</Text>
+          </View>
+        ) : null}
+      </View>
 
-      {/* Card Content Body - zero unnecessary gap from image */}
+      {/* Card Content Body - Framed seamlessly with the card container */}
       <View style={styles.verticalCardBody}>
-        <TouchableOpacity
-          style={styles.verticalTitleWrapper}
-          activeOpacity={0.85}
-          onPress={() => onPress(item.id)}
-        >
+        <View style={styles.verticalTitleWrapper}>
           <Text
             style={[styles.verticalPackageTitle, { color: isDark ? '#F1F5F9' : '#1E293B' }]}
-            numberOfLines={titleNumberOfLines ?? 1}
+            numberOfLines={titleNumberOfLines ?? 2}
             ellipsizeMode="tail"
           >
             {displayTitle}
           </Text>
-        </TouchableOpacity>
+        </View>
 
-        {/* Footer Row: Price Breakdown & Book > Button */}
+        {/* Footer Row: Price Breakdown & Hospital-Consistent BookVisitSelector Button */}
         <View style={styles.verticalCardFooter}>
           <View style={styles.priceColumn}>
-            <Text style={[styles.verticalCurrentPrice, { color: isDark ? '#FFFFFF' : '#1E293B' }]}>
+            <Text
+              style={[styles.verticalCurrentPrice, { color: colors.text }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
               {item.price}
             </Text>
 
-            <View style={styles.subPriceRow}>
-              {item.originalPrice ? (
-                <Text style={styles.verticalOriginalPriceText}>{item.originalPrice}</Text>
-              ) : null}
-
-              {item.discount ? (
-                <View
-                  style={[
-                    styles.verticalDiscountTag,
-                    { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2' },
-                  ]}
-                >
-                  <Text style={styles.verticalDiscountTagText}>{item.discount}</Text>
-                </View>
-              ) : null}
-            </View>
+            {item.originalPrice ? (
+              <Text style={styles.verticalOriginalPriceText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+                {item.originalPrice}
+              </Text>
+            ) : null}
           </View>
 
-          {/* Add Pill Button */}
-          <TouchableOpacity
-            style={[
-              styles.verticalBookBtn,
-              { backgroundColor: isDark ? '#334155' : '#334155' },
-            ]}
-            activeOpacity={0.85}
-            onPress={() => {
-              if (onAddPress) {
-                onAddPress(item);
-              } else {
-                onPress(item.id);
-              }
-            }}
-          >
-            <Text style={styles.verticalBookBtnText}>{ctaText ?? 'Add'}</Text>
-            <Plus size={13} color="#FFFFFF" strokeWidth={2.6} />
-          </TouchableOpacity>
+          {/* Hospital-Consistent BookVisitSelector ADD Button */}
+          <View style={styles.verticalActionBtnWrapper}>
+            <BookVisitSelector
+              buttonLabel={buttonLabel}
+              compact
+              onBookPress={(patient) => {
+                if (onAddPress) onAddPress({ ...item, assignedPatient: patient } as any);
+              }}
+              onCountChange={(count, patient) => {
+                if (count > 0 && onAddPress) {
+                  onAddPress({ ...item, assignedPatient: patient, quantity: count } as any);
+                }
+              }}
+            />
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   horizontalZomatoCard: {
-    borderRadius: 20,
+    borderRadius: scale(12),
     borderWidth: 1,
     paddingVertical: 14,
     paddingHorizontal: 14,
     marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   hospitalHorizontalCard: {
     borderRadius: 0,
@@ -421,13 +420,19 @@ const styles = StyleSheet.create({
   zomatoImageContainer: {
     width: '100%',
     height: verticalScale(156),
-    borderRadius: 18,
+    borderRadius: scale(10),
     overflow: 'hidden',
     backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   zomatoThumbnailImage: {
     width: '100%',
     height: '100%',
+    borderRadius: scale(9),
   },
   zomatoRightContentCol: {
     flex: 1,
@@ -491,16 +496,11 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     gap: 7,
     marginTop: 6,
-  },
-  zomatoPriceText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    flexWrap: 'nowrap',
   },
   originalPriceText: {
     fontFamily: Fonts.regular,
-    fontSize: 12.5,
+    fontSize: 12,
     textDecorationLine: 'line-through',
     color: '#94A3B8',
   },
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   discountTagText: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontFamily: Fonts.bold,
     fontWeight: '700',
     color: '#E11D48',
@@ -531,10 +531,83 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  tagPill: {
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    width: '31%',
+    gap: 3,
+  },
+  tagIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tagText: {
+    fontFamily: Fonts.medium,
+    fontSize: 9.5,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 11.5,
+  },
+  zomatoPricingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  zomatoPriceCol: {
+    flex: 1,
+  },
+  zomatoPriceText: {
+    fontFamily: Fonts.bold,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  zomatoOriginalPriceText: {
+    fontFamily: Fonts.regular,
+    fontSize: 11.5,
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
+    fontWeight: '400',
+    marginTop: 1,
+  },
+  zomatoDiscountTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginTop: 2,
+  },
+  zomatoDiscountText: {
+    fontFamily: Fonts.bold,
+    color: '#EF4444',
+    fontSize: 9.5,
+    fontWeight: '700',
+  },
+  zomatoBottomActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+  },
+  zomatoActionLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   actionBoxBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -545,103 +618,92 @@ const styles = StyleSheet.create({
   },
   verticalCard: {
     width: '100%',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
     marginVertical: 4,
+    borderRadius: scale(12),
+    borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   verticalImageContainer: {
     width: '100%',
-    height: verticalScale(130),
-    backgroundColor: '#E2E8F0',
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
+    height: verticalScale(120),
+    position: 'relative',
+    backgroundColor: '#F8FAFC',
+    borderTopLeftRadius: scale(11),
+    borderTopRightRadius: scale(11),
     overflow: 'hidden',
   },
   bannerImage: {
     width: '100%',
     height: '100%',
+    borderTopLeftRadius: scale(11),
+    borderTopRightRadius: scale(11),
+  },
+  topImageDiscountBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(225, 29, 72, 0.92)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  topImageDiscountText: {
+    color: '#FFFFFF',
+    fontFamily: Fonts.bold,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   verticalCardBody: {
-    paddingHorizontal: 12,
+    padding: 12,
     paddingTop: 10,
     paddingBottom: 12,
   },
   verticalTitleWrapper: {
-    marginBottom: 6,
+    marginBottom: 8,
+    minHeight: 38,
+    justifyContent: 'center',
   },
   verticalPackageTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
-    lineHeight: 20,
+    lineHeight: 18.5,
   },
   verticalCardFooter: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 6,
+    gap: 4,
   },
   priceColumn: {
     flex: 1,
+    minWidth: 0,
+    paddingRight: 4,
     justifyContent: 'center',
   },
   verticalCurrentPrice: {
     fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.3,
-    marginBottom: 2,
-  },
-  subPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
   },
   verticalOriginalPriceText: {
     fontFamily: Fonts.regular,
-    fontSize: 12,
+    fontSize: 10.5,
     color: '#94A3B8',
     textDecorationLine: 'line-through',
     fontWeight: '400',
+    marginTop: 1,
   },
-  verticalDiscountTag: {
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
-  },
-  verticalDiscountTagText: {
-    fontFamily: Fonts.bold,
-    color: '#EF4444',
-    fontSize: 10.5,
-    fontWeight: '700',
-  },
-  verticalBookBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  verticalActionBtnWrapper: {
+    alignItems: 'flex-end',
     justifyContent: 'center',
-    gap: 3,
-    paddingHorizontal: 13,
-    paddingVertical: 7.5,
-    borderRadius: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  verticalBookBtnText: {
-    color: '#FFFFFF',
-    fontFamily: Fonts.bold,
-    fontSize: 12.5,
-    fontWeight: '700',
-    letterSpacing: -0.1,
   },
 });

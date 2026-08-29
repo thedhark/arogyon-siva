@@ -14,9 +14,15 @@ export default function RecommendedPlans() {
   return (
     <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>RECOMMENDED PLANS</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>POPULAR PACKAGES</Text>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} overScrollMode="never" style={styles.fullWidthScroll} contentContainerStyle={styles.plansGrid}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+        contentContainerStyle={styles.plansGrid}
+      >
         <PlanCard 
           image="https://images.unsplash.com/photo-1531983412531-1f49a365ffed?q=80&w=800"
           title="Pregnancy Care"
@@ -36,6 +42,26 @@ export default function RecommendedPlans() {
           image="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800"
           title="Joint Health"
           categorySlug="knee"
+        />
+        <PlanCard 
+          image="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800"
+          title="Heart Care"
+          categorySlug="heart"
+        />
+        <PlanCard 
+          image="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?q=80&w=800"
+          title="Dental Care"
+          categorySlug="dental"
+        />
+        <PlanCard 
+          image="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800"
+          title="Diabetes Care"
+          categorySlug="diabetes"
+        />
+        <PlanCard 
+          image="https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800"
+          title="Full Body Checkup"
+          categorySlug="health-checkups"
         />
         
         {/* See All card at the end of horizontal scrolling */}
@@ -62,13 +88,14 @@ export default function RecommendedPlans() {
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: moderateScale(11, 0.2),
@@ -76,18 +103,17 @@ const styles = StyleSheet.create({
     letterSpacing: 2.2,
     textTransform: 'uppercase',
   },
-  fullWidthScroll: {
-    marginHorizontal: -12,
-  },
   plansGrid: {
-    gap: scale(12),
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(10),
+    gap: scale(8),
+    paddingLeft: 12,
+    paddingRight: 16,
+    paddingTop: scale(4),
+    paddingBottom: scale(10),
   },
   seeAllCard: {
     width: PLAN_CARD_WIDTH,
     height: PLAN_CARD_HEIGHT,
-    borderRadius: scale(20),
+    borderRadius: scale(14),
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -116,3 +142,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+

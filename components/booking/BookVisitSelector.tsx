@@ -45,7 +45,7 @@ export default function BookVisitSelector({
   initialCount = 0,
   initialMemberId = 'me',
   initialSelectedIds,
-  buttonLabel = 'ADD VISIT',
+  buttonLabel = 'VISIT',
   icon: CustomIcon,
   compact = false,
   onCountChange,
@@ -127,7 +127,7 @@ export default function BookVisitSelector({
   // Step 0 -> Step 1: Initial "Book Visit" Button Click
   const handleInitialBook = () => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    const newSelected = ['me'];
+    const newSelected = selectedIds.length > 0 ? selectedIds : ['me'];
     setSelectedIds(newSelected);
 
     const selectedPatients = getSelectedMembers(newSelected);
@@ -136,6 +136,7 @@ export default function BookVisitSelector({
     if (onBookPress) onBookPress(primary, selectedPatients);
     if (onCountChange) onCountChange(newSelected.length, primary, selectedPatients);
     if (onMembersChange) onMembersChange(selectedPatients);
+    setIsPeopleModalOpen(true);
   };
 
   const handleOpenPeopleModal = () => {
@@ -273,7 +274,7 @@ export default function BookVisitSelector({
             </View>
           )}
 
-          {/* MULTI-MEMBER: 2+ People Selected -> Renders all selected avatars without unnecessary +2 */}
+          {/* MULTI-MEMBER: 2+ People Selected -> Renders all selected avatars without text */}
           {!isSingle && (
             <View style={styles.multiMemberContent}>
               <View style={styles.avatarStack}>
@@ -293,15 +294,6 @@ export default function BookVisitSelector({
                   />
                 ))}
               </View>
-
-              <Text
-                style={[
-                  styles.peopleCountText,
-                  compact && styles.compactPeopleCountText,
-                ]}
-              >
-                {count} people
-              </Text>
 
               {overflowCount > 0 && (
                 <Text
@@ -487,19 +479,6 @@ const styles = StyleSheet.create({
   },
   stackedAvatarOverlap: {
     marginLeft: -8,
-  },
-  peopleCountText: {
-    flex: 1,
-    textAlign: 'center',
-    fontFamily: Fonts.bold,
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.1,
-    paddingHorizontal: 4,
-  },
-  compactPeopleCountText: {
-    fontSize: 10.5,
   },
   overflowText: {
     fontFamily: Fonts.bold,

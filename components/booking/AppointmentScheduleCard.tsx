@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Calendar, Clock, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -85,16 +85,23 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   card: {
-    borderRadius: 20,
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 6,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 2,
+        shadowColor: '#000',
+      },
+    }),
   },
   row: {
     flexDirection: 'row',
@@ -109,7 +116,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

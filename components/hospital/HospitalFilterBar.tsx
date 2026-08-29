@@ -28,9 +28,9 @@ export default function HospitalFilterBar({
 
   const chipBg = isDark ? '#1E1E24' : '#FFFFFF';
   const chipBorder = isDark ? '#27272A' : '#E2E8F0';
-  const activeBg = isDark ? '#2E1065' : '#FEF2F2';
-  const activeBorder = isDark ? '#7C3AED' : '#FECDD3';
-  const activeText = isDark ? '#C084FC' : '#E11D48';
+  const activeBg = isDark ? '#172554' : '#EFF6FF';
+  const activeBorder = isDark ? '#2563EB' : '#BFDBFE';
+  const activeText = isDark ? '#60A5FA' : '#1D4ED8';
 
   return (
     <ScrollView
@@ -63,7 +63,7 @@ export default function HospitalFilterBar({
         onPress={onToggleHighlyRecommended}
         activeOpacity={0.7}
       >
-        <View style={styles.starBadge}>
+        <View style={[styles.starBadge, isHighlyRecommended && { backgroundColor: '#2563EB' }]}>
           <Star size={11} color="#FFFFFF" fill="#FFFFFF" />
         </View>
         <Text

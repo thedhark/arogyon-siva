@@ -1,224 +1,213 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import { ChevronLeft, Calendar as CalendarIcon, Clock, MapPin, User, FileText, XCircle } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
+import { ArrowLeft, Headphones } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { Fonts } from '@/constants/theme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
 
-export default function AppointmentDetailsScreen() {
+import BookingStatusHeaderCard from '@/components/booking/BookingStatusHeaderCard';
+import BookingHospitalInfoCard from '@/components/booking/BookingHospitalInfoCard';
+import BookingItemsListCard from '@/components/booking/BookingItemsListCard';
+import BookingBillSummaryCard from '@/components/booking/BookingBillSummaryCard';
+import BookingSavingsBanner from '@/components/booking/BookingSavingsBanner';
+import BookingCustomerInfoCard from '@/components/booking/BookingCustomerInfoCard';
+import BookingStickyFooterBar from '@/components/booking/BookingStickyFooterBar';
+import ArogyonSupportModal from '@/components/support/ArogyonSupportModal';
+import BookingInvoiceModal from '@/components/booking/BookingInvoiceModal';
+import BookingFeedbackModal from '@/components/booking/BookingFeedbackModal';
+
+export default function BookingDetailsScreen() {
   const { id } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
-  const getAppointment = useBookingStore(state => state.getAppointment);
-  const cancelAppointment = useBookingStore(state => state.cancelAppointment);
-  
+  const getAppointment = useBookingStore((state) => state.getAppointment);
+  const addCartItem = useBookingStore((state) => state.addCartItem);
   const appointment = getAppointment(id as string);
+
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   if (!appointment) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: colors.text }}>Appointment not found.</Text>
-        <Pressable onPress={() => router.back()} style={{ marginTop: 20 }}>
-          <Text style={{ color: colors.accent }}>Go Back</Text>
-        </Pressable>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.background,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 24,
+          },
+        ]}
+      >
+        <Text style={[styles.notFoundText, { color: colors.text }]}>
+          Booking details not found.
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backBtnPill}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.backBtnPillText}>Back to Bookings</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-  const handleCancel = () => {
-    Alert.alert(
-      "Cancel Appointment",
-      "Are you sure you want to cancel this appointment?",
-      [
-        { text: "No", style: "cancel" },
-        { 
-          text: "Yes, Cancel", 
-          style: "destructive",
-          onPress: () => {
-            cancelAppointment(appointment.id);
-            router.back();
-          }
-        }
-      ]
-    );
-  };
-
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'upcoming': return '#10B981';
-      case 'completed': return '#3B82F6';
-      case 'cancelled': return '#EF4444';
-      default: return '#6B7280';
+  const handleReorder = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    addCartItem({
+      type: 'visit',
+      itemId: appointment.doctorId || 'doc-1',
+      title: appointment.doctorName,
+      subtitle: appointment.speciality,
+      price: Number(appointment.consultationFee || appointment.fee || 800),
+      image: appointment.image,
+      selectedDate: '26 Aug 2026',
+      selectedTime: '10:00 AM',
+      hospitalName: appointment.hospitalName,
+      assignedPatientName: appointment.assignedPatientName || 'Kandala Sridhar',
+    });
+    router.push('/booking/checkout' as any);
   };
 
-  const statusColor = getStatusColor(appointment.status);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ArogyonAppt_${appointment.id}`;
+  const handleOpenSupport = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowSupportModal(true);
+  };
+
+  const handleOpenInvoice = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowInvoiceModal(true);
+  };
 
   return (
     <AnimatedScreen entrance="fade">
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <ChevronLeft size={28} color={colors.text} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Appointment Details</Text>
-          <View style={{ width: 44 }} />
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.container, { backgroundColor: isDark ? '#0B132B' : '#EDF4FC' }]}>
+        {/* Floating Header with curves & minimal gap (Screenshot 2: "Order Details" + "Support") */}
+        <View
+          style={[
+            styles.floatingHeader,
+            {
+              marginTop: insets.top + 6,
+              backgroundColor: isDark ? '#162038' : '#FFFFFF',
+              borderColor: isDark ? '#233252' : '#E0ECF8',
+            },
+          ]}
+        >
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ArrowLeft size={22} color={colors.text} />
+          </TouchableOpacity>
+
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Order Details</Text>
+
+          {/* Top-Right Support Button matching Screenshot 2 */}
+          <TouchableOpacity
+            style={styles.supportHeaderBtn}
+            onPress={handleOpenSupport}
+            activeOpacity={0.7}
+          >
+            <Headphones size={15} color="#E11D48" strokeWidth={2.4} />
+            <Text style={styles.supportHeaderText}>Support</Text>
+          </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Status Banner */}
-          <Animated.View entering={FadeInDown.delay(100)}>
-            <View style={[
-              styles.statusBanner, 
-              { 
-                backgroundColor: appointment.confirmationStatus === 'visit_requested' 
-                  ? '#FEF3C7' 
-                  : statusColor + '15' 
-              }
-            ]}>
-              <Text style={[
-                styles.statusBannerText, 
-                { 
-                  color: appointment.confirmationStatus === 'visit_requested' 
-                    ? '#D97706' 
-                    : statusColor 
-                }
-              ]}>
-                {appointment.status === 'upcoming' && (
-                  appointment.confirmationStatus === 'visit_requested'
-                    ? 'Visit Requested • Awaiting Hospital Confirmation'
-                    : 'Appointment Confirmed'
-                )}
-                {appointment.status === 'completed' && 'Appointment Completed'}
-                {appointment.status === 'cancelled' && 'Appointment Cancelled'}
-              </Text>
-            </View>
-
-            {appointment.confirmationStatus === 'visit_requested' && (
-              <View style={{ backgroundColor: isDark ? '#1F2937' : '#F0FDFA', padding: 14, borderRadius: 14, marginTop: 10, borderWidth: 1, borderColor: isDark ? '#374151' : '#CCFBF1' }}>
-                <Text style={{ fontSize: 13, color: isDark ? '#E5E7EB' : '#0F766E', fontWeight: '600' }}>
-                  ⏳ Hospital Approval Pending: {appointment.hospitalName} has received your visit request and is verifying doctor availability. Slot confirmation usually takes 10-15 mins.
-                </Text>
-              </View>
-            )}
+        {/* Scrollable Order Details Body matching Screenshot 2 & 4 */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 1. Status Header Card (Screenshot 2: "Order was delivered") */}
+          <Animated.View entering={FadeInDown.delay(60)}>
+            <BookingStatusHeaderCard
+              status={appointment.status}
+              confirmationStatus={appointment.confirmationStatus}
+              paymentStatus={appointment.paymentStatus}
+            />
           </Animated.View>
 
-          {/* QR Code Section (Only for upcoming) */}
-          {appointment.status === 'upcoming' && (
-            <Animated.View entering={FadeInDown.delay(200)} style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Scan at Reception</Text>
-              <View style={styles.qrContainer}>
-                <Image source={{ uri: qrUrl }} style={styles.qrCode} />
-                <Text style={[styles.qrText, { color: colors.textSecondary }]}>ID: #{appointment.id}</Text>
-              </View>
-            </Animated.View>
-          )}
-
-          {/* Details Section */}
-          <Animated.View entering={FadeInDown.delay(300)} style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Doctor Details</Text>
-            
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-              {appointment.image && (
-                <Image source={{ uri: appointment.image }} style={{ width: 50, height: 50, borderRadius: 25, marginRight: 16 }} />
-              )}
-              <View>
-                <Text style={[styles.doctorName, { color: colors.text }]}>{appointment.doctorName}</Text>
-                <Text style={[styles.specialty, { color: colors.textSecondary }]}>{appointment.speciality}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.divider} />
-
-            <View style={styles.infoRow}>
-              <CalendarIcon size={20} color={colors.accent} />
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Date</Text>
-                <Text style={[styles.infoValue, { color: colors.text }]}>{appointment.date}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.infoRow}>
-              <Clock size={20} color={colors.accent} />
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Time</Text>
-                <Text style={[styles.infoValue, { color: colors.text }]}>{appointment.time}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <MapPin size={20} color={colors.accent} />
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Location</Text>
-                <Text style={[styles.infoValue, { color: colors.text }]}>{appointment.location}</Text>
-              </View>
-            </View>
+          {/* 2. Hospital / Provider Card (Screenshot 2: Restaurant Card with Call) */}
+          <Animated.View entering={FadeInDown.delay(120)}>
+            <BookingHospitalInfoCard appointment={appointment} />
           </Animated.View>
 
-          {/* Patient Details */}
-          <Animated.View entering={FadeInDown.delay(400)} style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Patient Details</Text>
-            <View style={styles.infoRow}>
-              <User size={20} color={colors.textSecondary} />
-              <Text style={[styles.infoValue, { color: colors.text, marginLeft: 12 }]}>Self</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <FileText size={20} color={colors.textSecondary} />
-              <Text style={[styles.infoValue, { color: colors.text, marginLeft: 12 }]}>{appointment.type} Consultation</Text>
-            </View>
+          {/* 3. Booked Items Breakdown (Screenshot 2: Item list with veg/care icon) */}
+          <Animated.View entering={FadeInDown.delay(180)}>
+            <BookingItemsListCard appointment={appointment} />
           </Animated.View>
 
-          {/* Payment & Receipt Details */}
-          <Animated.View entering={FadeInDown.delay(450)} style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment & Receipt</Text>
-            <View style={styles.infoRow}>
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Payment Status</Text>
-                <Text style={[styles.infoValue, { color: appointment.paymentStatus === 'refunded' ? '#EF4444' : '#10B981' }]}>
-                  {appointment.paymentStatus === 'refunded' ? 'Refunded' : 'Paid'} • ₹{appointment.totalPaid || appointment.fee}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.infoRow}>
-              <View style={styles.infoTextContainer}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Payment Method & Ref ID</Text>
-                <Text style={[styles.infoValue, { color: colors.text }]}>
-                  {appointment.paymentMethod || 'UPI Instant'} ({appointment.paymentId || 'PAY-RZP-984210'})
-                </Text>
-              </View>
-            </View>
-            <Pressable 
-              style={[styles.receiptBtn, { backgroundColor: colors.accent + '15' }]} 
-              onPress={() => router.push('/profile/payments')}
-            >
-              <FileText size={16} color={colors.accent} />
-              <Text style={[styles.receiptBtnText, { color: colors.accent }]}>View All Receipts & Invoices</Text>
-            </Pressable>
+          {/* 4. Bill Summary Card (Screenshot 2: Bill Summary with Download icon) */}
+          <Animated.View entering={FadeInDown.delay(240)}>
+            <BookingBillSummaryCard
+              appointment={appointment}
+              onInvoicePress={handleOpenInvoice}
+            />
           </Animated.View>
-          
+
+          {/* 5. Savings Wave Banner (Screenshot 4: "You saved ₹88.00 on this order!") */}
+          <Animated.View entering={FadeInDown.delay(300)}>
+            <BookingSavingsBanner savingsAmount={Number(appointment.discount || 155)} />
+          </Animated.View>
+
+          {/* 6. Customer & Address Details Card (Screenshot 4: Customer card) */}
+          <Animated.View entering={FadeInDown.delay(360)}>
+            <BookingCustomerInfoCard appointment={appointment} />
+          </Animated.View>
         </ScrollView>
 
-        {/* Actions (Only for upcoming) */}
-        {appointment.status === 'upcoming' && (
-          <Animated.View entering={FadeInDown.delay(500)} style={[styles.footer, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderTopColor: isDark ? '#333' : '#F0F0F0' }]}>
-            <Pressable 
-              style={[styles.actionButton, { backgroundColor: '#FF3B3015' }]}
-              onPress={handleCancel}
-            >
-              <Text style={[styles.actionButtonText, { color: '#FF3B30' }]}>Cancel</Text>
-            </Pressable>
-            <Pressable style={[styles.actionButton, { backgroundColor: colors.accent }]}>
-              <Text style={[styles.actionButtonText, { color: '#FFF' }]}>Reschedule</Text>
-            </Pressable>
-          </Animated.View>
-        )}
+        {/* 7. Bottom Floating Sticky Bar: Reorder & Invoice (Screenshot 2 & 4) */}
+        <BookingStickyFooterBar
+          onReorderPress={handleReorder}
+          onInvoicePress={handleOpenInvoice}
+        />
+
+        {/* Arogyon Support In-App Chat Modal (Screenshot 3) */}
+        <ArogyonSupportModal
+          visible={showSupportModal}
+          onClose={() => setShowSupportModal(false)}
+          bookingInfo={{
+            id: appointment.id,
+            doctorName: appointment.doctorName,
+            hospitalName: appointment.hospitalName,
+            speciality: appointment.speciality,
+            patientName: appointment.assignedPatientName,
+          }}
+        />
+
+        {/* Tax Invoice Modal */}
+        <BookingInvoiceModal
+          visible={showInvoiceModal}
+          onClose={() => setShowInvoiceModal(false)}
+          booking={appointment}
+        />
+
+        {/* Share Feedback Modal */}
+        <BookingFeedbackModal
+          visible={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+          booking={appointment}
+        />
       </View>
     </AnimatedScreen>
   );
@@ -228,127 +217,61 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
+  floatingHeader: {
+    marginHorizontal: 12,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+  backBtn: {
+    padding: 4,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    flex: 1,
+    marginLeft: 12,
+  },
+  supportHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 4,
+  },
+  supportHeaderText: {
+    fontFamily: Fonts.bold,
+    fontSize: 13.5,
+    color: '#E11D48',
+    fontWeight: '700',
   },
   scrollContent: {
-    padding: 16,
-    gap: 16,
-    paddingBottom: 100,
+    paddingHorizontal: 12,
+    paddingTop: 4,
+    paddingBottom: 24,
   },
-  statusBanner: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  statusBannerText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  notFoundText: {
+    fontFamily: Fonts.bold,
+    fontSize: 17,
     marginBottom: 16,
   },
-  qrContainer: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  qrCode: {
-    width: 150,
-    height: 150,
-    marginBottom: 12,
-  },
-  qrText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  doctorName: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  specialty: {
-    fontSize: 15,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 16,
-    opacity: 0.5,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  infoTextContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  footer: {
-    flexDirection: 'row',
-    padding: 16,
-    paddingBottom: 32,
-    gap: 12,
-    borderTopWidth: 1,
-  },
-  actionButton: {
-    flex: 1,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  receiptBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  backBtnPill: {
+    backgroundColor: '#E11D48',
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: 14,
-    marginTop: 4,
   },
-  receiptBtnText: {
+  backBtnPillText: {
+    fontFamily: Fonts.bold,
+    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
-  }
+  },
 });

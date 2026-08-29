@@ -355,7 +355,7 @@ export default function CheckoutScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#0B132B' : '#EDF4FC' }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 

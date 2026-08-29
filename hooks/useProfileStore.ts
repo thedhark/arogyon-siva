@@ -100,6 +100,8 @@ interface ProfileState {
   walletBalance: number;
   transactions: Transaction[];
   addFunds: (amount: number) => void;
+  deductWalletBalance: (amount: number, title: string) => boolean;
+  creditWalletRefund: (amount: number, title: string) => void;
 
   healthSync: HealthSyncData;
   toggleAppleHealth: () => void;
@@ -294,15 +296,57 @@ export const useProfileStore = create<ProfileState>((set) => ({
       walletBalance: state.walletBalance + amount,
       transactions: [
         {
-          id: Math.random().toString(36).substring(7),
+          id: `tx-${Date.now()}`,
           title: 'Added to Wallet',
-          amount: amount,
+          amount,
           date: new Date().toISOString(),
           type: 'credit',
           status: 'completed'
         },
         ...state.transactions
       ]
+    })),
+
+  deductWalletBalance: (amount: number, title: string) => {
+    let success = false;
+    set((state) => {
+      if (state.walletBalance < amount) {
+        success = false;
+        return state;
+      }
+      success = true;
+      return {
+        walletBalance: state.walletBalance - amount,
+        transactions: [
+          {
+            id: `tx-${Date.now()}`,
+            title,
+            amount,
+            date: new Date().toISOString(),
+            type: 'debit',
+            status: 'completed',
+          },
+          ...state.transactions,
+        ],
+      };
+    });
+    return success;
+  },
+
+  creditWalletRefund: (amount: number, title: string) =>
+    set((state) => ({
+      walletBalance: state.walletBalance + amount,
+      transactions: [
+        {
+          id: `tx-ref-${Date.now()}`,
+          title: `Refund: ${title}`,
+          amount,
+          date: new Date().toISOString(),
+          type: 'credit',
+          status: 'completed',
+        },
+        ...state.transactions,
+      ],
     })),
 
   toggleAppleHealth: () =>

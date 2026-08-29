@@ -5,7 +5,6 @@ export interface HospitalOffer {
   subtext: string;
   minAmount?: number;
   maxDiscount?: number;
-  isGoldExclusive?: boolean;
   terms?: string[];
 }
 
@@ -56,10 +55,3 @@ export const DEFAULT_HOSPITAL_OFFERS: HospitalOffer[] = [
     terms: ['Valid on hospital doctor appointment slots', 'Valid until end of month'],
   },
 ];
-
-export const GOLD_EXCLUSIVE_OFFER = {
-  id: 'gold-1',
-  title: 'Free delivery above ₹49',
-  subtitle: 'join Gold to unlock',
-  price: 'Add Gold - ₹1',
-};

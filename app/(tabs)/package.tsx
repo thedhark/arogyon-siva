@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, TextInput, ScrollView } from 'react-native';
-import Animated, { FadeInDown, useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
+import Animated, { FadeInDown, useSharedValue, useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
+import { useTabBarStore } from '@/hooks/useTabBarStore';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { Search, X } from 'lucide-react-native';
@@ -32,14 +33,23 @@ export default function PlansScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChip, setSelectedChip] = useState('all');
   const scrollY = useSharedValue(0);
+  const lastScrollY = useSharedValue(0);
   const supportsLiquidGlass = isLiquidGlassAvailable();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
+      const currentY = event.contentOffset.y;
+      if (currentY > lastScrollY.value + 8 && currentY > 50) {
+        runOnJS(setTabBarVisible)(false);
+      } else if (currentY < lastScrollY.value - 6 || currentY <= 30) {
+        runOnJS(setTabBarVisible)(true);
+      }
+      lastScrollY.value = currentY;
+      scrollY.value = currentY;
     },
   });
 
@@ -187,8 +197,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 54 : 36,
-    paddingBottom: 120,
+    paddingTop: Platform.OS === 'web' ? 16 : (Platform.OS === 'ios' ? 54 : 36),
+    paddingBottom: Platform.OS === 'web' ? 40 : 140,
   },
   searchContainer: {
     marginBottom: 14,

@@ -8,7 +8,6 @@ import { useTheme } from '@/hooks/useTheme';
 
 import AnimatedScreen from '@/components/AnimatedScreen';
 import ProfileCard from '@/components/profile/ProfileCard';
-import ArogyonPlusBanner from '@/components/profile/ArogyonPlusBanner';
 import QuickAccessGrid from '@/components/profile/QuickAccessGrid';
 
 export default function ProfileScreen() {
@@ -42,10 +41,6 @@ export default function ProfileScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(200).springify()}>
-          <ArogyonPlusBanner />
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(300).springify()}>
           <QuickAccessGrid />
         </Animated.View>
         

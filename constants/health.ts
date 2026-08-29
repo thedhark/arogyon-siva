@@ -224,7 +224,7 @@ export const services = [
     id: 'svc-1', 
     name: 'Cardiac Ambulance', 
     detail: '24/7 cardiac-ready ambulances with paramedical support.', 
-    price: 'Free with Plus', 
+    price: '24/7 Emergency', 
     category: 'Clinical',
     image: 'https://images.unsplash.com/photo-1587350859728-117622bc786e?w=800&q=80',
     promise: 'Reached in 12 mins'

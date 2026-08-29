@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { resolveImageSource } from '@/utils/imageUtils';
@@ -7,7 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { scale, moderateScale } from '@/utils/responsive';
 
 export const PLAN_CARD_WIDTH = scale(110);
-export const PLAN_CARD_HEIGHT = scale(164);
+export const PLAN_CARD_HEIGHT = scale(158);
 
 interface PlanCardProps {
   image: string;
@@ -18,9 +19,9 @@ interface PlanCardProps {
   onPress?: () => void;
 }
 
-export default function PlanCard({ image, title, tag, colors = ['transparent', 'rgba(0, 0, 0, 0.75)'], categorySlug, onPress }: PlanCardProps) {
+export default function PlanCard({ image, title, tag, colors = ['transparent', 'rgba(0, 0, 0, 0.78)'], categorySlug, onPress }: PlanCardProps) {
   const router = useRouter();
-  const { colors: themeColors, isDark } = useTheme();
+  const { isDark } = useTheme();
 
   const handlePress = () => {
     if (onPress) {
@@ -34,7 +35,7 @@ export default function PlanCard({ image, title, tag, colors = ['transparent', '
 
   return (
     <TouchableOpacity
-      activeOpacity={0.85}
+      activeOpacity={0.88}
       style={[
         styles.planCard,
         {
@@ -44,11 +45,14 @@ export default function PlanCard({ image, title, tag, colors = ['transparent', '
       ]}
       onPress={handlePress}
     >
-      <ImageBackground
-        source={resolveImageSource(image)}
-        style={styles.planCardImage}
-        imageStyle={{ borderRadius: scale(20) }}
-      >
+      <View style={styles.imageWrapper}>
+        <Image
+          source={resolveImageSource(image)}
+          style={StyleSheet.absoluteFillObject}
+          contentFit="cover"
+          transition={200}
+        />
+
         {tag ? (
           <View style={styles.planTagContainer}>
             <View style={styles.planTag}>
@@ -62,7 +66,7 @@ export default function PlanCard({ image, title, tag, colors = ['transparent', '
             {title}
           </Text>
         </LinearGradient>
-      </ImageBackground>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -71,41 +75,51 @@ const styles = StyleSheet.create({
   planCard: {
     width: PLAN_CARD_WIDTH,
     height: PLAN_CARD_HEIGHT,
-    borderRadius: scale(20),
+    borderRadius: scale(12),
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+        shadowColor: '#000',
+      },
+    }),
   },
-  planCardImage: {
+  imageWrapper: {
     flex: 1,
-    borderRadius: scale(20),
+    borderRadius: scale(11),
     overflow: 'hidden',
+    position: 'relative',
   },
   planTagContainer: {
     padding: scale(6),
+    zIndex: 2,
   },
   bottomGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: scale(58),
+    height: scale(64),
     paddingHorizontal: scale(8),
     paddingBottom: scale(8),
     justifyContent: 'flex-end',
-    borderBottomLeftRadius: scale(20),
-    borderBottomRightRadius: scale(20),
+    borderBottomLeftRadius: scale(11),
+    borderBottomRightRadius: scale(11),
+    zIndex: 2,
   },
   planTag: {
     backgroundColor: 'rgba(255,255,255,0.92)',
     alignSelf: 'flex-start',
     paddingHorizontal: scale(6),
     paddingVertical: scale(2),
-    borderRadius: scale(6),
+    borderRadius: scale(5),
   },
   planTagText: {
     color: '#333',
@@ -122,5 +136,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
 });
+
 
 

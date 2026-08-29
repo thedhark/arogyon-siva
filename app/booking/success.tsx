@@ -60,7 +60,7 @@ export default function BookingSuccessScreen() {
   const isConfirmed = appointment.confirmationStatus === 'confirmed';
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#121212' : '#FDFDFD' }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#0B132B' : '#EDF4FC' }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
         

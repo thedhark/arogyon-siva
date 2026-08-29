@@ -120,7 +120,7 @@ export default function TopDoctorGridCard({ doctor }: TopDoctorGridCardProps) {
           <View style={styles.bookBtnWrapper}>
             <BookVisitSelector
               compact
-              buttonLabel="ADD VISIT"
+              buttonLabel="VISIT"
               initialSelectedIds={
                 existingCartItem?.assignedPatientId
                   ? [existingCartItem.assignedPatientId]

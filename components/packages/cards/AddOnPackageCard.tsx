@@ -42,10 +42,19 @@ export default function AddOnPackageCard({ item, isAdded, onToggle }: AddOnPacka
 
         {/* Bottom Price & Add Action Row */}
         <View style={styles.bottomRow}>
-          <View>
-            <Text style={[styles.price, { color: colors.text }]}>{item.price}</Text>
+          <View style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
+            <Text
+              style={[styles.price, { color: colors.text }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {item.price}
+            </Text>
             {item.originalPrice ? (
-              <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+              <Text style={styles.originalPrice} numberOfLines={1}>
+                {item.originalPrice}
+              </Text>
             ) : null}
           </View>
 
@@ -83,11 +92,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     marginRight: 10,
   },
   imageContainer: {

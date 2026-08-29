@@ -11,8 +11,8 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { X, Lock } from 'lucide-react-native';
-import { DEFAULT_HOSPITAL_OFFERS, GOLD_EXCLUSIVE_OFFER, HospitalOffer } from '@/constants/hospitalOffers';
+import { X } from 'lucide-react-native';
+import { DEFAULT_HOSPITAL_OFFERS, HospitalOffer } from '@/constants/hospitalOffers';
 import HospitalCouponCard from './HospitalCouponCard';
 
 interface HospitalOffersModalProps {
@@ -97,42 +97,6 @@ export default function HospitalOffersModal({
                 onApplyCode={handleApplyCode}
               />
             ))}
-
-            {/* Section 2: Gold Exclusive Offer */}
-            <View style={styles.goldSectionWrapper}>
-              <View style={styles.goldHeaderRow}>
-                <Text style={[styles.goldSectionTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                  Gold exclusive offer
-                </Text>
-                <TouchableOpacity activeOpacity={0.8}>
-                  <Text style={styles.addGoldBtnText}>
-                    {GOLD_EXCLUSIVE_OFFER.price}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={[
-                  styles.goldCard,
-                  {
-                    backgroundColor: isDark ? '#1C1929' : '#FFFFFF',
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0',
-                  },
-                ]}
-              >
-                <View style={styles.goldLockIconWrapper}>
-                  <Lock size={16} color="#D97706" />
-                </View>
-                <View style={styles.goldCardTextCol}>
-                  <Text style={[styles.goldOfferTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-                    {GOLD_EXCLUSIVE_OFFER.title}
-                  </Text>
-                  <Text style={[styles.goldOfferSub, { color: isDark ? '#9CA3AF' : '#64748B' }]}>
-                    {GOLD_EXCLUSIVE_OFFER.subtitle}
-                  </Text>
-                </View>
-              </View>
-            </View>
           </ScrollView>
         </Pressable>
       </Pressable>
@@ -190,53 +154,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: -0.2,
-  },
-  goldSectionWrapper: {
-    marginTop: 12,
-  },
-  goldHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  goldSectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  addGoldBtnText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#E11D48',
-    textDecorationLine: 'underline',
-  },
-  goldCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  goldLockIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FEF3C7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  goldCardTextCol: {
-    flex: 1,
-  },
-  goldOfferTitle: {
-    fontSize: 14.5,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  goldOfferSub: {
-    fontSize: 12.5,
-    fontWeight: '500',
   },
 });

@@ -72,9 +72,16 @@ export default function CategoryPackageListItem({
           <View style={styles.bottomRow}>
             <View style={styles.priceColumn}>
               <View style={styles.priceInline}>
-                <Text style={[styles.currentPrice, { color: colors.text }]}>{price}</Text>
+                <Text
+                  style={[styles.currentPrice, { color: colors.text }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}
+                >
+                  {price}
+                </Text>
                 {originalPrice && (
-                  <Text style={[styles.originalPrice, { color: isDark ? '#6B7280' : '#94A3B8' }]}>
+                  <Text style={[styles.originalPrice, { color: isDark ? '#6B7280' : '#94A3B8' }]} numberOfLines={1}>
                     {originalPrice}
                   </Text>
                 )}
@@ -98,10 +105,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 14,
     marginBottom: 14,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     overflow: 'hidden',
   },
   cardContent: {

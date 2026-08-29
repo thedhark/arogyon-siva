@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from 'react-native';
 import { 
   ChevronDown, 
@@ -265,11 +266,23 @@ export default function InquiryFormCard({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+        shadowColor: '#000',
+      },
+    }),
   },
   headerRow: {
     flexDirection: 'row',

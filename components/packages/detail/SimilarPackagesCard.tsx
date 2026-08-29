@@ -106,7 +106,14 @@ export default function SimilarPackagesCard({ isDark, colors }: Props) {
             </Text>
 
             <View style={styles.bottomRow}>
-              <Text style={[styles.priceText, { color: colors.text }]}>{item.price}</Text>
+              <Text
+                style={[styles.priceText, { color: colors.text }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+              >
+                {item.price}
+              </Text>
               <View style={styles.ratingBadge}>
                 <Star size={10} color="#F59E0B" fill="#F59E0B" />
                 <Text style={styles.ratingText}>{item.rating}</Text>
