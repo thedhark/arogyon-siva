@@ -7,23 +7,11 @@ interface ExpertBentoGridProps {
   isDark?: boolean;
   title?: string;
   onSelectCategory?: (id: string) => void;
+  onNavigate?: () => void;
 }
 
 const BENTO_CARDS_DATA: BentoCardProps[] = [
-  // Top Featured Hero Card - Surgery
-  {
-    id: 'surgery',
-    title: 'Surgery',
-    subtitle: 'Seamless procedures & expert surgeons',
-    badgeLabel: '0% EMI Available',
-    badgeBg: '#E3F2FD',
-    badgeTextColor: '#1565C0',
-    badgeIconName: 'heart-pulse',
-    height: 114,
-    imageUri: 'https://images.unsplash.com/photo-1551221156-f6d34e2c94d0?q=80&w=400',
-    iconName: 'activity',
-  },
-  // Bottom Row Left - Intl Health
+  // Left Card - Intl Health
   {
     id: 'foreign',
     title: 'Intl. Health',
@@ -32,11 +20,11 @@ const BENTO_CARDS_DATA: BentoCardProps[] = [
     badgeBg: '#F3E5F5',
     badgeTextColor: '#6A1B9A',
     badgeIconName: 'activity',
-    aspectRatio: 1.25,
+    aspectRatio: 1.15,
     imageUri: 'https://images.unsplash.com/photo-1504439468489-c8920d786a2b?q=80&w=400',
     iconName: 'globe',
   },
-  // Bottom Row Right - Second Opinion
+  // Right Card - Second Opinion
   {
     id: 'opinion',
     title: '2nd Opinion',
@@ -45,7 +33,7 @@ const BENTO_CARDS_DATA: BentoCardProps[] = [
     badgeBg: '#FFF8E1',
     badgeTextColor: '#F57F17',
     badgeIconName: 'stethoscope',
-    aspectRatio: 1.25,
+    aspectRatio: 1.15,
     imageUri: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=400',
     iconName: 'file-text',
   },
@@ -55,6 +43,7 @@ export default function ExpertBentoGrid({
   isDark = false,
   title = 'Care & Specialities',
   onSelectCategory,
+  onNavigate,
 }: ExpertBentoGridProps) {
   const router = useRouter();
 
@@ -64,9 +53,11 @@ export default function ExpertBentoGrid({
       return;
     }
 
-    if (id === 'surgery') {
-      router.push({ pathname: '/care/service/[id]', params: { id: 'post-surgery' } });
-    } else if (id === 'foreign') {
+    if (onNavigate) {
+      onNavigate();
+    }
+
+    if (id === 'foreign') {
       router.push({ pathname: '/care/service/[id]', params: { id: 'international' } });
     } else if (id === 'opinion') {
       router.push({ pathname: '/care/service/[id]', params: { id: 'second-opinion' } });
@@ -92,14 +83,7 @@ export default function ExpertBentoGrid({
       ) : null}
 
       <View style={styles.gridContainer}>
-        {/* Top Full-Width Hero Card: Surgery */}
-        <BentoCard
-          {...cardMap.surgery}
-          isDark={isDark}
-          onPress={handleCardPress}
-        />
-
-        {/* Bottom 2-Column Row: Intl Health & 2nd Opinion */}
+        {/* 2-Column Row: Intl Health & 2nd Opinion */}
         <View style={styles.bottomRow}>
           <View style={styles.columnItem}>
             <BentoCard

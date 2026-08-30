@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageSquare } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -11,11 +11,7 @@ import { Fonts } from '@/constants/theme';
 import { useScrollFooter } from '@/hooks/useScrollFooter';
 
 import DoctorHeroCard from '@/components/doctor/DoctorHeroCard';
-import DoctorQuickStats from '@/components/doctor/DoctorQuickStats';
-import DoctorConsultModePicker from '@/components/doctor/DoctorConsultModePicker';
 import DoctorSlotPicker, { DEFAULT_DATES, DateItem } from '@/components/doctor/DoctorSlotPicker';
-import DoctorServicesList from '@/components/doctor/DoctorServicesList';
-import DoctorReviewsSection from '@/components/doctor/DoctorReviewsSection';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
 
@@ -23,7 +19,7 @@ export default function DoctorProfile() {
   const { id, slot } = useLocalSearchParams<{ id: string; slot?: string }>();
   const router = useRouter();
   const { colors, isDark } = useTheme();
-  
+
   const getDoctor = useBookingStore(state => state.getDoctor);
   const addCartItem = useBookingStore(state => state.addCartItem);
 
@@ -39,20 +35,20 @@ export default function DoctorProfile() {
       return {
         id: fromTrusted.id,
         name: fromTrusted.name,
+        specialty: fromTrusted.specialty,
         speciality: fromTrusted.specialty,
         rating: parseFloat(fromTrusted.rating),
-        reviews: fromTrusted.reviews ? parseInt(fromTrusted.reviews.replace(/[^0-9]/g, '')) * 100 : 1200,
+        reviews: fromTrusted.reviews ? parseInt(fromTrusted.reviews.replace(/[^0-9]/g, ''), 10) * 100 : 1200,
         experience: fromTrusted.experience || '10+ Years',
         location: fromTrusted.location || fromTrusted.hospital,
         hospital: fromTrusted.hospital,
+        hospitalName: fromTrusted.hospital,
         patients: fromTrusted.patientsTreated,
         languages: fromTrusted.languages?.join(', ') || 'English, Hindi',
-        about: fromTrusted.about || `${fromTrusted.name} is a certified specialist at ${fromTrusted.hospital}.`,
+        about: fromTrusted.about || `${fromTrusted.name} is an experienced specialist with extensive expertise in clinical care and advanced treatment protocols.`,
         image: fromTrusted.image,
-        fee: fromTrusted.fee.toString(),
-        hospitalId: 'hosp-1',
-        services: fromTrusted.services,
-        tags: fromTrusted.tags,
+        fee: fromTrusted.fee ? fromTrusted.fee.toString() : '600',
+        approvalRating: fromTrusted.rating ? `${Math.round(parseFloat(fromTrusted.rating) * 20)}%` : '97%',
       };
     }
 
@@ -60,24 +56,15 @@ export default function DoctorProfile() {
   }, [id, getDoctor]);
 
   const [selectedDate, setSelectedDate] = useState<DateItem>(DEFAULT_DATES[0]);
-  const [selectedTime, setSelectedTime] = useState<string>(slot || '10:15 AM');
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string>(slot || '11:30 AM');
   const [requestNotes, setRequestNotes] = useState('');
 
   const { isFooterVisible, scrollProps } = useScrollFooter({ threshold: 12, topThreshold: 30 });
 
   // Compute pricing
-  const rawClinicFee = parseInt((doctorData?.fee || '600').replace(/[^0-9]/g, '')) || 600;
+  const rawClinicFee = parseInt((doctorData?.fee || '600').replace(/[^0-9]/g, ''), 10) || 600;
   const clinicFee = rawClinicFee;
-  const baseFee = clinicFee;
-
-  const doctorServices = doctorData?.services || [];
-  const selectedService = doctorServices.find((s: any) => s.id === selectedServiceId);
-  const addonServicePrice = selectedService ? (parseInt(selectedService.price.replace(/[^0-9]/g, '')) || 0) : 0;
-  
-  const totalFee = baseFee + addonServicePrice;
-  const originalFee = Math.round(totalFee * 1.5);
-  const savings = originalFee - totalFee;
+  const originalFee = Math.round(clinicFee * 1.35);
 
   const handleAddVisit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -89,20 +76,24 @@ export default function DoctorProfile() {
       itemId: doctorData?.id || 'doc-rohan',
       title: doctorData?.name || 'Doctor Visit',
       subtitle: `${doctorSpecialty} • ${consultTypeLabel}`,
-      price: totalFee,
+      price: clinicFee,
       originalPrice: originalFee,
-      savingsAmount: savings,
+      savingsAmount: originalFee - clinicFee,
       image: doctorData?.image || '',
       selectedDate: selectedDate.fullDate || `${selectedDate.day}, ${selectedDate.date}`,
       selectedTime: selectedTime,
-      hospitalName: (doctorData as any)?.hospital || doctorData?.location || 'Apollo Hospital',
+      hospitalName: (doctorData as any)?.hospital || (doctorData as any)?.hospitalName || doctorData?.location || 'Dr. Rela Institute & Medical Centre',
+      notes: requestNotes.trim() || undefined,
     });
 
     router.push('/booking/checkout');
   };
 
+  const hospitalName = (doctorData as any)?.hospital || (doctorData as any)?.hospitalName || 'Dr. Rela Institute & Medical Centre';
+  const hospitalLocation = (doctorData as any)?.location || (doctorData as any)?.hospitalLocation || 'Chromepet';
+
   return (
-    <View style={[styles.screen, { backgroundColor: isDark ? '#121214' : '#F9FAFB' }]}>
+    <View style={[styles.screen, { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <ScrollView
@@ -110,30 +101,18 @@ export default function DoctorProfile() {
         showsVerticalScrollIndicator={false}
         {...scrollProps}
       >
-        {/* 1. Hero Card with Verified Badges & About */}
+        {/* 1. Doctor Profile Hero & Approval Rating Card */}
         <DoctorHeroCard
           doctor={doctorData}
           colors={colors}
           isDark={isDark}
         />
 
-        {/* 2. Quick Key Stats Bar */}
-        <DoctorQuickStats
-          doctor={doctorData}
-          colors={colors}
-          isDark={isDark}
-        />
-
-        {/* 3. In-Clinic Consultation Mode Banner */}
-        <DoctorConsultModePicker
-          clinicFee={clinicFee}
-          hospitalName={(doctorData as any)?.hospital || doctorData?.location || 'Apollo Hospital'}
-          isDark={isDark}
-          colors={colors}
-        />
-
-        {/* 4. Interactive Date & Slot Selector */}
+        {/* 2. Book Clinic Visit Card (Hospital, Fee, Date Tabs, Time Slots, View All Slots) */}
         <DoctorSlotPicker
+          hospitalName={hospitalName}
+          hospitalLocation={hospitalLocation}
+          clinicFee={clinicFee}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
           selectedTime={selectedTime}
@@ -142,31 +121,20 @@ export default function DoctorProfile() {
           colors={colors}
         />
 
-        {/* 5. Areas of Expertise & Clinical Procedures */}
-        <DoctorServicesList
-          services={doctorServices}
-          selectedServiceId={selectedServiceId}
-          onSelectService={setSelectedServiceId}
-          tags={(doctorData as any)?.tags || ['General Health', 'Specialist Care', 'Preventive Checkup']}
-          languages={(doctorData as any)?.languages ? (typeof (doctorData as any).languages === 'string' ? (doctorData as any).languages.split(',').map((s: string) => s.trim()) : (doctorData as any).languages) : ['English', 'Hindi']}
-          isDark={isDark}
-          colors={colors}
-        />
-
-        {/* 6. Medical Symptoms / Notes Input */}
+        {/* 3. Add Symptoms or Note (Optional) */}
         <View style={styles.notesContainer}>
           <View
             style={[
               styles.notesCard,
               {
-                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                borderColor: isDark ? '#2C2C2E' : '#E5E7EB',
+                backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
               },
             ]}
           >
             <View style={styles.notesHeader}>
-              <MessageSquare size={17} color="#10B981" />
-              <Text style={[styles.notesTitle, { color: colors.text }]}>
+              <MessageSquare size={17} color="#2563EB" />
+              <Text style={[styles.notesTitle, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
                 Add Symptoms or Note (Optional)
               </Text>
             </View>
@@ -175,13 +143,13 @@ export default function DoctorProfile() {
               style={[
                 styles.notesInput,
                 {
-                  color: colors.text,
-                  borderColor: isDark ? '#33333F' : '#E5E7EB',
-                  backgroundColor: isDark ? '#25252A' : '#F9FAFB',
+                  color: isDark ? '#F8FAFC' : '#0F172A',
+                  borderColor: isDark ? '#334155' : '#E2E8F0',
+                  backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
                 },
               ]}
-              placeholder="Describe your health problem, existing medications, or symptoms..."
-              placeholderTextColor="#9CA3AF"
+              placeholder="Describe your symptoms, health problem, or medications..."
+              placeholderTextColor="#94A3B8"
               multiline
               numberOfLines={3}
               value={requestNotes}
@@ -189,20 +157,12 @@ export default function DoctorProfile() {
             />
           </View>
         </View>
-
-        {/* 7. Verified Patient Reviews */}
-        <DoctorReviewsSection
-          doctorRating={doctorData?.rating != null ? String(doctorData.rating) : '4.8'}
-          reviewsCount={(doctorData as any)?.reviews || (doctorData as any)?.reviewsCount || '1.2K'}
-          isDark={isDark}
-          colors={colors}
-        />
       </ScrollView>
 
-      {/* 8. Sticky Booking Payment Action Bar */}
+      {/* 4. Sticky Booking Payment Action Bar */}
       <StickyBookingPaymentBar
         priceDropText="Price dropped by ₹150"
-        price={totalFee}
+        price={clinicFee}
         originalPrice={originalFee}
         discountText="33% Off"
         ctaText="ADD VISIT"
@@ -225,17 +185,18 @@ const styles = StyleSheet.create({
   },
   notesContainer: {
     paddingHorizontal: 16,
-    marginTop: 14,
+    marginTop: 4,
+    marginBottom: 16,
   },
   notesCard: {
     borderRadius: 20,
     borderWidth: 1,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   notesHeader: {
     flexDirection: 'row',

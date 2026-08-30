@@ -1,41 +1,36 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import SummerCareBanner from './expert/SummerCareBanner';
 import ExpertBentoGrid from './expert/ExpertBentoGrid';
-import ExpertFooter from './expert/ExpertFooter';
 
 interface ExpertCareModuleProps {
   colors?: any;
   isDark?: boolean;
+  embedded?: boolean;
   onSpecialityPress?: (speciality: string) => void;
+  onNavigate?: () => void;
 }
 
 export default function ExpertCareModule({
   isDark = false,
+  embedded = false,
   onSpecialityPress,
+  onNavigate,
 }: ExpertCareModuleProps) {
   return (
     <View style={styles.container}>
-      {/* Edge-to-Edge Status-Bar Merged Banner */}
-      <SummerCareBanner isDark={isDark} />
-
-      {/* Framed Padded Bento Grid below banner */}
-      <View style={styles.gridWrapper}>
+      <View style={[styles.gridWrapper, embedded && styles.gridWrapperEmbedded]}>
         <ExpertBentoGrid
           isDark={isDark}
+          onNavigate={onNavigate}
           onSelectCategory={
             onSpecialityPress
               ? (id) => {
-                  if (id === 'surgery') onSpecialityPress('Sports Physiotherapist');
-                  else if (id === 'foreign') onSpecialityPress('Cardiologist');
+                  if (id === 'foreign') onSpecialityPress('Cardiologist');
                   else if (id === 'opinion') onSpecialityPress('Neurologist');
                 }
               : undefined
           }
         />
-
-        {/* Arogyan Brand Footer */}
-        <ExpertFooter isDark={isDark} />
       </View>
     </View>
   );
@@ -48,6 +43,9 @@ const styles = StyleSheet.create({
   },
   gridWrapper: {
     paddingHorizontal: 16,
+  },
+  gridWrapperEmbedded: {
+    paddingHorizontal: 0,
   },
 });
 

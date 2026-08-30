@@ -16,6 +16,10 @@ interface Props {
   isDark: boolean;
   searchQuery?: string;
   onAddVisitPress?: (doctor: any, selectedSlot?: string) => void;
+  hideFilterBar?: boolean;
+  selectedSpecialty?: string;
+  isHighlyRecommended?: boolean;
+  isAvailableToday?: boolean;
 }
 
 const DEFAULT_RECOMMENDED_DOCTORS: DoctorData[] = [
@@ -82,15 +86,23 @@ export default function HospitalExperts({
   isDark,
   searchQuery: externalSearchQuery = '',
   onAddVisitPress,
+  hideFilterBar = false,
+  selectedSpecialty: propSpecialty,
+  isHighlyRecommended: propHighlyRecommended,
+  isAvailableToday: propAvailableToday,
 }: Props) {
   const router = useRouter();
-  const [selectedSpec, setSelectedSpec] = useState('All');
-  const [isHighlyRecommended, setIsHighlyRecommended] = useState(false);
-  const [isAvailableToday, setIsAvailableToday] = useState(false);
+  const [internalSpec, setInternalSpec] = useState('All');
+  const [internalHighlyRecommended, setInternalHighlyRecommended] = useState(false);
+  const [internalAvailableToday, setInternalAvailableToday] = useState(false);
   const [isSectionCollapsed, setIsSectionCollapsed] = useState(false);
 
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+
+  const selectedSpec = propSpecialty !== undefined ? propSpecialty : internalSpec;
+  const isHighlyRecommended = propHighlyRecommended !== undefined ? propHighlyRecommended : internalHighlyRecommended;
+  const isAvailableToday = propAvailableToday !== undefined ? propAvailableToday : internalAvailableToday;
 
   const storeDoctors = useBookingStore((state) => state.doctors);
   const allStoreDoctors = useMemo(() => Object.values(storeDoctors || {}), [storeDoctors]);
@@ -190,16 +202,18 @@ export default function HospitalExperts({
 
   return (
     <View style={styles.tabContent}>
-      {/* 1. Top Filter Chips Bar */}
-      <HospitalFilterBar
-        selectedSpecialty={selectedSpec}
-        isHighlyRecommended={isHighlyRecommended}
-        isAvailableToday={isAvailableToday}
-        onToggleHighlyRecommended={() => setIsHighlyRecommended(!isHighlyRecommended)}
-        onToggleAvailableToday={() => setIsAvailableToday(!isAvailableToday)}
-        onOpenFilterModal={() => setShowFilterModal(true)}
-        onOpenSpecialtyModal={() => setShowCategoryModal(true)}
-      />
+      {/* 1. Top Filter Chips Bar (hidden when rendered in sticky header) */}
+      {!hideFilterBar && (
+        <HospitalFilterBar
+          selectedSpecialty={selectedSpec}
+          isHighlyRecommended={isHighlyRecommended}
+          isAvailableToday={isAvailableToday}
+          onToggleHighlyRecommended={() => setInternalHighlyRecommended(!internalHighlyRecommended)}
+          onToggleAvailableToday={() => setInternalAvailableToday(!internalAvailableToday)}
+          onOpenFilterModal={() => setShowFilterModal(true)}
+          onOpenSpecialtyModal={() => setShowCategoryModal(true)}
+        />
+      )}
 
       {/* 2. Frequently Booked Together Section */}
       <FrequentlyBookedSection onItemPress={handleFrequentlyBookedPress} />
@@ -278,7 +292,7 @@ export default function HospitalExperts({
                         isSelected && { backgroundColor: isDark ? '#172554' : '#EFF6FF' },
                       ]}
                       onPress={() => {
-                        setSelectedSpec(item.id);
+                        setInternalSpec(item.id);
                         setShowCategoryModal(false);
                       }}
                     >
@@ -339,7 +353,7 @@ export default function HospitalExperts({
                       borderColor: isDark ? '#2563EB' : '#BFDBFE',
                     },
                   ]}
-                  onPress={() => setIsHighlyRecommended(!isHighlyRecommended)}
+                  onPress={() => setInternalHighlyRecommended(!isHighlyRecommended)}
                 >
                   <Text style={[styles.modalOptionText, { color: colors.text }]}>
                     ⭐ Highly Recommended Only
@@ -355,7 +369,7 @@ export default function HospitalExperts({
                       borderColor: isDark ? '#2563EB' : '#BFDBFE',
                     },
                   ]}
-                  onPress={() => setIsAvailableToday(!isAvailableToday)}
+                  onPress={() => setInternalAvailableToday(!isAvailableToday)}
                 >
                   <Text style={[styles.modalOptionText, { color: colors.text }]}>
                     📅 Available Today Only

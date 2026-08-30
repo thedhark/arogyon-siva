@@ -28,12 +28,6 @@ export default function TabLayout() {
           title: 'Package',
         }}
       />
-      <Tabs.Screen
-        name="experts"
-        options={{
-          title: 'Experts',
-        }}
-      />
     </Tabs>
   );
 }

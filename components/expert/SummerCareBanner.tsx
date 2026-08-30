@@ -9,9 +9,16 @@ import * as Haptics from 'expo-haptics';
 interface SummerCareBannerProps {
   isDark?: boolean;
   onBackPress?: () => void;
+  embedded?: boolean;
+  onNavigate?: () => void;
 }
 
-export default function SummerCareBanner({ isDark = false, onBackPress }: SummerCareBannerProps) {
+export default function SummerCareBanner({
+  isDark = false,
+  onBackPress,
+  embedded = false,
+  onNavigate,
+}: SummerCareBannerProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -26,10 +33,13 @@ export default function SummerCareBanner({ isDark = false, onBackPress }: Summer
 
   const handleBannerPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (onNavigate) {
+      onNavigate();
+    }
     router.push('/care/service/preventive');
   };
 
-  const topPadding = Math.max(insets.top + 8, 24);
+  const topPadding = embedded ? 20 : Math.max(insets.top + 8, 24);
 
   return (
     <TouchableOpacity
@@ -37,6 +47,7 @@ export default function SummerCareBanner({ isDark = false, onBackPress }: Summer
       onPress={handleBannerPress}
       style={[
         styles.container,
+        embedded && styles.embeddedContainer,
         {
           paddingTop: topPadding,
           backgroundColor: isDark ? '#1E293B' : '#206BC4',
@@ -94,6 +105,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
+  },
+  embeddedContainer: {
+    borderRadius: 24,
   },
   topHeaderRow: {
     position: 'absolute',

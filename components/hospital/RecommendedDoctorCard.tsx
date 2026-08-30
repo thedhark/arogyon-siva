@@ -206,12 +206,13 @@ const styles = StyleSheet.create({
   cardContainer: {
     paddingVertical: 14,
     paddingHorizontal: 16,
+    paddingBottom: 10,
     overflow: 'visible',
   },
   dividerLine: {
     height: 1,
     marginHorizontal: 16,
-    marginTop: 14,
+    marginTop: 18,
   },
   topRow: {
     flexDirection: 'row',
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
     width: scale(163),
     alignItems: 'center',
     position: 'relative',
-    paddingBottom: 4,
+    paddingBottom: 22,
   },
   portraitWrapper: {
     width: '100%',
@@ -335,6 +336,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginTop: -21,
-    zIndex: 10,
+    zIndex: 2,
+    elevation: 2,
   },
 });

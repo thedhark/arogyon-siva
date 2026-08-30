@@ -1,32 +1,59 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import { router } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { ChevronLeft, ArrowRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuthStore } from '@/hooks/useAuthStore';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 
 export default function VerifyScreen() {
+  const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { identifier, authMode, verifyOtp, sendOtp, isLoading, error } = useAuthStore();
+
   const [code, setCode] = useState(['', '', '', '']);
-  const inputs = useRef<Array<TextInput | null>>([]);
   const [timer, setTimer] = useState(30);
+  const inputs = useRef<Array<TextInput | null>>([]);
 
   useEffect(() => {
-    let interval = setInterval(() => {
+    const interval = setInterval(() => {
       setTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const handleChangeText = (text: string, index: number) => {
+  const handleChangeText = async (text: string, index: number) => {
     const newCode = [...code];
     newCode[index] = text;
     setCode(newCode);
 
     if (text && index < 3) {
       inputs.current[index + 1]?.focus();
+    }
+
+    // Auto submit on 4th digit
+    if (newCode.every((digit) => digit.length === 1)) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const fullCode = newCode.join('');
+      const res = await verifyOtp(fullCode);
+      if (res.success) {
+        if (res.isNewUser) {
+          router.replace('/auth/onboarding');
+        } else {
+          router.replace('/(tabs)');
+        }
+      }
     }
   };
 
@@ -36,99 +63,124 @@ export default function VerifyScreen() {
     }
   };
 
-  const handleVerify = () => {
-    if (code.every(digit => digit.length === 1)) {
-      router.push('/auth/onboarding');
+  const handleManualVerify = async () => {
+    if (code.every((digit) => digit.length === 1)) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const res = await verifyOtp(code.join(''));
+      if (res.success) {
+        if (res.isNewUser) {
+          router.replace('/auth/onboarding');
+        } else {
+          router.replace('/(tabs)');
+        }
+      }
     }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setTimer(30);
-    // Add logic to resend OTP
+    setCode(['', '', '', '']);
+    inputs.current[0]?.focus();
+    await sendOtp();
   };
+
+  const displayTarget = identifier || (authMode === 'phone' ? '+91 ••••• •••••' : 'your email');
+  const isFilled = code.every((d) => d.length === 1);
 
   return (
     <AnimatedScreen entrance="fade">
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={[styles.container, { backgroundColor: isDark ? '#0C1319' : '#FFFFFF' }]}
       >
-        <LinearGradient
-          colors={isDark ? ['#1A1A1A', '#121212'] : ['#F9FAFB', '#FFFFFF']}
-          style={StyleSheet.absoluteFill}
-        />
-        
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <ChevronLeft size={28} color={colors.text} />
-          </Pressable>
+        {/* Header Bar */}
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ChevronLeft size={26} color={colors.text} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-          <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>Verify Number</Text>
+          <Animated.View entering={FadeInDown.delay(100)} style={styles.titleArea}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {authMode === 'phone' ? 'Verify Mobile' : 'Verify Email'}
+            </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Enter the 4-digit code we sent to your phone
+              Enter the 4-digit code sent to {displayTarget}
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(300)} style={styles.inputContainer}>
+          {/* 4 Digit Boxes */}
+          <Animated.View entering={FadeInUp.delay(200)} style={styles.codeArea}>
             <View style={styles.codeRow}>
               {code.map((digit, index) => (
                 <TextInput
                   key={index}
-                  ref={(ref) => { inputs.current[index] = ref; }}
+                  ref={(ref) => {
+                    inputs.current[index] = ref;
+                  }}
                   style={[
-                    styles.codeInput,
-                    { 
-                      backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-                      borderColor: digit ? colors.accent : (isDark ? '#333' : '#E0E0E0'),
-                      color: colors.text
-                    }
+                    styles.digitBox,
+                    {
+                      backgroundColor: isDark ? '#16202A' : '#F8FAFC',
+                      borderColor: digit ? '#10B981' : (isDark ? '#2D3748' : '#E2E8F0'),
+                      color: colors.text,
+                    },
                   ]}
                   keyboardType="number-pad"
                   maxLength={1}
                   value={digit}
-                  onChangeText={(text) => handleChangeText(text, index)}
+                  onChangeText={(t) => handleChangeText(t, index)}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   selectTextOnFocus
                 />
               ))}
             </View>
 
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            {/* Resend Timer */}
             <View style={styles.resendRow}>
-              <Text style={[styles.resendText, { color: colors.textSecondary }]}>
+              <Text style={[styles.resendLabel, { color: colors.textSecondary }]}>
                 Didn't receive code?{' '}
               </Text>
               {timer > 0 ? (
-                <Text style={[styles.timerText, { color: colors.accent }]}>
+                <Text style={[styles.timerText, { color: '#10B981' }]}>
                   00:{timer < 10 ? `0${timer}` : timer}
                 </Text>
               ) : (
-                <Pressable onPress={handleResend}>
-                  <Text style={[styles.resendLink, { color: colors.accent }]}>Resend Now</Text>
-                </Pressable>
+                <TouchableOpacity onPress={handleResend}>
+                  <Text style={styles.resendActiveText}>Resend Now</Text>
+                </TouchableOpacity>
               )}
             </View>
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(500)} style={styles.footer}>
-            <Pressable 
+          {/* Action Button */}
+          <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
+            <TouchableOpacity
               style={[
-                styles.button, 
-                { backgroundColor: code.every(d => d.length === 1) ? colors.accent : (isDark ? '#333' : '#E0E0E0') }
-              ]} 
-              onPress={handleVerify}
-              disabled={!code.every(d => d.length === 1)}
+                styles.submitBtn,
+                {
+                  backgroundColor: isFilled
+                    ? '#10B981'
+                    : (isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0'),
+                },
+              ]}
+              onPress={handleManualVerify}
+              disabled={!isFilled || isLoading}
+              activeOpacity={0.85}
             >
-              <Text style={[
-                styles.buttonText,
-                { color: code.every(d => d.length === 1) ? '#FFFFFF' : (isDark ? '#888' : '#888') }
-              ]}>
-                Verify & Continue
-              </Text>
-              <ArrowRight size={20} color={code.every(d => d.length === 1) ? '#FFFFFF' : (isDark ? '#888' : '#888')} />
-            </Pressable>
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <Text style={styles.btnText}>Verify & Continue</Text>
+                  <ArrowRight size={18} color="#FFFFFF" />
+                </>
+              )}
+            </TouchableOpacity>
           </Animated.View>
         </View>
       </KeyboardAvoidingView>
@@ -140,86 +192,93 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerRow: {
-    paddingTop: 60,
+  headerBar: {
+    paddingTop: Platform.OS === 'ios' ? 52 : 36,
     paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
+    height: 90,
     justifyContent: 'center',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 24,
     justifyContent: 'space-between',
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
   },
-  header: {
-    marginTop: 20,
+  titleArea: {
+    marginTop: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '800',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 14.5,
+    lineHeight: 22,
   },
-  inputContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  codeArea: {
+    alignItems: 'center',
+    marginVertical: 'auto',
   },
   codeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 16,
   },
-  codeInput: {
-    width: 60,
-    height: 60,
+  digitBox: {
+    width: 56,
+    height: 56,
     borderWidth: 1.5,
-    borderRadius: 16,
+    borderRadius: 14,
     textAlign: 'center',
-    fontSize: 24,
-    fontWeight: '600',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 13,
+    marginTop: 4,
+    textAlign: 'center',
   },
   resendRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 32,
     alignItems: 'center',
+    marginTop: 16,
   },
-  resendText: {
-    fontSize: 14,
+  resendLabel: {
+    fontSize: 13.5,
   },
   timerText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13.5,
+    fontWeight: '700',
   },
-  resendLink: {
-    fontSize: 14,
-    fontWeight: '600',
+  resendActiveText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#10B981',
   },
   footer: {
-    marginBottom: 40,
+    width: '100%',
   },
-  button: {
+  submitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56,
-    borderRadius: 28,
+    height: 50,
+    borderRadius: 14,
+    gap: 8,
   },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-  }
+  btnText: {
+    color: '#FFFFFF',
+    fontSize: 15.5,
+    fontWeight: '700',
+  },
 });

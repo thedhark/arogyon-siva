@@ -224,7 +224,8 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   stickyCategoryWrapper: {
-    zIndex: 50,
+    zIndex: 100,
+    elevation: 25,
   },
   scrollContent: {
     paddingTop: 8,

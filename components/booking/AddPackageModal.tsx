@@ -8,7 +8,6 @@ import {
   ScrollView, 
   Share as RNShare 
 } from 'react-native';
-import { ShieldCheck } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -117,6 +116,7 @@ export default function AddPackageModal({
               <PackageHeroBanner
                 image={pkgImage}
                 title={pkgTitle}
+                subtitle={pkgSubtitle}
                 hospitalName={hospitalName}
                 isDark={isDark}
                 colors={colors}
@@ -142,18 +142,10 @@ export default function AddPackageModal({
               <PackageFeaturesGrid isDark={isDark} style={{ marginHorizontal: 16 }} />
             </Animated.View>
 
-            {/* 4. Hospital Care Journey Card */}
-            <Animated.View entering={FadeInDown.delay(125)}>
-              <PackageAssessmentCard
-                isDark={isDark}
-                style={{ marginHorizontal: 16 }}
-              />
-            </Animated.View>
-
-            {/* 5. Accordion Content Sections Container */}
+            {/* 4. Accordion Content Sections Container */}
             <View style={styles.bodySectionsContainer}>
               {/* About this plan Accordion */}
-              <Animated.View entering={FadeInDown.delay(150)}>
+              <Animated.View entering={FadeInDown.delay(125)}>
                 <PackageAboutCard
                   title="About this plan"
                   description={pkgSubtitle}
@@ -163,7 +155,7 @@ export default function AddPackageModal({
               </Animated.View>
 
               {/* What's included Accordion */}
-              <Animated.View entering={FadeInDown.delay(200)}>
+              <Animated.View entering={FadeInDown.delay(150)}>
                 <PackageInclusionsCard
                   inclusions={inclusions}
                   isDark={isDark}
@@ -172,33 +164,19 @@ export default function AddPackageModal({
               </Animated.View>
 
               {/* Similar Packages Carousel */}
-              <Animated.View entering={FadeInDown.delay(250)}>
+              <Animated.View entering={FadeInDown.delay(200)}>
                 <SimilarPackagesCard
                   isDark={isDark}
                   colors={colors}
                 />
               </Animated.View>
 
-              {/* Quality & Price Lock Guarantee */}
-              <Animated.View
-                entering={FadeInDown.delay(300)}
-                style={[
-                  styles.promiseCard,
-                  {
-                    backgroundColor: isDark ? '#1F192E' : '#F5F3FF',
-                    borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#EDE9FE',
-                  },
-                ]}
-              >
-                <ShieldCheck size={26} color={isDark ? '#A78BFA' : '#6527BE'} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.promiseTitle, { color: isDark ? '#DDD6FE' : '#6527BE' }]}>
-                    100% Price Lock & Quality Guarantee
-                  </Text>
-                  <Text style={[styles.promiseSub, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>
-                    NABH Accredited Hospital partners, verified specialist consults & zero hidden charges.
-                  </Text>
-                </View>
+              {/* Important to know info card */}
+              <Animated.View entering={FadeInDown.delay(250)}>
+                <PackageAssessmentCard
+                  isDark={isDark}
+                  style={{ marginHorizontal: 0, marginTop: 10, marginBottom: 16 }}
+                />
               </Animated.View>
             </View>
           </ScrollView>
@@ -240,28 +218,5 @@ const styles = StyleSheet.create({
   bodySectionsContainer: {
     paddingHorizontal: 16,
     marginTop: 4,
-  },
-  promiseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 16,
-    marginTop: 6,
-    marginBottom: 16,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  promiseTitle: {
-    fontSize: 14.5,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  promiseSub: {
-    fontSize: 12,
-    lineHeight: 16,
   },
 });

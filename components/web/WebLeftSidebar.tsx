@@ -14,7 +14,6 @@ interface WebLeftSidebarProps {
 const TAB_CONFIG = [
   { name: 'index', route: '/', label: 'Home', icon: Grid },
   { name: 'package', route: '/package', label: 'Packages', icon: HeartPulse },
-  { name: 'experts', route: '/experts', label: 'Experts', icon: Award },
 ];
 
 function PremiumLogoSmall() {
@@ -64,9 +63,6 @@ export default function WebLeftSidebar({ onLogoPress }: WebLeftSidebarProps) {
     }
     if (tabName === 'package') {
       return pathname.includes('package') || pathname.includes('offer');
-    }
-    if (tabName === 'experts') {
-      return pathname.includes('expert') || pathname.includes('doctor') || pathname.includes('hospital') || pathname.includes('care');
     }
     return false;
   };

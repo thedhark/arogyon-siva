@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShieldCheck } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import PackageHeroBanner from '@/components/packages/detail/PackageHeroBanner';
@@ -121,6 +120,7 @@ export default function RedesignedPackageDetailView({
           <PackageHeroBanner
             image={image}
             title={title}
+            subtitle={summary}
             hospitalName={hospitalName || 'Manipal Hospital'}
             isDark={isDark}
             colors={colors}
@@ -142,22 +142,14 @@ export default function RedesignedPackageDetailView({
         </Animated.View>
 
         {/* 3. Four Guarantees/Features Grid (Reserve with ₹499, 100% Price Lock, Cashless, Insurance) */}
-        {/* Positioned below price and above Select Assessment Date & Time as requested */}
         <Animated.View entering={FadeInDown.delay(100)}>
           <PackageFeaturesGrid isDark={isDark} />
         </Animated.View>
 
-        {/* 4. Select Assessment Date & Time Selector */}
-        <Animated.View entering={FadeInDown.delay(125)}>
-          <PackageAssessmentCard
-            isDark={isDark}
-          />
-        </Animated.View>
-
-        {/* 5. Accordion Content Sections */}
+        {/* 4. Accordion Content Sections */}
         <View style={styles.bodySectionsContainer}>
           {/* About this plan Accordion */}
-          <Animated.View entering={FadeInDown.delay(150)}>
+          <Animated.View entering={FadeInDown.delay(125)}>
             <PackageAboutCard
               title="About this plan"
               description={summary}
@@ -167,7 +159,7 @@ export default function RedesignedPackageDetailView({
           </Animated.View>
 
           {/* What's included Accordion */}
-          <Animated.View entering={FadeInDown.delay(200)}>
+          <Animated.View entering={FadeInDown.delay(150)}>
             <PackageInclusionsCard
               inclusions={inclusions}
               isDark={isDark}
@@ -176,33 +168,19 @@ export default function RedesignedPackageDetailView({
           </Animated.View>
 
           {/* Similar Packages Carousel */}
-          <Animated.View entering={FadeInDown.delay(250)}>
+          <Animated.View entering={FadeInDown.delay(200)}>
             <SimilarPackagesCard
               isDark={isDark}
               colors={colors}
             />
           </Animated.View>
 
-          {/* Quality Assurance Promise */}
-          <Animated.View
-            entering={FadeInDown.delay(300)}
-            style={[
-              styles.promiseCard,
-              {
-                backgroundColor: isDark ? '#1F192E' : '#F5F3FF',
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#EDE9FE',
-              },
-            ]}
-          >
-            <ShieldCheck size={26} color={isDark ? '#A78BFA' : '#6527BE'} />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={[styles.promiseTitle, { color: isDark ? '#DDD6FE' : '#6527BE' }]}>
-                100% Price Lock & Quality Guarantee
-              </Text>
-              <Text style={[styles.promiseSub, { color: isDark ? '#D1D5DB' : '#4B5563' }]}>
-                NABH Accredited Hospital partners, verified specialist consults & zero hidden charges.
-              </Text>
-            </View>
+          {/* Important to know info card */}
+          <Animated.View entering={FadeInDown.delay(250)}>
+            <PackageAssessmentCard
+              isDark={isDark}
+              style={{ marginHorizontal: 0, marginTop: 10, marginBottom: 16 }}
+            />
           </Animated.View>
         </View>
       </ScrollView>
@@ -232,28 +210,5 @@ const styles = StyleSheet.create({
   bodySectionsContainer: {
     paddingHorizontal: 16,
     marginTop: 4,
-  },
-  promiseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 16,
-    marginTop: 6,
-    marginBottom: 16,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  promiseTitle: {
-    fontSize: 14.5,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  promiseSub: {
-    fontSize: 12,
-    lineHeight: 16,
   },
 });

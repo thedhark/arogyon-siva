@@ -206,7 +206,7 @@ export default function ExploreCategories({
         bounces={false}
         overScrollMode="never"
         nestedScrollEnabled={true}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
       >
         {/* Sleek, 50% Reduced Animated Green Gradient Slider */}
         <Animated.View pointerEvents="none" style={[styles.sliderTrack, animatedSliderStyle]}>
@@ -226,7 +226,8 @@ export default function ExploreCategories({
                 style={styles.categoryItem}
                 onPress={() => handlePress(cat.id, index)}
                 activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                delayPressIn={0}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               >
                 <View style={styles.imageContainer}>
                   <Image 
@@ -259,7 +260,8 @@ export default function ExploreCategories({
               setModalVisible(true);
             }}
             activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            delayPressIn={0}
+            hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
           >
             <View style={[styles.seeAllIconBox, { backgroundColor: isDark ? '#232326' : '#F0FDF4', borderColor: isDark ? '#333' : '#BBF7D0' }]}>
               <LayoutGrid size={22} color="#10B981" />
@@ -522,6 +524,8 @@ export default function ExploreCategories({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
+    zIndex: 10,
+    elevation: 10,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -535,7 +539,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     left: 0,
-    zIndex: 10,
+    zIndex: 1,
+    elevation: 0,
   },
   gradientBar: {
     width: SLIDER_WIDTH,

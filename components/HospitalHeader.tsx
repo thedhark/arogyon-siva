@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, TextInput, Text, Platform, Modal, Pressable } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TextInput, Text, Platform, Modal, Pressable, Animated } from 'react-native';
 import { ChevronLeft, Search, Share2, Heart, X, MoreVertical } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
@@ -14,6 +14,7 @@ interface HospitalHeaderProps {
   onFavoriteToggle?: () => void;
   onSharePress?: () => void;
   isDark?: boolean;
+  headerTitleOpacity?: any;
 }
 
 export default function HospitalHeader({
@@ -24,6 +25,7 @@ export default function HospitalHeader({
   onFavoriteToggle,
   onSharePress,
   isDark = true,
+  headerTitleOpacity,
 }: HospitalHeaderProps) {
   const insets = useSafeAreaInsets();
   const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
@@ -46,29 +48,29 @@ export default function HospitalHeader({
         style={styles.circleBtnWrapper}
         activeOpacity={0.8}
       >
-        <View style={styles.circleBtn}>
+        <View style={[styles.circleBtn, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(241, 245, 249, 0.9)', borderWidth: 0 }]}>
           {supportsLiquidGlass ? (
             <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
           ) : Platform.OS === 'ios' ? (
-            <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+            <BlurView intensity={45} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
           ) : null}
-          <ChevronLeft color="#FFFFFF" size={22} strokeWidth={2.5} />
+          <ChevronLeft color={isDark ? '#FFFFFF' : '#0F172A'} size={22} strokeWidth={2.5} />
         </View>
       </TouchableOpacity>
 
-      {/* Expanded Search Bar Capsule (Only shown when Search icon is tapped) */}
+      {/* Center Section: Search Bar OR Animated Hospital Title */}
       {isSearchOpen ? (
-        <View style={styles.searchCapsule}>
+        <View style={[styles.searchCapsule, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.85)' : 'rgba(241, 245, 249, 0.95)', borderWidth: 0 }]}>
           {supportsLiquidGlass ? (
             <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
           ) : Platform.OS === 'ios' ? (
-            <BlurView intensity={50} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+            <BlurView intensity={50} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
           ) : null}
-          <Search size={15} color="rgba(255, 255, 255, 0.7)" strokeWidth={2.2} style={styles.searchIcon} />
+          <Search size={15} color={isDark ? 'rgba(255, 255, 255, 0.7)' : '#64748B'} strokeWidth={2.2} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#0F172A' }]}
             placeholder="Search experts, packages..."
-            placeholderTextColor="rgba(255, 255, 255, 0.6)"
+            placeholderTextColor={isDark ? 'rgba(255, 255, 255, 0.6)' : '#94A3B8'}
             value={searchQuery}
             autoFocus
             onChangeText={handleTextChange}
@@ -80,11 +82,24 @@ export default function HospitalHeader({
             }}
             style={{ padding: 4 }}
           >
-            <X size={16} color="rgba(255, 255, 255, 0.8)" />
+            <X size={16} color={isDark ? 'rgba(255, 255, 255, 0.8)' : '#64748B'} />
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={{ flex: 1 }} />
+        <View style={styles.centerTitleContainer}>
+          <Animated.Text
+            style={[
+              styles.headerHospitalTitle,
+              {
+                color: isDark ? '#F8FAFC' : '#0F172A',
+                opacity: headerTitleOpacity || 1,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {title}
+          </Animated.Text>
+        </View>
       )}
 
       {/* Right Section: Circular Search Icon Button & Three Dots Button */}
@@ -95,13 +110,13 @@ export default function HospitalHeader({
             style={styles.circleBtnWrapper}
             activeOpacity={0.8}
           >
-            <View style={styles.circleBtn}>
+            <View style={[styles.circleBtn, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(241, 245, 249, 0.9)', borderWidth: 0 }]}>
               {supportsLiquidGlass ? (
                 <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
               ) : Platform.OS === 'ios' ? (
-                <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+                <BlurView intensity={45} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
               ) : null}
-              <Search color="#FFFFFF" size={19} strokeWidth={2.3} />
+              <Search color={isDark ? '#FFFFFF' : '#0F172A'} size={19} strokeWidth={2.3} />
             </View>
           </TouchableOpacity>
         )}
@@ -111,13 +126,13 @@ export default function HospitalHeader({
           style={styles.circleBtnWrapper}
           activeOpacity={0.8}
         >
-          <View style={styles.circleBtn}>
+          <View style={[styles.circleBtn, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(241, 245, 249, 0.9)', borderWidth: 0 }]}>
             {supportsLiquidGlass ? (
               <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
             ) : Platform.OS === 'ios' ? (
-              <BlurView intensity={45} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
+              <BlurView intensity={45} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
             ) : null}
-            <MoreVertical color="#FFFFFF" size={20} strokeWidth={2.2} />
+            <MoreVertical color={isDark ? '#FFFFFF' : '#0F172A'} size={20} strokeWidth={2.2} />
           </View>
         </TouchableOpacity>
       </View>
@@ -192,14 +207,8 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(15, 23, 42, 0.75)',
+    borderWidth: 0,
   },
   searchCapsule: {
     flex: 1,
@@ -208,15 +217,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    marginHorizontal: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
+    marginHorizontal: 8,
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(15, 23, 42, 0.75)',
+    borderWidth: 0,
     overflow: 'hidden',
   },
   searchIcon: {
@@ -228,6 +231,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     paddingVertical: 0,
+    paddingHorizontal: 4,
+  },
+  centerTitleContainer: {
+    flex: 1,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerHospitalTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   rightActionsRow: {
     flexDirection: 'row',

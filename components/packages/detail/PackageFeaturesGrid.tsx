@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Calendar, ShieldCheck, Wallet, Shield } from 'lucide-react-native';
+import { CalendarCheck, ShieldCheck, Wallet, Stethoscope } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 interface Props {
@@ -12,34 +12,34 @@ export const FEATURE_ITEMS = [
   {
     id: 'token',
     title: 'Reserve with\n₹499 token',
-    icon: Calendar,
-    color: '#3B82F6',
-    bgColor: '#EFF6FF',
-    darkBgColor: '#1E293B',
+    icon: CalendarCheck,
+    color: '#0D9488',
+    bgColor: '#ECFDF5',
+    darkBgColor: 'rgba(16, 185, 129, 0.15)',
   },
   {
     id: 'lock',
     title: '100% Price\nLock Guarantee',
     icon: ShieldCheck,
-    color: '#3B82F6',
-    bgColor: '#EFF6FF',
-    darkBgColor: '#1E293B',
+    color: '#0D9488',
+    bgColor: '#ECFDF5',
+    darkBgColor: 'rgba(16, 185, 129, 0.15)',
   },
   {
     id: 'cashless',
     title: 'Cashless\nAvailable',
     icon: Wallet,
-    color: '#3B82F6',
-    bgColor: '#EFF6FF',
-    darkBgColor: '#1E293B',
+    color: '#0D9488',
+    bgColor: '#ECFDF5',
+    darkBgColor: 'rgba(16, 185, 129, 0.15)',
   },
   {
-    id: 'insurance',
-    title: 'Insurance\nSupport',
-    icon: Shield,
-    color: '#3B82F6',
-    bgColor: '#EFF6FF',
-    darkBgColor: '#1E293B',
+    id: 'consultation',
+    title: 'Specialist\nConsultation',
+    icon: Stethoscope,
+    color: '#0D9488',
+    bgColor: '#ECFDF5',
+    darkBgColor: 'rgba(16, 185, 129, 0.15)',
   },
 ];
 
@@ -52,8 +52,8 @@ export default function PackageFeaturesGrid({ isDark, style }: Props) {
       style={[
         styles.container,
         {
-          backgroundColor: activeDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: activeDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+          backgroundColor: activeDark ? '#1E293B' : '#FFFFFF',
+          borderColor: activeDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
         },
         style,
       ]}
@@ -70,12 +70,12 @@ export default function PackageFeaturesGrid({ isDark, style }: Props) {
                 },
               ]}
             >
-              <IconComp size={22} color={activeDark ? '#60A5FA' : item.color} strokeWidth={1.8} />
+              <IconComp size={22} color={activeDark ? '#34D399' : item.color} strokeWidth={1.8} />
             </View>
             <Text
               style={[
                 styles.featureTitle,
-                { color: activeDark ? '#E2E8F0' : '#334155' },
+                { color: activeDark ? '#F1F5F9' : '#334155' },
               ]}
               numberOfLines={2}
             >
@@ -93,18 +93,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 10,
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     marginHorizontal: 16,
-    marginVertical: 10,
-    // Flat style with NO shadows/elevation per user requirement
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
+    marginVertical: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   featureItem: {
     flex: 1,
@@ -112,16 +111,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   featureTitle: {
     fontSize: 10.5,
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
     lineHeight: 14,
   },

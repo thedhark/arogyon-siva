@@ -103,29 +103,19 @@ export default function RootLayout() {
                 <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
                 <Stack.Screen name="booking/success" options={{ headerShown: false }} />
                 <Stack.Screen name="packages/category/[id]" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/planned-surgery" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/surgery" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/international" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/women" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/womens" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/men" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/mens" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/preventive" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/full-body" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/knee" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/senior" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/cardiac" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/dental" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/diabetes" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/fitness" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/ortho" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/pediatrics" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/pregnancy" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/skin" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/weight" options={{ headerShown: false }} />
                 <Stack.Screen name="packages/provider/[providerId]" options={{ headerShown: false }} />
                 <Stack.Screen name="packages/detail/[packageId]" options={{ headerShown: false }} />
                 <Stack.Screen name="packages/checkout/[packageId]" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/index" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/settings" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/records" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/family" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/addresses" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/saved" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/insurance" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/payments" options={{ headerShown: false }} />
+                <Stack.Screen name="profile/reminders" options={{ headerShown: false }} />
+                <Stack.Screen name="notifications" options={{ headerShown: false }} />
                 <Stack.Screen name="+not-found" />
               </Stack>
               <StatusBar style="auto" />

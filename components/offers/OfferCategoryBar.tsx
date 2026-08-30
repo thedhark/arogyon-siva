@@ -37,6 +37,7 @@ export default function OfferCategoryBar({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="always"
       >
         {categories.map((cat) => {
           const isActive = cat.id === activeCategoryId;
@@ -45,6 +46,7 @@ export default function OfferCategoryBar({
             <TouchableOpacity
               key={cat.id}
               activeOpacity={0.75}
+              delayPressIn={0}
               onPress={() => handleSelect(cat.id)}
               style={styles.tabItem}
             >
@@ -115,7 +117,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 15,
+    zIndex: 100,
   },
   scrollContent: {
     paddingHorizontal: 16,

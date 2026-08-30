@@ -106,6 +106,7 @@ export interface CartItem {
   assignedPatientGender?: string;
   assignedPatientAge?: string;
   assignedPatientAvatar?: string;
+  notes?: string;
 }
 
 interface BookingState {

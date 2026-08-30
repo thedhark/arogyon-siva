@@ -13,6 +13,7 @@ interface Props {
   onSelectCategory?: (catId: string) => void;
   searchQuery?: string;
   onAddPackagePress?: (packageItem: any) => void;
+  hideFilterBar?: boolean;
 }
 
 interface HealthPackage {
@@ -212,7 +213,7 @@ export const MOCK_PACKAGES: HealthPackage[] = [
   },
 ];
 
-export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory, searchQuery: externalSearchQuery = '', onAddPackagePress }: Props) {
+export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospital', selectedCategory: externalCategory, onSelectCategory, searchQuery: externalSearchQuery = '', onAddPackagePress, hideFilterBar = false }: Props) {
   const router = useRouter();
   const [internalCategory, setInternalCategory] = useState('all');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -256,70 +257,72 @@ export default function HospitalPackages({ colors, isDark, hospitalName = 'Hospi
   return (
     <View style={styles.container}>
 
-      {/* Sleek, Compact Category Scroll Pills matching Doctors module */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
-        contentContainerStyle={styles.categoryPillsScroll}
-      >
-        {PACKAGE_CATEGORIES.map((cat) => {
-          const isActive = activeCategory === cat.id;
-          if (cat.id === 'all') {
+      {/* Sleek, Compact Category Scroll Pills matching Doctors module (hidden when rendered in sticky header) */}
+      {!hideFilterBar && (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.categoryPillsScroll}
+        >
+          {PACKAGE_CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            if (cat.id === 'all') {
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[
+                    styles.allPill,
+                    {
+                      backgroundColor: isActive ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#27272A' : '#F8FAFC'),
+                      borderColor: isActive ? 'transparent' : (isDark ? '#3F3F46' : '#E2E8F0'),
+                    },
+                  ]}
+                  onPress={() => handleCategoryPress('all')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.allPillText, { color: isActive ? (isDark ? '#0F172A' : '#FFFFFF') : colors.text }]}>
+                    All
+                  </Text>
+                  {isActive && <View style={[styles.allUnderline, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]} />}
+                </TouchableOpacity>
+              );
+            }
+
             return (
               <TouchableOpacity
                 key={cat.id}
                 style={[
-                  styles.allPill,
+                  styles.categoryChip,
                   {
-                    backgroundColor: isActive ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#27272A' : '#F8FAFC'),
-                    borderColor: isActive ? 'transparent' : (isDark ? '#3F3F46' : '#E2E8F0'),
-                  },
+                    backgroundColor: isActive ? (isDark ? '#2E1065' : '#F3E8FF') : (isDark ? '#1E1E24' : '#FFFFFF'),
+                    borderColor: isActive ? '#7C3AED' : (isDark ? '#333333' : '#E2E8F0'),
+                  }
                 ]}
-                onPress={() => handleCategoryPress('all')}
+                onPress={() => handleCategoryPress(cat.id)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.allPillText, { color: isActive ? (isDark ? '#0F172A' : '#FFFFFF') : colors.text }]}>
-                  All
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    { color: isActive ? '#7C3AED' : (isDark ? '#E2E8F0' : '#1E293B'), fontWeight: isActive ? '700' : '600' }
+                  ]}
+                >
+                  {cat.name}
                 </Text>
-                {isActive && <View style={[styles.allUnderline, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]} />}
               </TouchableOpacity>
             );
-          }
+          })}
 
-          return (
-            <TouchableOpacity
-              key={cat.id}
-              style={[
-                styles.categoryChip,
-                {
-                  backgroundColor: isActive ? (isDark ? '#2E1065' : '#F3E8FF') : (isDark ? '#1E1E24' : '#FFFFFF'),
-                  borderColor: isActive ? '#7C3AED' : (isDark ? '#333333' : '#E2E8F0'),
-                }
-              ]}
-              onPress={() => handleCategoryPress(cat.id)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  { color: isActive ? '#7C3AED' : (isDark ? '#E2E8F0' : '#1E293B'), fontWeight: isActive ? '700' : '600' }
-                ]}
-              >
-                {cat.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* "+More" Pill (Interactive) */}
-        <TouchableOpacity
-          style={[styles.morePill, { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}
-          activeOpacity={0.7}
-          onPress={() => setShowCategoryModal(true)}
-        >
-          <Text style={[styles.morePillText, { color: isDark ? '#CBD5E1' : '#334155' }]}>+More</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* "+More" Pill (Interactive) */}
+          <TouchableOpacity
+            style={[styles.morePill, { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}
+            activeOpacity={0.7}
+            onPress={() => setShowCategoryModal(true)}
+          >
+            <Text style={[styles.morePillText, { color: isDark ? '#CBD5E1' : '#334155' }]}>+More</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
 
       {/* Vertical Top-to-Bottom Category-Wise List of Package Cards */}
       <View style={styles.verticalContainer}>
