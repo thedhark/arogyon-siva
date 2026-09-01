@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft, CreditCard, Plus, Smartphone, Star, Wallet, History, Download, ArrowUpRight, ArrowDownLeft, Receipt, ShieldCheck } from 'lucide-react-native';
+import { ArrowLeft, CreditCard, Plus, Smartphone, Star, Wallet, History, Download, ArrowUpRight, ArrowDownLeft, Receipt, ShieldCheck, Sparkles, Zap } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import { useBookingStore, Appointment } from '@/hooks/useBookingStore';
 import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
@@ -46,7 +47,7 @@ export default function PaymentsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Payments & Wallet</Text>
           <Text style={[styles.headerSub, { color: isDark ? '#94A3B8' : '#64748B' }]}>
             Wallet balance, saved cards & payment methods
@@ -55,21 +56,30 @@ export default function PaymentsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Arogyon Health Wallet Card */}
-        <View style={[styles.walletCard, { backgroundColor: isDark ? '#1C1F28' : '#005C4B' }]}>
+        {/* Luxury Arogyon Health Wallet Card */}
+        <LinearGradient
+          colors={isDark ? ['#0F2027', '#203A43', '#2C5364'] : ['#004D40', '#00695C', '#00796B']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.walletCard}
+        >
           <View style={styles.walletHeader}>
             <View style={styles.walletTitleRow}>
-              <Wallet size={20} color="#FFFFFF" />
-              <Text style={styles.walletTitle}>Arogyon Health Wallet</Text>
+              <View style={styles.walletIconCircle}>
+                <Wallet size={18} color="#FFFFFF" />
+              </View>
+              <Text style={styles.walletTitle} numberOfLines={1}>Arogyon Health Wallet</Text>
             </View>
             <View style={styles.secureTag}>
               <ShieldCheck size={12} color="#34D399" />
-              <Text style={styles.secureTagText}>Instant & Protected</Text>
+              <Text style={styles.secureTagText}>Instant & Safe</Text>
             </View>
           </View>
 
-          <Text style={styles.walletSubtitle}>Available Balance</Text>
-          <Text style={styles.walletBalance}>{formatCurrency(walletBalance)}</Text>
+          <View style={styles.balanceSection}>
+            <Text style={styles.walletSubtitle}>AVAILABLE HEALTH BALANCE</Text>
+            <Text style={styles.walletBalance}>{formatCurrency(walletBalance)}</Text>
+          </View>
 
           {/* Quick Add Funds Buttons */}
           <View style={styles.quickAddRow}>
@@ -78,7 +88,7 @@ export default function PaymentsScreen() {
               onPress={() => addFunds(500)}
               activeOpacity={0.8}
             >
-              <Plus size={14} color="#005C4B" />
+              <Plus size={13} color="#004D40" />
               <Text style={styles.addFundsText}>+₹500</Text>
             </TouchableOpacity>
 
@@ -87,7 +97,7 @@ export default function PaymentsScreen() {
               onPress={() => addFunds(1000)}
               activeOpacity={0.8}
             >
-              <Plus size={14} color="#005C4B" />
+              <Zap size={13} color="#004D40" fill="#004D40" />
               <Text style={styles.addFundsText}>+₹1,000</Text>
             </TouchableOpacity>
 
@@ -96,11 +106,11 @@ export default function PaymentsScreen() {
               onPress={() => addFunds(2000)}
               activeOpacity={0.8}
             >
-              <Plus size={14} color="#005C4B" />
+              <Plus size={13} color="#004D40" />
               <Text style={styles.addFundsText}>+₹2,000</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Saved Payment Methods Section */}
         <View style={styles.sectionHeaderRow}>
@@ -276,55 +286,70 @@ const styles = StyleSheet.create({
   },
   walletCard: {
     padding: 22,
-    borderRadius: 22,
+    borderRadius: 24,
     marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
   },
   walletHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 16,
+    gap: 8,
   },
   walletTitleRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  walletIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   walletTitle: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
   secureTag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   secureTagText: {
     color: '#FFFFFF',
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '700',
   },
+  balanceSection: {
+    marginBottom: 18,
+  },
   walletSubtitle: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 12,
-    marginBottom: 2,
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   walletBalance: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: '900',
-    marginBottom: 16,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
   quickAddRow: {
     flexDirection: 'row',
@@ -336,9 +361,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
     gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
   addFundsBtnHighlighted: {
     backgroundColor: '#DCFCE7',
@@ -346,7 +375,7 @@ const styles = StyleSheet.create({
   addFundsText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#005C4B',
+    color: '#004D40',
   },
   sectionHeaderRow: {
     flexDirection: 'row',

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Heart, Share2 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import Svg, { Path, Rect, Defs, LinearGradient as SvgGradient, Stop, G } from 'react-native-svg';
 
 interface Props {
@@ -22,7 +23,7 @@ interface Props {
 function MedicalShieldGraphic({ isDark }: { isDark: boolean }) {
   return (
     <View style={styles.graphicContainer}>
-      <Svg width={150} height={140} viewBox="0 0 150 140" fill="none">
+      <Svg width={120} height={110} viewBox="0 0 150 140" fill="none">
         <Defs>
           {/* Silver/Chrome Rim Gradient */}
           <SvgGradient id="shieldRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -76,7 +77,6 @@ function MedicalShieldGraphic({ isDark }: { isDark: boolean }) {
           />
 
           {/* 3D Bold White Medical Cross */}
-          {/* Vertical Bar */}
           <Rect
             x="43"
             y="35"
@@ -85,7 +85,6 @@ function MedicalShieldGraphic({ isDark }: { isDark: boolean }) {
             rx="3"
             fill="#FFFFFF"
           />
-          {/* Horizontal Bar */}
           <Rect
             x="28"
             y="50"
@@ -101,8 +100,9 @@ function MedicalShieldGraphic({ isDark }: { isDark: boolean }) {
 }
 
 export default function PackageHeroBanner({
+  image,
   title = 'Annual Diabetes Protection & Organ Shield Package',
-  subtitle = 'Comprehensive diabetes care with organ protection, specialist consultation and continuous support.',
+  subtitle,
   categoryBadge,
   isDark,
   colors,
@@ -121,13 +121,15 @@ export default function PackageHeroBanner({
     cleanTitle.toLowerCase().includes('diabetes') ? 'DIABETES CARE' :
     cleanTitle.toLowerCase().includes('skin') || cleanTitle.toLowerCase().includes('derma') ? 'DERMA CARE' :
     cleanTitle.toLowerCase().includes('heart') || cleanTitle.toLowerCase().includes('cardiac') ? 'CARDIAC CARE' :
-    cleanTitle.toLowerCase().includes('women') || cleanTitle.toLowerCase().includes('pregnancy') ? "WOMEN'S CARE" :
+    cleanTitle.toLowerCase().includes('women') || cleanTitle.toLowerCase().includes('pregnancy') || cleanTitle.toLowerCase().includes('delivery') ? "WOMEN'S CARE" :
     'HEALTH PACKAGE'
   );
 
   const gradientColors = isDark
     ? ['#0A1D1A', '#0D2723', '#0F172A'] as const
     : ['#EBF8F5', '#E1F5EF', '#F8FAFC'] as const;
+
+  const imageSource = typeof image === 'string' ? { uri: image } : image;
 
   return (
     <View style={styles.container}>
@@ -155,7 +157,7 @@ export default function PackageHeroBanner({
           </View>
         </View>
 
-        {/* Hero Content Section: Left Title/Badge + Right 3D Shield Graphic */}
+        {/* Hero Content Section: Left Title/Badge + Right Package Image */}
         <View style={styles.heroContentRow}>
           <View style={styles.textContent}>
             {/* Category Badge */}
@@ -169,17 +171,29 @@ export default function PackageHeroBanner({
             <Text style={[styles.packageTitle, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
               {cleanTitle}
             </Text>
-
-            {/* Subtitle / Description */}
-            {subtitle ? (
-              <Text style={[styles.packageSubtitle, { color: isDark ? '#94A3B8' : '#475569' }]}>
-                {subtitle}
-              </Text>
-            ) : null}
           </View>
 
-          {/* Right 3D Shield Graphic */}
-          <MedicalShieldGraphic isDark={isDark} />
+          {/* Right Package Image with fallback */}
+          {image ? (
+            <View
+              style={[
+                styles.imageContainer,
+                {
+                  borderColor: isDark ? 'rgba(52, 211, 153, 0.3)' : 'rgba(13, 148, 136, 0.2)',
+                  backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                },
+              ]}
+            >
+              <Image
+                source={imageSource}
+                style={styles.packageImage}
+                contentFit="cover"
+                transition={200}
+              />
+            </View>
+          ) : (
+            <MedicalShieldGraphic isDark={isDark} />
+          )}
         </View>
       </LinearGradient>
     </View>
@@ -248,14 +262,27 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
     marginBottom: 8,
   },
-  packageSubtitle: {
-    fontSize: 13,
-    fontWeight: '400',
-    lineHeight: 18,
-  },
   graphicContainer: {
-    width: 140,
+    width: 120,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  imageContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  packageImage: {
+    width: '100%',
+    height: '100%',
   },
 });

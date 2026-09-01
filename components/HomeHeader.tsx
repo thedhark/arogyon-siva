@@ -13,22 +13,13 @@ const DEFAULT_FALLBACK_AVATAR = 'https://images.unsplash.com/photo-1534528741775
 export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: string; avatarUrl?: string }) {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const currentLocation = useAddressStore((state) => state.currentLocation);
   const addresses = useAddressStore((state) => state.addresses);
   const profileAvatar = useProfileStore((state) => state.userProfile?.avatar);
 
   const displayAvatar = profileAvatar || avatarUrl || DEFAULT_FALLBACK_AVATAR;
 
-
-  const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
-  let displayCity = currentCity;
-  if (defaultAddr && defaultAddr.address) {
-    const parts = defaultAddr.address.split(',');
-    if (parts.length >= 2) {
-      displayCity = parts.slice(-2).join(',').trim();
-    } else {
-      displayCity = defaultAddr.address.trim();
-    }
-  }
+  const displayCity = currentLocation?.city || currentLocation?.area || (addresses[0]?.type ?? currentCity);
 
   return (
     <Animated.View entering={FadeIn.delay(100)} style={styles.header}>

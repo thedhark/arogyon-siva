@@ -136,12 +136,17 @@ export default function BookVisitSelector({
     if (onBookPress) onBookPress(primary, selectedPatients);
     if (onCountChange) onCountChange(newSelected.length, primary, selectedPatients);
     if (onMembersChange) onMembersChange(selectedPatients);
-    setIsPeopleModalOpen(true);
   };
 
   const handleOpenPeopleModal = () => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
-    setIsPeopleModalOpen(true);
+    const selectedPatients = getSelectedMembers(selectedIds);
+    const primary = selectedPatients[0] || {
+      id: 'me',
+      name: userProfile?.name || 'Sridhar K.',
+      relation: 'Self',
+    };
+    if (onBookPress) onBookPress(primary, selectedPatients);
   };
 
   const handleToggleMember = (id: string) => {
@@ -280,7 +285,7 @@ export default function BookVisitSelector({
               <View style={styles.avatarStack}>
                 {visibleAvatars.map((p, idx) => (
                   <Image
-                    key={p.id || idx}
+                    key={`${p.id || 'patient'}-${idx}`}
                     source={{
                       uri:
                         p.avatar ||
@@ -314,36 +319,6 @@ export default function BookVisitSelector({
             </View>
           )}
         </TouchableOpacity>
-      )}
-
-      {/* People for this visit Selection Modal */}
-      {isPeopleModalOpen && (
-        <PeopleVisitModal
-          visible={isPeopleModalOpen}
-          selectedIds={selectedIds}
-          onToggleMember={handleToggleMember}
-          onClose={() => setIsPeopleModalOpen(false)}
-          onDone={handleModalDone}
-          onAddMemberPress={() => {
-            setIsPeopleModalOpen(false);
-            setShowAddMemberModal(true);
-          }}
-        />
-      )}
-
-      {/* Add Family Member Modal */}
-      {showAddMemberModal && (
-        <AddFamilyMemberModal
-          visible={showAddMemberModal}
-          onClose={() => {
-            setShowAddMemberModal(false);
-            setIsPeopleModalOpen(true);
-          }}
-          onSubmit={(payload) => {
-            handleAddMemberSubmit(payload);
-            setIsPeopleModalOpen(true);
-          }}
-        />
       )}
     </View>
   );

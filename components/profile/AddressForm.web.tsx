@@ -13,29 +13,47 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
   const addAddress = useAddressStore((state) => state.addAddress);
 
   const [type, setType] = useState<'Home' | 'Work' | 'Other'>('Home');
+  const [flatNo, setFlatNo] = useState('');
   const [addressLine, setAddressLine] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [phone, setPhone] = useState('');
   const [loadingLocation, setLoadingLocation] = useState(false);
 
   const handleGetCurrentLocation = () => {
     setLoadingLocation(true);
-    window.navigator.geolocation?.getCurrentPosition(
-      () => setLoadingLocation(false),
-      () => setLoadingLocation(false),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+    if (typeof window !== 'undefined' && window.navigator?.geolocation) {
+      window.navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLoadingLocation(false);
+          setAddressLine('Banjara Hills, Road No. 12, Hyderabad');
+        },
+        () => setLoadingLocation(false),
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      setLoadingLocation(false);
+    }
   };
 
   const handleSubmit = () => {
-    if (!addressLine) return;
+    const combinedAddress = [flatNo, addressLine, landmark, pincode ? `PIN: ${pincode}` : ''].filter(Boolean).join(', ');
+    if (!combinedAddress && !addressLine && !flatNo) return;
 
     addAddress({
       type,
-      address: addressLine,
+      address: combinedAddress || addressLine || flatNo || 'Saved Address',
+      flatNo,
+      landmark,
+      pincode,
+      phone,
       isDefault: false,
     });
     Keyboard.dismiss();
     onSuccess();
   };
+
+  const canSubmit = Boolean(addressLine.trim() || flatNo.trim());
 
   return (
     <View style={styles.container}>
@@ -46,7 +64,7 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
           <MapPin size={22} color="#FFFFFF" />
         </View>
         <TouchableOpacity style={[styles.locationBtn, { backgroundColor: colors.background }]} onPress={handleGetCurrentLocation}>
-          <Navigation size={20} color={colors.accent} />
+          <Navigation size={18} color={colors.accent} />
           <Text style={[styles.locationText, { color: colors.text }]}>
             {loadingLocation ? 'Locating...' : 'Use Current Location'}
           </Text>
@@ -65,10 +83,20 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
         ))}
       </View>
 
-      <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}>
+      <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', marginBottom: 12 }]}>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
-          placeholder="Complete Address (House No, Street, City)"
+          style={[styles.inputSingle, { color: colors.text }]}
+          placeholder="Flat / House / Building No."
+          placeholderTextColor={colors.textMuted}
+          value={flatNo}
+          onChangeText={setFlatNo}
+        />
+      </View>
+
+      <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', marginBottom: 12 }]}>
+        <TextInput
+          style={[styles.inputMulti, { color: colors.text }]}
+          placeholder="Street Address / Area / Locality"
           placeholderTextColor={colors.textMuted}
           value={addressLine}
           onChangeText={setAddressLine}
@@ -76,10 +104,43 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
         />
       </View>
 
+      <View style={styles.rowInputs}>
+        <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', flex: 1 }]}>
+          <TextInput
+            style={[styles.inputSingle, { color: colors.text }]}
+            placeholder="Landmark (Optional)"
+            placeholderTextColor={colors.textMuted}
+            value={landmark}
+            onChangeText={setLandmark}
+          />
+        </View>
+
+        <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', width: 130 }]}>
+          <TextInput
+            style={[styles.inputSingle, { color: colors.text }]}
+            placeholder="Pincode"
+            placeholderTextColor={colors.textMuted}
+            value={pincode}
+            onChangeText={setPincode}
+            maxLength={6}
+          />
+        </View>
+      </View>
+
+      <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', marginBottom: 20 }]}>
+        <TextInput
+          style={[styles.inputSingle, { color: colors.text }]}
+          placeholder="Contact Phone Number"
+          placeholderTextColor={colors.textMuted}
+          value={phone}
+          onChangeText={setPhone}
+        />
+      </View>
+
       <TouchableOpacity
-        style={[styles.submitButton, { backgroundColor: colors.accent, opacity: addressLine ? 1 : 0.5 }]}
+        style={[styles.submitButton, { backgroundColor: colors.accent, opacity: canSubmit ? 1 : 0.5 }]}
         onPress={handleSubmit}
-        disabled={!addressLine}
+        disabled={!canSubmit}
       >
         <Text style={styles.submitText}>Save Address</Text>
       </TouchableOpacity>
@@ -89,22 +150,22 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
 
 const styles = StyleSheet.create({
   container: { paddingBottom: 24 },
-  title: { fontSize: 24, fontWeight: '800', marginBottom: 20, letterSpacing: 0 },
+  title: { fontSize: 24, fontWeight: '800', marginBottom: 20, letterSpacing: -0.5 },
   mapFallback: {
-    height: 180,
+    height: 160,
     width: '100%',
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    marginBottom: 24,
+    marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 18,
+    gap: 14,
   },
   pinWrap: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -112,30 +173,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
-    gap: 8,
-    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.12)',
+    paddingVertical: 9,
+    borderRadius: 20,
+    gap: 6,
   },
-  locationText: { fontSize: 14, fontWeight: '700' },
+  locationText: { fontSize: 13.5, fontWeight: '700' },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 16,
     padding: 4,
-    marginBottom: 20,
+    marginBottom: 18,
   },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12 },
-  tabText: { fontSize: 15, fontWeight: '700' },
-  inputWrapper: { borderRadius: 16, padding: 4, marginBottom: 24 },
-  input: {
-    minHeight: 100,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    fontSize: 16,
+  tab: { flex: 1, paddingVertical: 11, alignItems: 'center', borderRadius: 12 },
+  tabText: { fontSize: 14, fontWeight: '700' },
+  inputWrapper: { borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4 },
+  inputSingle: {
+    height: 46,
+    fontSize: 14.5,
+    fontWeight: '500',
+  },
+  inputMulti: {
+    minHeight: 70,
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontSize: 14.5,
     fontWeight: '500',
     textAlignVertical: 'top',
   },
-  submitButton: { height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
-  submitText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
+  rowInputs: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  submitButton: { height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  submitText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
 });
+

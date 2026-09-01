@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { Fonts } from '@/constants/theme';
@@ -215,14 +214,6 @@ export default function HospitalDetailCard({
             source={{ uri: image }} 
             style={[styles.mainImage, { borderTopLeftRadius: cardRadius - 1, borderTopRightRadius: cardRadius - 1 }]}
             resizeMode="cover"
-          />
-
-          {/* Depth Vignette Overlay */}
-          <LinearGradient
-            colors={['rgba(0,0,0,0.25)', 'transparent', 'rgba(0,0,0,0.45)']}
-            locations={[0, 0.4, 1]}
-            style={[StyleSheet.absoluteFillObject, { borderTopLeftRadius: cardRadius - 1, borderTopRightRadius: cardRadius - 1 }]}
-            pointerEvents="none"
           />
 
           {/* Top Right Heart (Love Symbol) */}

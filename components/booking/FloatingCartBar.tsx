@@ -34,7 +34,7 @@ export default function FloatingCartBar({
   const bottomPadding = insets.bottom > 0 ? insets.bottom : Platform.OS === 'ios' ? 14 : 8;
 
   const defaultBaseBottom = variant === 'home' 
-    ? (bottomOffset !== undefined && bottomOffset > 0 ? bottomOffset : (Platform.OS === 'ios' ? 108 : 98))
+    ? (bottomOffset !== undefined && bottomOffset > 0 ? bottomOffset : (Platform.OS === 'ios' ? 96 : 86))
     : (bottomOffset !== undefined ? bottomOffset : 0);
   const hiddenBaseBottom = variant === 'home'
     ? (Platform.OS === 'ios' ? 30 : 18)

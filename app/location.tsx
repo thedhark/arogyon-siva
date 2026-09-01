@@ -6,9 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Share,
-  Alert,
   ActivityIndicator,
+  Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -16,57 +16,52 @@ import {
   ChevronDown,
   Search,
   Target,
-  Plus,
   ChevronRight,
-  Home,
-  Briefcase,
   MapPin,
-  MoreHorizontal,
-  Share2,
-  Camera,
   Check,
   X,
   Building2,
-  Navigation,
+  Compass,
 } from 'lucide-react-native';
 import * as Location from 'expo-location';
+import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
-import { useAddressStore, Address } from '@/hooks/useAddressStore';
-import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
-import AddressForm from '@/components/profile/AddressForm';
+import { Fonts } from '@/constants/theme';
+import { useAddressStore } from '@/hooks/useAddressStore';
 
 interface LocationSuggestion {
   id: string;
   title: string;
   subtitle: string;
   fullAddress: string;
+  city?: string;
   lat?: number;
   lon?: number;
 }
 
-// Pre-built Directory of Major Indian Cities & Hubs for 0-ms Instant Local Search
-const POPULAR_INDIAN_LOCATIONS: LocationSuggestion[] = [
-  { id: 'pop-1', title: 'Bengaluru', subtitle: 'Karnataka, India', fullAddress: 'Bengaluru, Karnataka, India', lat: 12.9716, lon: 77.5946 },
-  { id: 'pop-2', title: 'HSR Layout', subtitle: 'Bengaluru, Karnataka', fullAddress: 'HSR Layout, Sector 1-7, Bengaluru, Karnataka 560102', lat: 12.9121, lon: 77.6446 },
-  { id: 'pop-3', title: 'Koramangala', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Koramangala, Bengaluru, Karnataka 560034', lat: 12.9352, lon: 77.6245 },
-  { id: 'pop-4', title: 'Indiranagar', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Indiranagar, 100 Feet Road, Bengaluru, Karnataka 560038', lat: 12.9784, lon: 77.6408 },
-  { id: 'pop-5', title: 'Marathahalli', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Marathahalli Outer Ring Road, Bengaluru, Karnataka 560037', lat: 12.9591, lon: 77.6974 },
-  { id: 'pop-6', title: 'Whitefield', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Whitefield Main Road, Bengaluru, Karnataka 560066', lat: 12.9698, lon: 77.7500 },
-  { id: 'pop-7', title: 'Electronic City', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Electronic City Phase 1, Bengaluru, Karnataka 560100', lat: 12.8452, lon: 77.6602 },
-  { id: 'pop-8', title: 'Tirupati', subtitle: 'Andhra Pradesh, India', fullAddress: 'Tirupati, Chittoor District, Andhra Pradesh, India', lat: 13.6288, lon: 79.4192 },
-  { id: 'pop-9', title: 'Mangalam', subtitle: 'Tirupati, Andhra Pradesh', fullAddress: 'Mangalam Road, Tirupati, Andhra Pradesh 517507', lat: 13.6350, lon: 79.4300 },
-  { id: 'pop-10', title: 'Kapilatheertham', subtitle: 'Tirupati, Andhra Pradesh', fullAddress: 'Kapila Theertham Road, Tirupati, Andhra Pradesh 517501', lat: 13.6492, lon: 79.4183 },
-  { id: 'pop-11', title: 'Hyderabad', subtitle: 'Telangana, India', fullAddress: 'Hyderabad, Telangana, India', lat: 17.3850, lon: 78.4867 },
-  { id: 'pop-12', title: 'Banjara Hills', subtitle: 'Hyderabad, Telangana', fullAddress: 'Banjara Hills, Road No 12, Hyderabad, Telangana 500034', lat: 17.4156, lon: 78.4347 },
-  { id: 'pop-13', title: 'HITECH City', subtitle: 'Hyderabad, Telangana', fullAddress: 'HITECH City, Madhapur, Hyderabad, Telangana 500081', lat: 17.4435, lon: 78.3772 },
-  { id: 'pop-14', title: 'Chennai', subtitle: 'Tamil Nadu, India', fullAddress: 'Chennai, Tamil Nadu, India', lat: 13.0827, lon: 80.2707 },
-  { id: 'pop-15', title: 'Anna Nagar', subtitle: 'Chennai, Tamil Nadu', fullAddress: 'Anna Nagar, Chennai, Tamil Nadu 600040', lat: 13.0850, lon: 80.2101 },
-  { id: 'pop-16', title: 'Mumbai', subtitle: 'Maharashtra, India', fullAddress: 'Mumbai, Maharashtra, India', lat: 19.0760, lon: 72.8777 },
-  { id: 'pop-17', title: 'Bandra West', subtitle: 'Mumbai, Maharashtra', fullAddress: 'Bandra West, Hill Road, Mumbai, Maharashtra 400050', lat: 19.0596, lon: 72.8295 },
-  { id: 'pop-18', title: 'Delhi NCR', subtitle: 'Delhi, India', fullAddress: 'Connaught Place, New Delhi, Delhi 110001', lat: 28.6139, lon: 77.2090 },
-  { id: 'pop-19', title: 'Gurugram', subtitle: 'Haryana, India', fullAddress: 'DLF Cyber City, Gurugram, Haryana 122002', lat: 28.4595, lon: 77.0266 },
-  { id: 'pop-20', title: 'Visakhapatnam', subtitle: 'Andhra Pradesh, India', fullAddress: 'Visakhapatnam, Andhra Pradesh, India', lat: 17.6868, lon: 83.2185 },
+// Major Indian Medical & Metropolitan Hubs for instant 0-ms selection
+const POPULAR_CITIES = [
+  { id: 'city-1', title: 'Bengaluru', subtitle: 'Karnataka', fullAddress: 'Bengaluru, Karnataka, India', icon: '🏙️', lat: 12.9716, lon: 77.5946 },
+  { id: 'city-2', title: 'Hyderabad', subtitle: 'Telangana', fullAddress: 'Hyderabad, Telangana, India', icon: '🏛️', lat: 17.3850, lon: 78.4867 },
+  { id: 'city-3', title: 'Chennai', subtitle: 'Tamil Nadu', fullAddress: 'Chennai, Tamil Nadu, India', icon: '🌊', lat: 13.0827, lon: 80.2707 },
+  { id: 'city-4', title: 'Tirupati', subtitle: 'Andhra Pradesh', fullAddress: 'Tirupati, Andhra Pradesh, India', icon: '🛕', lat: 13.6288, lon: 79.4192 },
+  { id: 'city-5', title: 'Mumbai', subtitle: 'Maharashtra', fullAddress: 'Mumbai, Maharashtra, India', icon: '🌇', lat: 19.0760, lon: 72.8777 },
+  { id: 'city-6', title: 'Delhi NCR', subtitle: 'Delhi', fullAddress: 'New Delhi, Delhi, India', icon: '🏛️', lat: 28.6139, lon: 77.2090 },
+  { id: 'city-7', title: 'Visakhapatnam', subtitle: 'Andhra Pradesh', fullAddress: 'Visakhapatnam, Andhra Pradesh, India', icon: '⚓', lat: 17.6868, lon: 83.2185 },
+  { id: 'city-8', title: 'Kolkata', subtitle: 'West Bengal', fullAddress: 'Kolkata, West Bengal, India', icon: '🌉', lat: 22.5726, lon: 88.3639 },
+  { id: 'city-9', title: 'Pune', subtitle: 'Maharashtra', fullAddress: 'Pune, Maharashtra, India', icon: '🏫', lat: 18.5204, lon: 73.8567 },
+];
+
+const POPULAR_LOCALITIES = [
+  { id: 'loc-1', title: 'Koramangala', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Koramangala, Bengaluru, Karnataka', lat: 12.9352, lon: 77.6245 },
+  { id: 'loc-2', title: 'Indiranagar', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Indiranagar, Bengaluru, Karnataka', lat: 12.9784, lon: 77.6408 },
+  { id: 'loc-3', title: 'HSR Layout', subtitle: 'Bengaluru, Karnataka', fullAddress: 'HSR Layout, Bengaluru, Karnataka', lat: 12.9121, lon: 77.6446 },
+  { id: 'loc-4', title: 'Whitefield', subtitle: 'Bengaluru, Karnataka', fullAddress: 'Whitefield, Bengaluru, Karnataka', lat: 12.9698, lon: 77.7500 },
+  { id: 'loc-5', title: 'Banjara Hills', subtitle: 'Hyderabad, Telangana', fullAddress: 'Banjara Hills, Hyderabad, Telangana', lat: 17.4156, lon: 78.4347 },
+  { id: 'loc-6', title: 'HITECH City', subtitle: 'Hyderabad, Telangana', fullAddress: 'HITECH City, Madhapur, Hyderabad, Telangana', lat: 17.4435, lon: 78.3772 },
+  { id: 'loc-7', title: 'Mangalam', subtitle: 'Tirupati, Andhra Pradesh', fullAddress: 'Mangalam Road, Tirupati, Andhra Pradesh', lat: 13.6350, lon: 79.4300 },
+  { id: 'loc-8', title: 'Anna Nagar', subtitle: 'Chennai, Tamil Nadu', fullAddress: 'Anna Nagar, Chennai, Tamil Nadu', lat: 13.0850, lon: 80.2101 },
 ];
 
 export default function LocationSelectScreen() {
@@ -74,10 +69,9 @@ export default function LocationSelectScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
-  const addresses = useAddressStore((state) => state.addresses);
-  const setDefaultAddress = useAddressStore((state) => state.setDefaultAddress);
+  const currentLocation = useAddressStore((state) => state.currentLocation);
+  const setLocation = useAddressStore((state) => state.setLocation);
   const addAddress = useAddressStore((state) => state.addAddress);
-  const removeAddress = useAddressStore((state) => state.removeAddress);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
@@ -85,15 +79,14 @@ export default function LocationSelectScreen() {
   const [isLocating, setIsLocating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const bottomSheetRef = useRef<ActionBottomSheetRef>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
+    setTimeout(() => setToastMessage(null), 2200);
   };
 
-  // Perform multi-source search (Local Instant + Photon Geocoding API + Nominatim API + Expo Geocode)
+  // Perform multi-source search (Instant Local + Photon Geocoding)
   useEffect(() => {
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
@@ -106,28 +99,21 @@ export default function LocationSelectScreen() {
       return;
     }
 
-    // 1. Immediate Local Fuzzy Match (0-ms)
     const qLower = trimmed.toLowerCase();
-    const localMatches = POPULAR_INDIAN_LOCATIONS.filter((item) => {
+    const allLocal = [...POPULAR_CITIES, ...POPULAR_LOCALITIES];
+    const localMatches: LocationSuggestion[] = allLocal.filter((item) => {
       const t = item.title.toLowerCase();
       const s = item.subtitle.toLowerCase();
       const f = item.fullAddress.toLowerCase();
-      // Handle common typo mapping (e.g. vengalyri -> bengaluru, banglore -> bengaluru)
-      if ((qLower.includes('vengal') || qLower.includes('beng') || qLower.includes('bang')) && t.includes('bengaluru')) {
-        return true;
-      }
       return t.includes(qLower) || s.includes(qLower) || f.includes(qLower);
     });
 
     setSuggestions(localMatches);
     setIsSearching(true);
 
-    // 2. Async API Search (Photon + Nominatim)
     searchDebounceRef.current = setTimeout(async () => {
       try {
         const encodedQuery = encodeURIComponent(trimmed);
-        
-        // Fetch Photon Geocoding API (Fast, no API key, handles fuzzy text)
         const photonUrl = `https://photon.komoot.io/api/?q=${encodedQuery}&limit=6`;
         const photonRes = await fetch(photonUrl).catch(() => null);
 
@@ -148,6 +134,7 @@ export default function LocationSelectScreen() {
                 title,
                 subtitle,
                 fullAddress,
+                city: props.city || props.state || title,
                 lat: coords ? coords[1] : undefined,
                 lon: coords ? coords[0] : undefined,
               };
@@ -155,22 +142,6 @@ export default function LocationSelectScreen() {
           }
         }
 
-        // Fallback to Expo Geocode if API empty
-        if (apiSuggestions.length === 0) {
-          const geocoded = await Location.geocodeAsync(trimmed).catch(() => []);
-          if (geocoded && geocoded.length > 0) {
-            apiSuggestions = geocoded.map((g, idx) => ({
-              id: `expo-${idx}`,
-              title: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
-              subtitle: `Lat: ${g.latitude.toFixed(3)}, Lon: ${g.longitude.toFixed(3)}`,
-              fullAddress: `${trimmed}, India`,
-              lat: g.latitude,
-              lon: g.longitude,
-            }));
-          }
-        }
-
-        // Merge local matches & API suggestions without duplicates
         const combinedMap = new Map<string, LocationSuggestion>();
         [...localMatches, ...apiSuggestions].forEach((item) => {
           const key = item.title.toLowerCase();
@@ -181,7 +152,7 @@ export default function LocationSelectScreen() {
 
         setSuggestions(Array.from(combinedMap.values()));
       } catch (err) {
-        console.warn('Location Search error:', err);
+        console.warn('Location search error:', err);
       } finally {
         setIsSearching(false);
       }
@@ -192,139 +163,90 @@ export default function LocationSelectScreen() {
     };
   }, [searchQuery]);
 
-  // Handle selecting a suggested location
-  const handleSelectSuggestion = (item: LocationSuggestion) => {
-    const newAddress = addAddress({
-      type: item.title,
+  const handleSelectLocation = (item: { title: string; subtitle?: string; fullAddress: string; lat?: number; lon?: number; city?: string }) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    const cityName = item.city || item.title;
+    const areaName = item.title;
+
+    setLocation({
+      city: cityName,
+      area: areaName,
+      fullAddress: item.fullAddress,
+      latitude: item.lat,
+      longitude: item.lon,
+    });
+
+    addAddress({
+      type: areaName,
       address: item.fullAddress,
+      city: cityName,
       distance: 'Selected',
       isDefault: true,
       latitude: item.lat,
       longitude: item.lon,
     });
 
-    setDefaultAddress(newAddress.id);
-    showToast(`Location set to ${item.title}!`);
+    showToast(`Location set to ${areaName}!`);
     setTimeout(() => {
       router.back();
-    }, 700);
+    }, 500);
   };
 
-  // Action: Use Current GPS Location
   const handleUseCurrentLocation = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setIsLocating(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Location permission is required to detect your GPS position.');
+        Alert.alert('Permission Required', 'Please enable location permissions in settings to automatically detect your nearby hospitals.');
         setIsLocating(false);
         return;
       }
 
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const geocode = await Location.reverseGeocodeAsync({
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
       });
 
-      let formattedAddr = 'Primark Lake View Apartments, Mangalam, Tirupati, Andhra Pradesh';
-      let titleType = 'Current Location';
+      let formattedAddr = 'Tirupati, Andhra Pradesh, India';
+      let titleCity = 'Current Location';
 
       if (geocode && geocode.length > 0) {
         const place = geocode[0];
-        titleType = place.city || place.subregion || place.name || 'Current Location';
+        titleCity = place.city || place.subregion || place.name || 'Current Location';
         const parts = [
-          place.name || place.streetNumber || place.street,
+          place.name || place.street,
           place.subregion || place.district || place.city,
           place.region,
-          place.postalCode,
         ].filter(Boolean);
         formattedAddr = parts.join(', ');
       }
 
-      const newAddr = addAddress({
-        type: titleType,
-        address: formattedAddr,
-        distance: '0 m',
-        isDefault: true,
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
+      handleSelectLocation({
+        title: titleCity,
+        subtitle: formattedAddr,
+        fullAddress: formattedAddr,
+        city: titleCity,
+        lat: loc.coords.latitude,
+        lon: loc.coords.longitude,
       });
-
-      setDefaultAddress(newAddr.id);
-      showToast(`Location set to ${titleType}!`);
-      setTimeout(() => {
-        router.back();
-      }, 800);
     } catch (err) {
-      console.warn('Error fetching current location:', err);
-      setDefaultAddress(addresses[0]?.id || '1');
-      showToast('Location updated to current position');
-      setTimeout(() => {
-        router.back();
-      }, 700);
+      console.warn('GPS Error:', err);
+      handleSelectLocation(POPULAR_CITIES[0]);
     } finally {
       setIsLocating(false);
     }
   };
 
-  // Action: Select saved address
-  const handleSelectSavedAddress = (id: string, addressText: string) => {
-    setDefaultAddress(id);
-    const shortName = addressText.split(',')[0];
-    showToast(`Location set to ${shortName}!`);
-    setTimeout(() => {
-      router.back();
-    }, 700);
-  };
-
-  // Action: Share address
-  const handleShareAddress = async (item: Address) => {
-    try {
-      await Share.share({
-        message: `My Address (${item.type}): ${item.address}`,
-      });
-    } catch (error) {
-      console.log('Share error:', error);
-    }
-  };
-
-  // Action: More options
-  const handleMoreOptions = (item: Address) => {
-    Alert.alert(
-      `${item.type} Address Options`,
-      item.address,
-      [
-        {
-          text: item.isDefault ? 'Currently Default' : 'Set as Default',
-          onPress: () => setDefaultAddress(item.id),
-        },
-        {
-          text: 'Delete Address',
-          style: 'destructive',
-          onPress: () => removeAddress(item.id),
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
-  };
-
-  const getAddressIcon = (type: string) => {
-    const t = type.toLowerCase();
-    if (t.includes('home')) return Home;
-    if (t.includes('work')) return Briefcase;
-    if (t.includes('hospital')) return Building2;
-    return MapPin;
-  };
-
-  const cardBg = isDark ? '#1E1E1E' : '#FFFFFF';
+  const cardBg = isDark ? '#1C1929' : '#FFFFFF';
   const textColor = isDark ? '#F1F5F9' : '#0F172A';
   const subTextColor = isDark ? '#94A3B8' : '#64748B';
-  const borderColor = isDark ? '#333333' : '#F1F5F9';
+  const borderColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
-      
+    <View style={[styles.container, { backgroundColor: isDark ? '#0F0D15' : '#F8FAFC' }]}>
       {/* Toast Notification */}
       {toastMessage && (
         <Animated.View
@@ -337,17 +259,21 @@ export default function LocationSelectScreen() {
         </Animated.View>
       )}
 
-      {/* Top Header Bar */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      {/* Top Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.backBtn}
+          style={[styles.backBtn, { backgroundColor: isDark ? '#1C1929' : '#FFFFFF', borderColor }]}
           activeOpacity={0.7}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <ChevronDown size={28} color={textColor} strokeWidth={2.5} />
+          <ChevronDown size={24} color={textColor} strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Select a location</Text>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={[styles.headerTitle, { color: textColor }]}>Select Location</Text>
+          <Text style={[styles.headerSubtitle, { color: subTextColor }]}>
+            Find specialist doctors & top hospitals near you
+          </Text>
+        </View>
       </View>
 
       <ScrollView
@@ -357,11 +283,11 @@ export default function LocationSelectScreen() {
       >
         {/* Search Bar Input */}
         <Animated.View entering={FadeInDown.delay(100)} style={[styles.searchContainer, { backgroundColor: cardBg, borderColor }]}>
-          <Search size={22} color="#F43F5E" strokeWidth={2.5} />
+          <Search size={20} color="#3B82F6" strokeWidth={2.5} />
           <TextInput
             style={[styles.searchInput, { color: textColor }]}
-            placeholder="Search for area, street name, city..."
-            placeholderTextColor={isDark ? '#666666' : '#94A3B8'}
+            placeholder="Search city, area or landmark..."
+            placeholderTextColor={isDark ? '#6B7280' : '#94A3B8'}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -374,17 +300,19 @@ export default function LocationSelectScreen() {
           )}
         </Animated.View>
 
-        {/* Live Search Suggestions (Triggers on user typing) */}
-        {searchQuery.trim().length > 0 && (
+        {/* Live Search Suggestions (When user is typing) */}
+        {searchQuery.trim().length > 0 ? (
           <Animated.View entering={FadeInDown} style={[styles.searchResultsBox, { backgroundColor: cardBg, borderColor }]}>
             <View style={styles.searchHeaderRow}>
-              <Text style={styles.searchHeaderTitle}>LOCATION SUGGESTIONS</Text>
-              {isSearching && <ActivityIndicator size="small" color="#F43F5E" />}
+              <Text style={styles.searchHeaderTitle}>MATCHING LOCATIONS</Text>
+              {isSearching && <ActivityIndicator size="small" color="#3B82F6" />}
             </View>
 
             {suggestions.length === 0 && !isSearching ? (
-              <View style={{ padding: 16 }}>
-                <Text style={{ color: subTextColor, fontSize: 14 }}>No matching locations found for "{searchQuery}". Try typing city or area name.</Text>
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Text style={{ color: subTextColor, fontSize: 14, textAlign: 'center' }}>
+                  No matching cities or areas found for "{searchQuery}".
+                </Text>
               </View>
             ) : (
               suggestions.map((item, idx) => (
@@ -394,17 +322,17 @@ export default function LocationSelectScreen() {
                     styles.searchResultItemRow,
                     idx < suggestions.length - 1 && { borderBottomWidth: 1, borderBottomColor: borderColor }
                   ]}
-                  onPress={() => handleSelectSuggestion(item)}
+                  onPress={() => handleSelectLocation(item)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.suggestionIconWrap}>
-                    <MapPin size={20} color="#F43F5E" strokeWidth={2.2} />
+                    <MapPin size={18} color="#3B82F6" strokeWidth={2.2} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.searchResultTitle, { color: textColor }]} numberOfLines={1}>
                       {item.title}
                     </Text>
-                    <Text style={[styles.searchResultSubtitle, { color: subTextColor }]} numberOfLines={2}>
+                    <Text style={[styles.searchResultSubtitle, { color: subTextColor }]} numberOfLines={1}>
                       {item.subtitle}
                     </Text>
                   </View>
@@ -413,155 +341,105 @@ export default function LocationSelectScreen() {
               ))
             )}
           </Animated.View>
-        )}
+        ) : (
+          <>
+            {/* Quick Action: Use Current Location */}
+            <Animated.View entering={FadeInDown.delay(150)} style={[styles.actionCardBox, { backgroundColor: cardBg, borderColor }]}>
+              <TouchableOpacity
+                style={styles.actionRow}
+                activeOpacity={0.7}
+                onPress={handleUseCurrentLocation}
+                disabled={isLocating}
+              >
+                <View style={styles.actionLeftIcon}>
+                  {isLocating ? (
+                    <ActivityIndicator size="small" color="#3B82F6" />
+                  ) : (
+                    <Target size={22} color="#3B82F6" strokeWidth={2.2} />
+                  )}
+                </View>
+                <View style={styles.actionTextCol}>
+                  <Text style={styles.actionPrimaryText}>Use current location</Text>
+                  <Text style={[styles.actionSubText, { color: subTextColor }]} numberOfLines={1}>
+                    {currentLocation?.fullAddress || 'Auto-detect using GPS for instant nearby hospitals'}
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={isDark ? '#6B7280' : '#94A3B8'} />
+              </TouchableOpacity>
+            </Animated.View>
 
-        {/* Quick Actions Card Box (When search is empty) */}
-        {searchQuery.trim().length === 0 && (
-          <Animated.View entering={FadeInDown.delay(150)} style={[styles.actionCardBox, { backgroundColor: cardBg, borderColor }]}>
-            
-            {/* Action 1: Use Current Location */}
-            <TouchableOpacity
-              style={styles.actionRow}
-              activeOpacity={0.7}
-              onPress={handleUseCurrentLocation}
-              disabled={isLocating}
-            >
-              <View style={styles.actionLeftIcon}>
-                {isLocating ? (
-                  <ActivityIndicator size="small" color="#F43F5E" />
-                ) : (
-                  <Target size={22} color="#F43F5E" strokeWidth={2.2} />
-                )}
-              </View>
-              <View style={styles.actionTextCol}>
-                <Text style={styles.actionPrimaryText}>Use current location</Text>
-                <Text style={styles.actionSubText} numberOfLines={1}>
-                  Primark Lake View Apartments, Mangalam, Tirupati, Andhra Pradesh
-                </Text>
-              </View>
-              <ChevronRight size={20} color={isDark ? '#555555' : '#94A3B8'} />
-            </TouchableOpacity>
+            {/* Popular Cities Grid */}
+            <Animated.View entering={FadeInDown.delay(200)} style={styles.sectionHeaderWrap}>
+              <Compass size={16} color="#3B82F6" style={{ marginRight: 6 }} />
+              <Text style={styles.sectionHeaderText}>POPULAR CITIES</Text>
+            </Animated.View>
 
-            <View style={[styles.divider, { backgroundColor: borderColor }]} />
-
-            {/* Action 2: Add Address */}
-            <TouchableOpacity
-              style={styles.actionRow}
-              activeOpacity={0.7}
-              onPress={() => bottomSheetRef.current?.present()}
-            >
-              <View style={styles.actionLeftIcon}>
-                <Plus size={22} color="#F43F5E" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.actionPrimaryText, { flex: 1 }]}>Add Address</Text>
-              <ChevronRight size={20} color={isDark ? '#555555' : '#94A3B8'} />
-            </TouchableOpacity>
-
-          </Animated.View>
-        )}
-
-        {/* Section Header: SAVED ADDRESSES */}
-        {searchQuery.trim().length === 0 && (
-          <Animated.View entering={FadeInDown.delay(200)} style={styles.sectionHeaderWrap}>
-            <Text style={styles.sectionHeaderText}>SAVED ADDRESSES</Text>
-          </Animated.View>
-        )}
-
-        {/* Saved Address Cards List */}
-        {searchQuery.trim().length === 0 && (
-          <View style={styles.addressListContainer}>
-            {addresses.map((item, index) => {
-              const IconComponent = getAddressIcon(item.type);
-              const isSelected = item.isDefault;
-
-              return (
-                <Animated.View key={item.id} entering={FadeInDown.delay(220 + index * 60)}>
+            <View style={styles.citiesGrid}>
+              {POPULAR_CITIES.map((city, idx) => {
+                const isSelected = currentLocation?.city?.toLowerCase() === city.title.toLowerCase() || 
+                                   currentLocation?.area?.toLowerCase() === city.title.toLowerCase();
+                return (
                   <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => handleSelectSavedAddress(item.id, item.address)}
+                    key={city.id}
                     style={[
-                      styles.addressCard,
+                      styles.cityCard,
                       {
                         backgroundColor: cardBg,
-                        borderColor: isSelected ? '#F43F5E' : borderColor,
+                        borderColor: isSelected ? '#3B82F6' : borderColor,
                         borderWidth: isSelected ? 1.5 : 1,
-                      },
+                      }
                     ]}
+                    onPress={() => handleSelectLocation(city)}
+                    activeOpacity={0.75}
                   >
-                    <View style={styles.addressCardMainRow}>
-                      
-                      {/* Left Icon & Distance */}
-                      <View style={styles.addressLeftCol}>
-                        <IconComponent size={26} color={textColor} strokeWidth={1.8} />
-                        <Text style={styles.distanceText}>{item.distance || '0 m'}</Text>
+                    <Text style={{ fontSize: 24, marginBottom: 6 }}>{city.icon}</Text>
+                    <Text style={[styles.cityCardTitle, { color: isSelected ? '#3B82F6' : textColor }]} numberOfLines={1}>
+                      {city.title}
+                    </Text>
+                    <Text style={[styles.cityCardSubtitle, { color: subTextColor }]} numberOfLines={1}>
+                      {city.subtitle}
+                    </Text>
+                    {isSelected && (
+                      <View style={styles.selectedPill}>
+                        <Check size={10} color="#FFFFFF" strokeWidth={3} />
                       </View>
-
-                      {/* Main Address Info */}
-                      <View style={styles.addressContentCol}>
-                        <View style={styles.addressTitleRow}>
-                          <Text style={[styles.addressTitle, { color: textColor }]}>{item.type}</Text>
-                          {isSelected && (
-                            <View style={styles.selectedBadge}>
-                              <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                            </View>
-                          )}
-                        </View>
-
-                        <Text style={styles.addressBodyText} numberOfLines={2}>
-                          {item.address}
-                        </Text>
-
-                        {/* Action Icon Row at bottom */}
-                        <View style={styles.actionsRow}>
-                          
-                          <TouchableOpacity
-                            style={[styles.actionCircleBtn, { backgroundColor: isDark ? '#2A2A2A' : '#F8FAFC', borderColor }]}
-                            onPress={() => handleMoreOptions(item)}
-                            activeOpacity={0.7}
-                          >
-                            <MoreHorizontal size={18} color={subTextColor} />
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={[styles.actionCircleBtn, { backgroundColor: isDark ? '#2A2A2A' : '#F8FAFC', borderColor }]}
-                            onPress={() => handleShareAddress(item)}
-                            activeOpacity={0.7}
-                          >
-                            <Share2 size={16} color={subTextColor} />
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={[styles.actionCircleBtn, { backgroundColor: isDark ? '#2A2A2A' : '#F8FAFC', borderColor }]}
-                            onPress={() => Alert.alert('Address Details', item.address)}
-                            activeOpacity={0.7}
-                          >
-                            <Camera size={16} color={subTextColor} />
-                          </TouchableOpacity>
-
-                        </View>
-
-                      </View>
-
-                    </View>
+                    )}
                   </TouchableOpacity>
-                </Animated.View>
-              );
-            })}
-          </View>
+                );
+              })}
+            </View>
+
+            {/* Top Medical Hubs & Localities */}
+            <Animated.View entering={FadeInDown.delay(250)} style={[styles.sectionHeaderWrap, { marginTop: 24 }]}>
+              <Building2 size={16} color="#3B82F6" style={{ marginRight: 6 }} />
+              <Text style={styles.sectionHeaderText}>KEY HEALTHCARE REGIONS</Text>
+            </Animated.View>
+
+            <View style={[styles.localitiesList, { backgroundColor: cardBg, borderColor }]}>
+              {POPULAR_LOCALITIES.map((loc, idx) => (
+                <TouchableOpacity
+                  key={loc.id}
+                  style={[
+                    styles.localityRow,
+                    idx < POPULAR_LOCALITIES.length - 1 && { borderBottomWidth: 1, borderBottomColor: borderColor }
+                  ]}
+                  onPress={() => handleSelectLocation(loc)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.localityIcon}>
+                    <MapPin size={16} color="#3B82F6" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.localityTitle, { color: textColor }]}>{loc.title}</Text>
+                    <Text style={[styles.localitySubtitle, { color: subTextColor }]}>{loc.subtitle}</Text>
+                  </View>
+                  <ChevronRight size={16} color={subTextColor} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
         )}
-
       </ScrollView>
-
-      {/* Action Bottom Sheet for Adding Address */}
-      <ActionBottomSheet ref={bottomSheetRef}>
-        <AddressForm
-          onSuccess={() => {
-            bottomSheetRef.current?.dismiss();
-            showToast('New address saved!');
-          }}
-        />
-      </ActionBottomSheet>
-
     </View>
   );
 }
@@ -572,37 +450,47 @@ const styles = StyleSheet.create({
   },
   toast: {
     position: 'absolute',
-    alignSelf: 'center',
+    left: 20,
+    right: 20,
     zIndex: 999,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 8,
   },
   toastText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.medium,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 16,
   },
   backBtn: {
-    marginRight: 8,
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+  },
+  headerSubtitle: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    marginTop: 2,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -611,186 +499,171 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 52,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: 14,
+    height: 48,
+    borderRadius: 14,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
+    marginBottom: 16,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 12,
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  searchResultsBox: {
-    borderRadius: 20,
-    borderWidth: 1,
-    marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  searchHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 8,
-  },
-  searchHeaderTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-    letterSpacing: 0.8,
-  },
-  searchResultItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  suggestionIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFE4E6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  searchResultTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  searchResultSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 14.5,
+    fontFamily: Fonts.medium,
+    marginLeft: 10,
   },
   actionCardBox: {
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
     overflow: 'hidden',
+    marginBottom: 20,
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    padding: 16,
   },
   actionLeftIcon: {
-    width: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 14,
   },
   actionTextCol: {
     flex: 1,
     marginRight: 8,
   },
   actionPrimaryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#F43F5E',
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+    color: '#3B82F6',
   },
   actionSubText: {
-    fontSize: 13,
-    color: '#64748B',
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
     marginTop: 2,
   },
-  divider: {
-    height: 1,
-    width: '100%',
-  },
   sectionHeaderWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
-    paddingLeft: 4,
+    paddingHorizontal: 2,
   },
   sectionHeaderText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontFamily: Fonts.bold,
     color: '#64748B',
     letterSpacing: 0.8,
   },
-  addressListContainer: {
-    gap: 14,
-  },
-  addressCard: {
-    borderRadius: 20,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  addressCardMainRow: {
+  citiesGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 8,
   },
-  addressLeftCol: {
+  cityCard: {
+    width: '31%',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
     alignItems: 'center',
-    width: 44,
-    marginRight: 12,
-    paddingTop: 2,
+    position: 'relative',
   },
-  distanceText: {
+  cityCardTitle: {
+    fontSize: 13,
+    fontFamily: Fonts.semiBold,
+    textAlign: 'center',
+  },
+  cityCardSubtitle: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#64748B',
-    marginTop: 4,
+    fontFamily: Fonts.regular,
+    marginTop: 2,
+    textAlign: 'center',
   },
-  addressContentCol: {
-    flex: 1,
-  },
-  addressTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  addressTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  selectedBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#F43F5E',
+  selectedPill: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#3B82F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addressBodyText: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-  },
-  actionCircleBtn: {
-    width: 32,
-    height: 32,
+  localitiesList: {
     borderRadius: 16,
     borderWidth: 1,
+    overflow: 'hidden',
+  },
+  localityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  localityIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
+  },
+  localityTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+  },
+  localitySubtitle: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    marginTop: 1,
+  },
+  searchResultsBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  searchHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  searchHeaderTitle: {
+    fontSize: 11,
+    fontFamily: Fonts.bold,
+    color: '#64748B',
+    letterSpacing: 0.8,
+  },
+  searchResultItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  suggestionIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  searchResultTitle: {
+    fontSize: 14.5,
+    fontFamily: Fonts.semiBold,
+  },
+  searchResultSubtitle: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    marginTop: 2,
   },
 });

@@ -7,6 +7,84 @@ import { useTheme } from '@/hooks/useTheme';
 import PlanCard, { PLAN_CARD_WIDTH, PLAN_CARD_HEIGHT } from '@/components/PlanCard';
 import { scale, moderateScale } from '@/utils/responsive';
 
+const POPULAR_PACKAGES_DATA = [
+  {
+    id: 'health-checkups',
+    title: 'Full Body Checkup',
+    categorySlug: 'health-checkups',
+    tag: '50% OFF',
+    image: require('@/assets/images/package-banners/health_checkups.png'),
+  },
+  {
+    id: 'pregnancy',
+    title: 'Pregnancy Care',
+    categorySlug: 'pregnancy',
+    tag: 'Popular',
+    image: require('@/assets/images/package-banners/pregnancy_care.png'),
+  },
+  {
+    id: 'weight',
+    title: 'Weight Loss',
+    categorySlug: 'weight',
+    tag: 'Trending',
+    image: require('@/assets/images/package-banners/weight_management.png'),
+  },
+  {
+    id: 'skin',
+    title: 'Derma & Skin',
+    categorySlug: 'skin',
+    image: require('@/assets/images/package-banners/skin.png'),
+  },
+  {
+    id: 'diabetes',
+    title: 'Diabetes Care',
+    categorySlug: 'diabetes',
+    image: require('@/assets/images/package-banners/diabetics.png'),
+  },
+  {
+    id: 'dental',
+    title: 'Dental Care',
+    categorySlug: 'dental',
+    image: require('@/assets/images/package-banners/teeth.png'),
+  },
+  {
+    id: 'women-health',
+    title: "Women's Health",
+    categorySlug: 'women-health',
+    image: require('@/assets/images/package-banners/women_health.png'),
+  },
+  {
+    id: 'knee',
+    title: 'Joint Health',
+    categorySlug: 'knee',
+    image: require('@/assets/images/package-banners/bones_and_joints.png'),
+  },
+  {
+    id: 'eye-care',
+    title: 'Eye Care',
+    categorySlug: 'eye-care',
+    image: require('@/assets/images/package-banners/eye_care.png'),
+  },
+  {
+    id: 'child-health',
+    title: 'Child Health',
+    categorySlug: 'child-health',
+    image: require('@/assets/images/package-banners/child_health.png'),
+  },
+  {
+    id: 'hair-care',
+    title: 'Hair Transplant',
+    categorySlug: 'hair-care',
+    image: require('@/assets/images/package-banners/hair_plant.png'),
+  },
+  {
+    id: 'lungs',
+    title: 'Lungs & Pulmo',
+    categorySlug: 'lungs',
+    image: require('@/assets/images/package-banners/lungs.png'),
+  },
+];
+
 export default function RecommendedPlans() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
@@ -23,46 +101,15 @@ export default function RecommendedPlans() {
         overScrollMode="never"
         contentContainerStyle={styles.plansGrid}
       >
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1531983412531-1f49a365ffed?q=80&w=800"
-          title="Pregnancy Care"
-          categorySlug="pregnancy"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800"
-          title="Weight Loss"
-          categorySlug="weight"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800"
-          title="Derma & Skin"
-          categorySlug="skin"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800"
-          title="Joint Health"
-          categorySlug="knee"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800"
-          title="Heart Care"
-          categorySlug="heart"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?q=80&w=800"
-          title="Dental Care"
-          categorySlug="dental"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800"
-          title="Diabetes Care"
-          categorySlug="diabetes"
-        />
-        <PlanCard 
-          image="https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800"
-          title="Full Body Checkup"
-          categorySlug="health-checkups"
-        />
+        {POPULAR_PACKAGES_DATA.map((pkg) => (
+          <PlanCard
+            key={pkg.id}
+            image={pkg.image}
+            title={pkg.title}
+            tag={pkg.tag}
+            categorySlug={pkg.categorySlug}
+          />
+        ))}
         
         {/* See All card at the end of horizontal scrolling */}
         <TouchableOpacity
@@ -113,7 +160,7 @@ const styles = StyleSheet.create({
   seeAllCard: {
     width: PLAN_CARD_WIDTH,
     height: PLAN_CARD_HEIGHT,
-    borderRadius: scale(14),
+    borderRadius: scale(12),
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -142,4 +189,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-

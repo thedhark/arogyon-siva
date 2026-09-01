@@ -1,7 +1,9 @@
 import CategoryMainCard from './CategoryMainCard';
+import Care34Card from './Care34Card';
 import { CATEGORY_INDEX_REGISTRY } from '@/constants/package-data';
 
 export { default as CategoryMainCard } from './CategoryMainCard';
+export { default as Care34Card } from './Care34Card';
 export { default as PackageItemCard } from './PackageItemCard';
 export { default as AddOnPackageCard } from './AddOnPackageCard';
 export * from './PackageItemCard';

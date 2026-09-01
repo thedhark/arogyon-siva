@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity, Alert } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity, Modal } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Plus, CalendarPlus, FileText, Trash2, Heart, Phone, Activity } from 'lucide-react-native';
+import { ChevronLeft, Plus, FileText, Trash2, Heart, Activity, AlertTriangle, X } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, ZoomIn } from 'react-native-reanimated';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
 import FamilyMemberForm from '@/components/profile/FamilyMemberForm';
@@ -15,15 +15,13 @@ export default function FamilyScreen() {
   const familyMembers = useProfileStore(state => state.familyMembers);
   const removeFamilyMember = useProfileStore(state => state.removeFamilyMember);
 
-  const handleDelete = (id: string, name: string) => {
-    Alert.alert(
-      'Remove Family Member',
-      `Are you sure you want to remove ${name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => removeFamilyMember(id) },
-      ]
-    );
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (memberToDelete) {
+      removeFamilyMember(memberToDelete.id);
+      setMemberToDelete(null);
+    }
   };
 
   return (
@@ -43,7 +41,7 @@ export default function FamilyScreen() {
           
           <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Manage family profiles to easily upload medical records and book appointments for them.
+              Manage family profiles to easily view and organize their medical records and histories.
             </Text>
           </Animated.View>
 
@@ -72,9 +70,10 @@ export default function FamilyScreen() {
                       
                       <TouchableOpacity 
                         style={styles.optionsButton}
-                        onPress={() => handleDelete(member.id, member.name)}
+                        onPress={() => setMemberToDelete({ id: member.id, name: member.name })}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
-                        <Trash2 size={20} color="#EF4444" />
+                        <Trash2 size={18} color="#EF4444" />
                       </TouchableOpacity>
                     </View>
 
@@ -89,19 +88,12 @@ export default function FamilyScreen() {
                     
                     <View style={styles.cardActions}>
                       <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                        onPress={() => router.push(`/records?memberId=${member.id}` as any)}
+                        style={[styles.actionBtn, { backgroundColor: isDark ? '#2A2A2A' : '#F0FDF4', borderColor: isDark ? '#333' : '#DCFCE7' }]}
+                        onPress={() => router.push(`/profile/records?memberId=${member.id}` as any)}
+                        activeOpacity={0.8}
                       >
-                        <FileText size={16} color={colors.text} />
-                        <Text style={[styles.actionBtnText, { color: colors.text }]}>Health Records</Text>
-                      </TouchableOpacity>
-                      
-                      <TouchableOpacity 
-                        style={[styles.actionBtn, styles.primaryActionBtn, { backgroundColor: colors.accent }]}
-                        onPress={() => router.push(`/category/doctor?patientId=${member.id}` as any)}
-                      >
-                        <CalendarPlus size={16} color="#FFFFFF" />
-                        <Text style={[styles.actionBtnText, { color: '#FFFFFF' }]}>Book Appointment</Text>
+                        <FileText size={16} color={colors.accent} />
+                        <Text style={[styles.actionBtnText, { color: colors.accent }]}>View Health Records</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -127,6 +119,52 @@ export default function FamilyScreen() {
         <ActionBottomSheet ref={bottomSheetRef} snapPoints={['88%']}>
           <FamilyMemberForm onSuccess={() => bottomSheetRef.current?.dismiss()} />
         </ActionBottomSheet>
+
+        {/* Minimal Custom Delete Confirmation Modal */}
+        <Modal
+          visible={!!memberToDelete}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMemberToDelete(null)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setMemberToDelete(null)}>
+            <Animated.View 
+              entering={ZoomIn.duration(200)}
+              style={[
+                styles.deleteModalCard, 
+                { backgroundColor: isDark ? '#1F2430' : '#FFFFFF', borderColor: isDark ? '#334155' : '#E2E8F0' }
+              ]}
+            >
+              <View style={styles.deleteIconWrap}>
+                <AlertTriangle size={28} color="#EF4444" />
+              </View>
+
+              <Text style={[styles.deleteModalTitle, { color: colors.text }]}>Remove Family Member?</Text>
+              <Text style={[styles.deleteModalDesc, { color: colors.textSecondary }]}>
+                Are you sure you want to remove <Text style={{ fontWeight: '700', color: colors.text }}>{memberToDelete?.name}</Text>? Associated health records will no longer be linked to this member profile.
+              </Text>
+
+              <View style={styles.deleteModalBtnRow}>
+                <TouchableOpacity
+                  style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#2D3748' : '#F1F5F9' }]}
+                  onPress={() => setMemberToDelete(null)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.modalCancelText, { color: colors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalConfirmDeleteBtn}
+                  onPress={handleConfirmDelete}
+                  activeOpacity={0.85}
+                >
+                  <Trash2 size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.modalConfirmDeleteText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </Pressable>
+        </Modal>
       </View>
     </AnimatedScreen>
   );
@@ -154,22 +192,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
-  addButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   scrollContent: {
-    padding: 24,
+    padding: 20,
     paddingBottom: 100,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
   },
   list: {
     gap: 16,
@@ -188,32 +220,28 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   cardActions: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 12,
   },
   actionBtn: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 11,
     borderRadius: 14,
+    borderWidth: 1,
     gap: 6,
-  },
-  primaryActionBtn: {
   },
   actionBtnText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     marginRight: 14,
   },
   info: {
@@ -251,7 +279,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   optionsButton: {
-    padding: 6,
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
   },
   addCard: {
     flexDirection: 'row',
@@ -260,18 +290,89 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     borderWidth: 2,
-    height: 72,
+    height: 68,
   },
   addIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   addText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  deleteModalCard: {
+    width: '100%',
+    maxWidth: 380,
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  deleteIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  deleteModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  deleteModalDesc: {
+    fontSize: 13.5,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 22,
+  },
+  deleteModalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 14.5,
+    fontWeight: '700',
+  },
+  modalConfirmDeleteBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#EF4444',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalConfirmDeleteText: {
+    color: '#FFFFFF',
+    fontSize: 14.5,
+    fontWeight: '700',
+  },
 });

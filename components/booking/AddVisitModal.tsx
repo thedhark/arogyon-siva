@@ -5,28 +5,30 @@ import {
   StyleSheet, 
   Modal, 
   TouchableOpacity, 
-  Image, 
   ScrollView, 
   TextInput,
   Platform,
   Share as RNShare
 } from 'react-native';
 import { 
-  X, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  MapPin, 
-  Globe, 
   ArrowLeft, 
-  Share2, 
-  Bookmark,
-  MessageSquare
+  Plus, 
+  Calendar as CalendarIcon, 
+  FileEdit,
+  Share2,
+  Bookmark
 } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
 import { useBookingStore } from '@/hooks/useBookingStore';
-import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
+import { useProfileStore } from '@/hooks/useProfileStore';
+import DoctorBookingHeaderCard from './DoctorBookingHeaderCard';
+import DoctorAboutCard from './DoctorAboutCard';
+import PersonSlotCard from './PersonSlotCard';
+import MultiPersonSlotSheet, { PatientSlotAssignment } from './MultiPersonSlotSheet';
+import SelectFamilyMemberModal from './SelectFamilyMemberModal';
+import StickyBookingPaymentBar from './StickyBookingPaymentBar';
 
 interface AddVisitModalProps {
   visible: boolean;
@@ -36,48 +38,136 @@ interface AddVisitModalProps {
   onAdded?: () => void;
 }
 
-const DATES = [
-  { id: '1', day: 'Today', date: 'Aug 11' },
-  { id: '2', day: 'Tomorrow', date: 'Aug 12' },
-  { id: '3', day: 'Wed', date: 'Aug 13' },
-  { id: '4', day: 'Thu', date: 'Aug 14' },
-];
-
-const TIME_SLOTS = [
-  '09:00 AM', '10:00 AM', '11:30 AM', 
-  '02:00 PM', '04:00 PM', '05:30 PM'
-];
+const getDynamicBookingDates = () => {
+  const dates = [];
+  const today = new Date();
+  for (let i = 0; i < 5; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() + i);
+    const dayLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dateLabel = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    dates.push({
+      id: String(i + 1),
+      day: dayLabel,
+      date: dateLabel,
+      fullDate: `${dayLabel}, ${dateLabel}`,
+    });
+  }
+  return dates;
+};
 
 export default function AddVisitModal({ 
   visible, 
   doctor, 
-  hospitalName = 'Apollo Hospital', 
+  hospitalName: hospitalNameProp = 'Apollo Hospital', 
   onClose, 
   onAdded 
 }: AddVisitModalProps) {
   const { colors, isDark } = useTheme();
-  const addCartItem = useBookingStore(state => state.addCartItem);
+  const addCartItem = useBookingStore((state) => state.addCartItem);
+  const userProfile = useProfileStore((state) => state.userProfile);
 
-  const [selectedDate, setSelectedDate] = useState(DATES[0]);
-  const [selectedTime, setSelectedTime] = useState(TIME_SLOTS[1]);
+  const datesList = React.useMemo(() => getDynamicBookingDates(), []);
+
+  // Global selected date for the visit
+  const [selectedDate, setSelectedDate] = useState(datesList[0]);
   const [requestNotes, setRequestNotes] = useState('');
   const [isBookmarked, setIsBookmarked] = useState(false);
+
+  // Multi-patient assignment state
+  const [assignedPatients, setAssignedPatients] = useState<PatientSlotAssignment[]>([
+    {
+      id: 'me',
+      name: userProfile?.name || 'Sridhar K.',
+      relation: 'Self',
+      avatar: userProfile?.avatar,
+      selectedDate: datesList[0].fullDate,
+      selectedTime: '11:30 AM',
+      accentColor: '#6366F1',
+    },
+  ]);
+
+  // Keep patients synced if datesList initializes
+  React.useEffect(() => {
+    if (datesList.length > 0 && assignedPatients.length > 0 && !assignedPatients[0].selectedDate) {
+      setAssignedPatients((prev) =>
+        prev.map((p) => ({ ...p, selectedDate: datesList[0].fullDate }))
+      );
+    }
+  }, [datesList]);
+
+  // Active patient for opening the "More slots" bottom sheet
+  const [activeSheetPatient, setActiveSheetPatient] = useState<PatientSlotAssignment | null>(null);
+  // Show "+ Add another person" modal
+  const [showAddPersonModal, setShowAddPersonModal] = useState(false);
 
   if (!doctor) return null;
 
   const docName = doctor.name || doctor.title || 'Doctor';
   const docSpeciality = doctor.speciality || doctor.degrees || 'Specialist';
-  const docImage = doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200';
+  const docImage = doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=300';
+  const hospitalName = doctor.hospitalName || doctor.hospital || hospitalNameProp || 'Apollo Hospital';
   
-  const baseFee = parseFloat(doctor.fee || doctor.price || '699') || 699;
-  const totalFee = baseFee;
-  const originalFee = Math.round(totalFee * 2.5);
+  const rawFee = doctor.fee ?? doctor.price ?? 600;
+  const unitFee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee).replace(/[^0-9]/g, '')) || 600;
+  const totalFee = unitFee * assignedPatients.length;
+  const originalFee = Math.round(totalFee * 2.2);
   const savings = originalFee - totalFee;
+
+  const handleDateChange = (dateItem: (typeof datesList)[0]) => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch {}
+    }
+    setSelectedDate(dateItem);
+    // Sync all patients to the new global date
+    setAssignedPatients((prev) =>
+      prev.map((p) => ({ ...p, selectedDate: dateItem.fullDate }))
+    );
+  };
+
+  const handleQuickTimeChange = (patientId: string, time: string) => {
+    setAssignedPatients((prev) =>
+      prev.map((p) => (p.id === patientId ? { ...p, selectedTime: time } : p))
+    );
+  };
+
+  const handleSheetSlotSelect = (patientId: string, date: string, time: string) => {
+    const matchedDate = datesList.find((d) => d.fullDate === date);
+    if (matchedDate) {
+      setSelectedDate(matchedDate);
+    }
+    setAssignedPatients((prev) =>
+      prev.map((p) =>
+        p.id === patientId ? { ...p, selectedDate: date, selectedTime: time } : p
+      )
+    );
+  };
+
+  const handleRemovePerson = (patientId: string) => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch {}
+    }
+    setAssignedPatients((prev) => prev.filter((p) => p.id !== patientId));
+  };
+
+  const handleAddPerson = (newPerson: PatientSlotAssignment) => {
+    setAssignedPatients((prev) => [
+      ...prev,
+      {
+        ...newPerson,
+        selectedDate: selectedDate.fullDate,
+      },
+    ]);
+  };
 
   const handleShare = async () => {
     try {
       await RNShare.share({
-        message: `Book a visit with ${docName} (${docSpeciality}) at ${hospitalName} on Arogyon!`,
+        message: `Book appointment with ${docName} (${docSpeciality}) at ${hospitalName} on Arogyon!`,
       });
     } catch (e) {
       console.log(e);
@@ -85,18 +175,25 @@ export default function AddVisitModal({
   };
 
   const handleConfirmAdd = () => {
-    addCartItem({
-      type: 'visit',
-      itemId: doctor.id || 'doc-1',
-      title: docName,
-      subtitle: `${docSpeciality} • In-Clinic Visit`,
-      price: totalFee,
-      originalPrice: originalFee,
-      savingsAmount: savings,
-      image: docImage,
-      selectedDate: `${selectedDate.day}, ${selectedDate.date}`,
-      selectedTime: selectedTime,
-      hospitalName: hospitalName,
+    assignedPatients.forEach((patient, idx) => {
+      addCartItem({
+        type: 'visit',
+        itemId: `${doctor.id || 'doc'}-${patient.id}-${Date.now()}-${idx}`,
+        title: docName,
+        subtitle: `${docSpeciality} • In-Clinic Visit`,
+        price: unitFee,
+        originalPrice: Math.round(unitFee * 2.2),
+        savingsAmount: Math.round(unitFee * 1.2),
+        image: docImage,
+        selectedDate: patient.selectedDate,
+        selectedTime: patient.selectedTime,
+        hospitalName: hospitalName,
+        assignedPatientId: patient.id,
+        assignedPatientName: patient.name,
+        assignedPatientRelation: patient.relation,
+        assignedPatientAvatar: patient.avatar,
+        notes: requestNotes || undefined,
+      });
     });
 
     onClose();
@@ -104,220 +201,239 @@ export default function AddVisitModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={[styles.modalContent, { backgroundColor: isDark ? '#121212' : '#F8FAFC' }]}>
-          {/* Top Modal Navigation Header */}
-          <View style={[styles.topHeader, { backgroundColor: isDark ? '#1A1A1E' : '#FFFFFF', borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }]}>
+    <Modal 
+      visible={visible} 
+      animationType="slide" 
+      presentationStyle="fullScreen"
+      statusBarTranslucent={true}
+      onRequestClose={onClose}
+    >
+      <View style={[styles.modalContent, { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' }]}>
+        {/* Top Header */}
+        <View style={[styles.topHeader, { backgroundColor: isDark ? '#16181D' : '#FFFFFF', borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }]}>
+          <TouchableOpacity 
+            style={[styles.headerBtn, { backgroundColor: isDark ? '#22252C' : '#F1F5F9' }]}
+            onPress={onClose}
+            activeOpacity={0.8}
+          >
+            <ArrowLeft size={18} color={colors.text} />
+          </TouchableOpacity>
+
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Book Appointment</Text>
+
+          <View style={styles.headerRightActions}>
             <TouchableOpacity 
-              style={[styles.headerBtn, { backgroundColor: isDark ? '#27272A' : '#F1F5F9' }]}
-              onPress={onClose}
+              style={[styles.headerBtn, { backgroundColor: isDark ? '#22252C' : '#F1F5F9' }]}
+              onPress={() => setIsBookmarked(!isBookmarked)}
               activeOpacity={0.8}
             >
-              <ArrowLeft size={18} color={colors.text} />
+              <Bookmark 
+                size={17} 
+                color={isBookmarked ? '#EF4444' : colors.text} 
+                fill={isBookmarked ? '#EF4444' : 'transparent'} 
+              />
             </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.headerBtn, { backgroundColor: isDark ? '#22252C' : '#F1F5F9' }]}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
+              <Share2 size={17} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Schedule Visit</Text>
+        {/* Unified Scroll Content */}
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* 1. Doctor Profile Overview Card */}
+          <DoctorBookingHeaderCard
+            doctor={doctor}
+            hospitalName={hospitalName}
+            isDark={isDark}
+          />
 
-            <View style={styles.headerRightActions}>
-              <TouchableOpacity 
-                style={[styles.headerBtn, { backgroundColor: isDark ? '#27272A' : '#F1F5F9' }]}
-                onPress={() => setIsBookmarked(!isBookmarked)}
-                activeOpacity={0.8}
-              >
-                <Bookmark 
-                  size={17} 
-                  color={isBookmarked ? '#E11D48' : colors.text} 
-                  fill={isBookmarked ? '#E11D48' : 'transparent'} 
-                />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.headerBtn, { backgroundColor: isDark ? '#27272A' : '#F1F5F9' }]}
-                onPress={handleShare}
-                activeOpacity={0.8}
-              >
-                <Share2 size={17} color={colors.text} />
-              </TouchableOpacity>
-            </View>
+          {/* 1.5. Doctor About & More Options Card */}
+          <DoctorAboutCard
+            doctor={doctor}
+            hospitalName={hospitalName}
+            isDark={isDark}
+          />
+
+          {/* 2. Section Heading: Select appointment time */}
+          <View style={styles.sectionHeaderBlock}>
+            <Text style={[styles.sectionHeading, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
+              Select appointment time
+            </Text>
+            <Text style={[styles.sectionSubheading, { color: isDark ? '#94A3B8' : '#64748B' }]}>
+              Choose a time for each person
+            </Text>
           </View>
 
-          {/* Unified Content ScrollView */}
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Merged Doctor Profile + Booking Date & Time Container */}
-            <View style={[styles.unifiedContainer, { backgroundColor: isDark ? '#1E1E24' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }]}>
-              
-              {/* 1. Minimal Doctor Profile Row (No ratings / happy patients stats) */}
-              <View style={styles.doctorSummaryRow}>
-                <Image 
-                  source={{ uri: docImage }} 
-                  style={styles.doctorAvatar} 
-                  resizeMode="cover"
-                />
-                <View style={styles.doctorSummaryInfo}>
-                  <View style={styles.nameRow}>
-                    <Text style={[styles.doctorName, { color: colors.text }]} numberOfLines={1}>
-                      {docName}
-                    </Text>
-                    <CheckCircle2 size={15} color="#00A981" fill="#E6F6F2" style={{ marginLeft: 5 }} />
-                  </View>
-
-                  <Text style={styles.specialityText} numberOfLines={1}>
-                    {docSpeciality}
-                  </Text>
-
-                  <View style={styles.locationRow}>
-                    <MapPin size={12} color="#64748B" />
-                    <Text style={styles.locationText} numberOfLines={1}>
-                      {hospitalName || doctor.location || 'Apollo Hospitals'}
-                    </Text>
-                  </View>
-
-                  {doctor.languages && (
-                    <View style={styles.languagesRow}>
-                      <Globe size={12} color="#64748B" />
-                      <Text style={styles.languagesText} numberOfLines={1}>
-                        {doctor.languages}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              {/* Minimal Divider */}
-              <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9' }]} />
-
-              {/* 2. Select Booking Date */}
-              <View style={styles.sectionBlock}>
-                <View style={styles.sectionHeaderRow}>
-                  <Calendar size={15} color="#E11D48" />
-                  <Text style={[styles.sectionHeaderTitle, { color: colors.text }]}>
-                    Select Booking Date
-                  </Text>
-                </View>
-
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.datesScroll}>
-                  {DATES.map((item) => {
-                    const isSelected = selectedDate.id === item.id;
-                    return (
-                      <TouchableOpacity
-                        key={item.id}
-                        style={[
-                          styles.dateChip,
-                          {
-                            borderColor: isSelected ? '#E11D48' : (isDark ? '#2E2E36' : '#E2E8F0'),
-                            backgroundColor: isSelected ? (isDark ? '#3B121F' : '#FFF1F2') : (isDark ? '#24242B' : '#F8FAFC'),
-                          }
-                        ]}
-                        onPress={() => setSelectedDate(item)}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[styles.dateDay, { color: isSelected ? '#E11D48' : (isDark ? '#9CA3AF' : '#64748B') }]}>
-                          {item.day}
-                        </Text>
-                        <Text style={[styles.dateText, { color: isSelected ? '#E11D48' : colors.text }]}>
-                          {item.date}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-
-              {/* Minimal Divider */}
-              <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9' }]} />
-
-              {/* 3. Select Time Slot */}
-              <View style={styles.sectionBlock}>
-                <View style={styles.sectionHeaderRow}>
-                  <Clock size={15} color="#E11D48" />
-                  <Text style={[styles.sectionHeaderTitle, { color: colors.text }]}>
-                    Select Time Slot
-                  </Text>
-                </View>
-
-                <View style={styles.timeSlotsGrid}>
-                  {TIME_SLOTS.map((slot) => {
-                    const isSelected = selectedTime === slot;
-                    return (
-                      <TouchableOpacity
-                        key={slot}
-                        style={[
-                          styles.timeChip,
-                          {
-                            borderColor: isSelected ? '#E11D48' : (isDark ? '#2E2E36' : '#E2E8F0'),
-                            backgroundColor: isSelected ? (isDark ? '#3B121F' : '#FFF1F2') : (isDark ? '#24242B' : '#F8FAFC'),
-                          }
-                        ]}
-                        onPress={() => setSelectedTime(slot)}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[styles.timeText, { color: isSelected ? '#E11D48' : colors.text, fontWeight: isSelected ? '700' : '500' }]}>
-                          {slot}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Minimal Divider */}
-              <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9' }]} />
-
-              {/* 4. Medical Symptoms / Notes (Optional) */}
-              <View style={styles.sectionBlock}>
-                <View style={styles.sectionHeaderRow}>
-                  <MessageSquare size={15} color="#64748B" />
-                  <Text style={[styles.sectionHeaderTitle, { color: colors.text }]}>
-                    Medical Symptoms / Note (Optional)
-                  </Text>
-                </View>
-                <TextInput
+          {/* 3. Global Date Selector Pills */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.datesScroll}
+          >
+            {datesList.map((d) => {
+              const isSelected = selectedDate.id === d.id;
+              return (
+                <TouchableOpacity
+                  key={d.id}
                   style={[
-                    styles.notesInput, 
-                    { 
-                      color: colors.text, 
-                      borderColor: isDark ? '#2E2E36' : '#E2E8F0', 
-                      backgroundColor: isDark ? '#24242B' : '#F8FAFC' 
-                    }
+                    styles.dateChip,
+                    {
+                      backgroundColor: isSelected
+                        ? '#6366F1'
+                        : (isDark ? '#16181D' : '#FFFFFF'),
+                      borderColor: isSelected
+                        ? '#6366F1'
+                        : (isDark ? '#2E3340' : '#E2E8F0'),
+                    },
                   ]}
-                  placeholder="Describe symptoms or medical requests for the doctor..."
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  numberOfLines={2}
-                  value={requestNotes}
-                  onChangeText={setRequestNotes}
-                />
-              </View>
+                  onPress={() => handleDateChange(d)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.dateDay,
+                      { color: isSelected ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B') },
+                    ]}
+                  >
+                    {d.day}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.dateText,
+                      { color: isSelected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A') },
+                    ]}
+                  >
+                    {d.date}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
 
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.calendarBtn,
+                {
+                  backgroundColor: isDark ? '#16181D' : '#FFFFFF',
+                  borderColor: isDark ? '#2E3340' : '#E2E8F0',
+                },
+              ]}
+              activeOpacity={0.8}
+            >
+              <CalendarIcon size={18} color={isDark ? '#94A3B8' : '#64748B'} />
+            </TouchableOpacity>
           </ScrollView>
 
-          {/* Sticky Booking Payment Bar */}
-          <StickyBookingPaymentBar
-            priceDropText="Price dropped by ₹167"
-            price={totalFee}
-            originalPrice={originalFee}
-            discountText="60% Off"
-            ctaText="Confirm Visit"
-            ctaIcon="calendar"
-            onPressCTA={handleConfirmAdd}
-          />
-        </View>
+          {/* 4. Multi-Patient Slot Cards */}
+          <View style={styles.patientsListBlock}>
+            {assignedPatients.map((patient, idx) => (
+              <PersonSlotCard
+                key={`${patient.id}-${idx}`}
+                patient={patient}
+                canRemove={assignedPatients.length > 1}
+                onRemove={handleRemovePerson}
+                onSelectQuickTime={handleQuickTimeChange}
+                onOpenMoreSlots={(p) => setActiveSheetPatient(p)}
+              />
+            ))}
+          </View>
+
+          {/* 5. "+ Add another person" Action Button */}
+          <TouchableOpacity
+            style={[
+              styles.addPersonCard,
+              {
+                backgroundColor: isDark ? '#16181D' : '#FFFFFF',
+                borderColor: isDark ? '#4F46E5' : '#818CF8',
+              },
+            ]}
+            onPress={() => setShowAddPersonModal(true)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.addPersonIconCircle, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#EEF2FF' }]}>
+              <Plus size={20} color="#6366F1" strokeWidth={2.4} />
+            </View>
+            <View style={styles.addPersonTextCol}>
+              <Text style={styles.addPersonTitle}>Add another person</Text>
+              <Text style={[styles.addPersonSubtitle, { color: isDark ? '#94A3B8' : '#64748B' }]}>
+                Add family member or friend
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 6. Medical Symptoms / Notes (Optional) */}
+          <View style={styles.notesSection}>
+            <View style={styles.notesHeaderRow}>
+              <Text style={[styles.notesLabel, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
+                Add symptoms or notes <Text style={[styles.optionalTag, { color: isDark ? '#94A3B8' : '#64748B' }]}> (optional)</Text>
+              </Text>
+            </View>
+
+            <View
+              style={[
+                styles.notesInputWrapper,
+                {
+                  backgroundColor: isDark ? '#16181D' : '#FFFFFF',
+                  borderColor: isDark ? '#2E3340' : '#E2E8F0',
+                },
+              ]}
+            >
+              <TextInput
+                style={[
+                  styles.notesInput,
+                  { color: isDark ? '#F8FAFC' : '#0F172A' },
+                ]}
+                placeholder="E.g. Headache, dizziness, neck pain..."
+                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
+                multiline
+                numberOfLines={2}
+                value={requestNotes}
+                onChangeText={setRequestNotes}
+              />
+              <FileEdit size={18} color={isDark ? '#94A3B8' : '#94A3B8'} style={styles.editIcon} />
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Sticky Booking Payment Bar */}
+        <StickyBookingPaymentBar
+          priceDropText="Special Arogyon Care Discount"
+          price={totalFee}
+          originalPrice={originalFee}
+          discountText="55% Off"
+          ctaText={assignedPatients.length > 1 ? `Confirm (${assignedPatients.length} Persons)` : 'Confirm Appointment'}
+          ctaIcon="calendar"
+          onPressCTA={handleConfirmAdd}
+        />
       </View>
+
+      {/* Categorized "More Slots" Bottom Sheet */}
+      <MultiPersonSlotSheet
+        visible={!!activeSheetPatient}
+        patient={activeSheetPatient}
+        dates={datesList}
+        onClose={() => setActiveSheetPatient(null)}
+        onSelectSlot={handleSheetSlotSelect}
+      />
+
+      {/* Select Family Member Sheet */}
+      <SelectFamilyMemberModal
+        visible={showAddPersonModal}
+        alreadySelectedIds={assignedPatients.map((p) => p.id)}
+        onClose={() => setShowAddPersonModal(false)}
+        onSelectMember={handleAddPerson}
+      />
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
   modalContent: {
-    height: '100%',
-    width: '100%',
-    overflow: 'hidden',
+    flex: 1,
   },
   topHeader: {
     flexDirection: 'row',
@@ -346,135 +462,114 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   scrollContent: {
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 110,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 140,
   },
-  unifiedContainer: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+  sectionHeaderBlock: {
+    marginBottom: 12,
   },
-  doctorSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  doctorAvatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 14,
-    backgroundColor: '#E2E8F0',
-  },
-  doctorSummaryInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  sectionHeading: {
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3,
     marginBottom: 2,
   },
-  doctorName: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.15,
-  },
-  specialityText: {
-    fontFamily: Fonts.medium,
+  sectionSubheading: {
     fontSize: 12.5,
-    color: '#64748B',
-    marginBottom: 4,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 2,
-  },
-  locationText: {
-    fontFamily: Fonts.regular,
-    fontSize: 11.5,
-    color: '#64748B',
-  },
-  languagesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  languagesText: {
-    fontFamily: Fonts.regular,
-    fontSize: 11.5,
-    color: '#64748B',
-  },
-  sectionDivider: {
-    height: 1,
-    marginVertical: 14,
-  },
-  sectionBlock: {
-    width: '100%',
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
-  },
-  sectionHeaderTitle: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 13.5,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   datesScroll: {
-    gap: 8,
+    flexDirection: 'row',
+    gap: 10,
+    paddingBottom: 16,
   },
   dateChip: {
-    width: 72,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
+    width: 76,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   dateDay: {
     fontSize: 11,
-    fontFamily: Fonts.medium,
-    fontWeight: '600',
+    fontWeight: '500',
+    marginBottom: 2,
   },
   dateText: {
     fontSize: 13,
-    fontFamily: Fonts.bold,
     fontWeight: '700',
-    marginTop: 2,
   },
-  timeSlotsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  timeChip: {
-    width: '31%',
-    paddingVertical: 9,
-    borderRadius: 8,
-    borderWidth: 1,
+  calendarBtn: {
+    width: 50,
+    borderRadius: 14,
+    borderWidth: 1.5,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  timeText: {
+  patientsListBlock: {
+    marginBottom: 12,
+  },
+  addPersonCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    marginBottom: 20,
+  },
+  addPersonIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addPersonTextCol: {
+    flex: 1,
+  },
+  addPersonTitle: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#6366F1',
+    marginBottom: 2,
+  },
+  addPersonSubtitle: {
+    fontSize: 11.5,
+    fontWeight: '500',
+  },
+  notesSection: {
+    marginBottom: 16,
+  },
+  notesHeaderRow: {
+    marginBottom: 8,
+  },
+  notesLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  optionalTag: {
     fontSize: 12,
-    fontFamily: Fonts.medium,
+    fontWeight: '400',
+  },
+  notesInputWrapper: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 56,
   },
   notesInput: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 10,
-    fontSize: 12.5,
-    minHeight: 56,
-    textAlignVertical: 'top',
-    fontFamily: Fonts.regular,
+    flex: 1,
+    fontSize: 13,
+    padding: 0,
+  },
+  editIcon: {
+    marginLeft: 8,
   },
 });

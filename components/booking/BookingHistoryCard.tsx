@@ -194,7 +194,7 @@ export default function BookingHistoryCard({
               </Text>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={styles.failedActionsRow}>
             {onTrackRefundPress && (
               <TouchableOpacity
                 style={[styles.supportOutlineBtn, { borderColor: '#EF4444' }]}
@@ -218,11 +218,11 @@ export default function BookingHistoryCard({
       )}
 
       {isCompleted && (
-        <View style={styles.completedActionsRow}>
-          {/* Rate Stars + Share More Feedback Stack */}
-          <View style={styles.rateCol}>
+        <View style={styles.completedActionsContainer}>
+          {/* Rate Stars + Share More Feedback Row */}
+          <View style={styles.ratingSection}>
             <View style={styles.rateRow}>
-              <Text style={[styles.rateLabel, { color: colors.text }]}>Rate</Text>
+              <Text style={[styles.rateLabel, { color: colors.text }]}>Rate Consultation</Text>
               <View style={styles.starsGroup}>
                 {[0, 1, 2, 3, 4].map((i) => {
                   const starVal = i + 1;
@@ -240,7 +240,7 @@ export default function BookingHistoryCard({
                     >
                       <Animated.View style={animStyle}>
                         <Star
-                          size={19}
+                          size={20}
                           color={isFilled ? '#F59E0B' : isDark ? '#4B5563' : '#CBD5E1'}
                           fill={isFilled ? '#F59E0B' : 'transparent'}
                         />
@@ -251,7 +251,6 @@ export default function BookingHistoryCard({
               </View>
             </View>
 
-            {/* Share more feedback link */}
             {rating > 0 && (
               <TouchableOpacity
                 style={styles.shareFeedbackLink}
@@ -264,22 +263,22 @@ export default function BookingHistoryCard({
             )}
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          {/* Action buttons below rating to prevent crowding */}
+          <View style={styles.completedButtonsRow}>
             {onViewReceiptPress && (
               <TouchableOpacity
                 style={[
-                  styles.supportOutlineBtn,
-                  { borderColor: isDark ? '#334155' : '#E2E8F0' },
+                  styles.receiptBtn,
+                  { borderColor: isDark ? '#334155' : '#E2E8F0', backgroundColor: isDark ? '#1E293B' : '#F8FAFC' },
                 ]}
                 onPress={() => onViewReceiptPress(appointment)}
                 activeOpacity={0.75}
               >
-                <FileText size={13} color="#005C4B" />
-                <Text style={[styles.supportOutlineText, { color: '#005C4B' }]}>Receipt</Text>
+                <FileText size={14} color="#005C4B" />
+                <Text style={[styles.receiptBtnText, { color: '#005C4B' }]}>Receipt</Text>
               </TouchableOpacity>
             )}
 
-            {/* Reorder / Book Again Button */}
             <TouchableOpacity
               style={styles.reorderBtn}
               onPress={() => onReorderPress?.(appointment)}
@@ -440,54 +439,59 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   failedAlertContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(239, 68, 68, 0.15)',
-    marginTop: 4,
+    marginTop: 6,
     gap: 8,
   },
   failedAlertLeft: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 6,
+    gap: 8,
   },
   failedTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 12.5,
+    fontSize: 13,
     color: '#EF4444',
     fontWeight: '700',
   },
   failedDesc: {
     fontFamily: Fonts.regular,
-    fontSize: 11,
+    fontSize: 11.5,
     color: '#64748B',
-    lineHeight: 14,
-    marginTop: 1,
+    lineHeight: 15,
+    marginTop: 2,
   },
-  completedActionsRow: {
+  failedActionsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  completedActionsContainer: {
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.05)',
     marginTop: 4,
+    gap: 12,
   },
-  rateCol: {
-    flex: 1,
+  ratingSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   rateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   rateLabel: {
     fontFamily: Fonts.bold,
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '700',
   },
   starsGroup: {
@@ -500,13 +504,35 @@ const styles = StyleSheet.create({
   shareFeedbackLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
     gap: 2,
   },
   shareFeedbackText: {
     fontFamily: Fonts.bold,
     fontSize: 12,
     color: '#E11D48',
+    fontWeight: '700',
+  },
+  completedButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.03)',
+    paddingTop: 8,
+  },
+  receiptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
+  },
+  receiptBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: 13,
     fontWeight: '700',
   },
   upcomingActionsRow: {

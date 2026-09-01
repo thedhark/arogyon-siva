@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
 import { scale, verticalScale } from '@/utils/responsive';
 import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
+import { useBookingStore } from '@/hooks/useBookingStore';
 
 export interface DoctorData {
   id: string;
@@ -39,6 +40,12 @@ export default function RecommendedDoctorCard({
 }: Props) {
   const { colors, isDark } = useTheme();
   const [bookmarked, setBookmarked] = useState(isBookmarked);
+
+  const cartItems = useBookingStore((state) => state.cartItems);
+  const docCartItems = cartItems.filter(
+    (ci) => ci.type === 'visit' && (ci.itemId.startsWith(doctor.id) || ci.title === doctor.name)
+  );
+  const assignedIds = docCartItems.map((ci) => ci.assignedPatientId || 'me');
 
   const availableTimeText =
     doctor.nextAvailableTime ||
@@ -180,6 +187,8 @@ export default function RecommendedDoctorCard({
           <View style={styles.floatingButtonContainer}>
             <BookVisitSelector
               buttonLabel="VISIT"
+              initialSelectedIds={assignedIds}
+              initialCount={assignedIds.length}
               onBookPress={(patient) => onBookVisitPress(doctor, availableTimeText, patient, 1)}
               onCountChange={(count, patient) => {
                 if (count > 0) {

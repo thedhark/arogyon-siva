@@ -168,21 +168,6 @@ export default function HospitalExperts({
   };
 
   const handleBookVisit = (doctor: DoctorData, selectedSlot?: string, patient?: any, count?: number) => {
-    addCartItem({
-      type: 'visit',
-      itemId: doctor.id,
-      title: doctor.name,
-      subtitle: doctor.speciality,
-      price: Number(doctor.fee) || 800,
-      image: doctor.image,
-      selectedDate: '24 May 2024',
-      selectedTime: selectedSlot || '10:00 AM',
-      hospitalName: doctor.hospitalName || 'Apollo Hospitals, Banjara Hills',
-      assignedPatientId: patient?.id || 'me',
-      assignedPatientName: patient?.name || 'Me',
-      assignedPatientRelation: patient?.relation || 'Self',
-    });
-
     if (onAddVisitPress) {
       onAddVisitPress(doctor, selectedSlot);
     }

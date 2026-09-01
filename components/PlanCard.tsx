@@ -11,7 +11,7 @@ export const PLAN_CARD_WIDTH = scale(110);
 export const PLAN_CARD_HEIGHT = scale(158);
 
 interface PlanCardProps {
-  image: string;
+  image: any;
   title: string;
   tag?: string;
   colors?: [string, string, ...string[]];

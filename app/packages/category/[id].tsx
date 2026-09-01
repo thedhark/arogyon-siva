@@ -8,6 +8,7 @@ import InternationalPatientCare from '@/components/care/InternationalPatientCare
 import WomensHealthCare from '@/components/care/WomensHealthCare';
 import MensHealthCare from '@/components/care/MensHealthCare';
 import PreventiveHealthCare from '@/components/care/PreventiveHealthCare';
+import SecondOpinionCare from '@/components/care/SecondOpinionCare';
 
 export default function DynamicCategoryScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -15,6 +16,10 @@ export default function DynamicCategoryScreen() {
 
   const slug = (typeof id === 'string' ? id : '').toLowerCase().trim();
   const normalizedId = slug.replace(/[-_]/g, '');
+
+  if (['opinion', 'secondopinion', '2ndopinion', 'second-opinion'].includes(normalizedId)) {
+    return <SecondOpinionCare colors={colors} isDark={isDark} />;
+  }
 
   if (['postsurgery', 'plannedsurgery', 'surgery', 'generalsurgery', '5'].includes(normalizedId)) {
     return <PlannedSurgeryCare colors={colors} isDark={isDark} />;

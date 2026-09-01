@@ -7,15 +7,14 @@ import {
   MapPin, 
   HeartPulse, 
   Calendar, 
-  Menu, 
   X, 
   ChevronRight, 
   Sparkles, 
   Users, 
   Briefcase, 
-  Info,
-  BadgeCheck,
-  Stethoscope,
+  Info, 
+  BadgeCheck, 
+  Stethoscope, 
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,14 +38,7 @@ import AddPackageModal from '@/components/booking/AddPackageModal';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
 import { HOSPITALS_DATA } from '@/constants/directory-data';
 
-const MENU_SECTIONS = [
-  { id: 'experts', tab: 'Experts', categorySlug: 'all', title: 'Top Specialist Experts', count: 18 },
-  { id: 'all_packages', tab: 'Packages', categorySlug: 'all', title: 'All Health Packages', count: 7 },
-  { id: 'pregnancy', tab: 'Packages', categorySlug: 'pregnancy', title: 'Pregnancy & Maternity', count: 2 },
-  { id: 'cardiac', tab: 'Packages', categorySlug: 'cardiac', title: 'Cardiac Care', count: 1 },
-  { id: 'knee', tab: 'Packages', categorySlug: 'knee', title: 'Knee & Joint Recovery', count: 1 },
-  { id: 'diabetes', tab: 'Packages', categorySlug: 'diabetes', title: 'Diabetes & Metabolism', count: 1 },
-];
+
 
 const ALL_DOCTOR_SPECIALTIES = [
   { id: 'All', name: 'All Specialties', count: 18, emoji: '🏥' },
@@ -162,7 +154,6 @@ export default function HospitalProfile() {
     }
   }, [initialTab]);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
@@ -188,14 +179,6 @@ export default function HospitalProfile() {
     if (tab === 'Packages') {
       setSelectedPackageCategory('all');
     }
-  };
-
-  const handleSelectMenuSection = (item: typeof MENU_SECTIONS[0]) => {
-    handleTabChange(item.tab);
-    if (item.tab === 'Packages') {
-      setSelectedPackageCategory(item.categorySlug);
-    }
-    setIsMenuOpen(false);
   };
 
   const handleShare = async () => {
@@ -540,10 +523,7 @@ export default function HospitalProfile() {
               isHighlyRecommended={isHighlyRecommended}
               isAvailableToday={isAvailableToday}
               onAddVisitPress={(doc) => {
-                router.push({
-                  pathname: '/doctor/[id]',
-                  params: { id: doc.id },
-                });
+                setSelectedDoctorForVisit(doc);
               }}
             />
           </View>
@@ -580,82 +560,7 @@ export default function HospitalProfile() {
         {renderSwitcherAndFilters()}
       </Animated.View>
 
-      {/* Menu Filter Button */}
-      {!hasCartItems && (
-        <TouchableOpacity 
-          style={styles.floatingMenuBtn}
-          onPress={() => setIsMenuOpen(true)}
-          activeOpacity={0.88}
-        >
-          {Platform.OS === 'android' ? (
-            <View style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(20,20,24,0.92)' }]} />
-          ) : supportsLiquidGlass ? (
-            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-          ) : (
-            <BlurView intensity={90} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.6)' }]} />
-          )}
-          <Menu size={18} color="#FFFFFF" />
-          <Text style={styles.floatingMenuText}>Care Menu</Text>
-        </TouchableOpacity>
-      )}
 
-      {/* Menu Sheet Modal */}
-      {isMenuOpen && (
-        <Modal
-          visible={isMenuOpen}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setIsMenuOpen(false)}
-        >
-          <Pressable style={styles.modalOverlay} onPress={() => setIsMenuOpen(false)}>
-            <Pressable 
-              style={[styles.modalCard, { backgroundColor: isDark ? '#1C1929' : '#FFFFFF' }]}
-              onPress={(e) => e.stopPropagation()}
-            >
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>Menu</Text>
-                <TouchableOpacity onPress={() => setIsMenuOpen(false)}>
-                  <X size={20} color={colors.text} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={{ maxHeight: 350 }}>
-                {MENU_SECTIONS.map((sec) => {
-                  const isActive = activeTab === sec.tab && (sec.tab === 'Experts' || selectedPackageCategory === sec.categorySlug);
-                  return (
-                    <TouchableOpacity
-                      key={sec.id}
-                      style={[
-                        styles.menuItemRow,
-                        isActive && { backgroundColor: isDark ? '#172554' : '#EFF6FF' }
-                      ]}
-                      onPress={() => handleSelectMenuSection(sec)}
-                    >
-                      <Text
-                        style={[
-                          styles.menuItemTitle,
-                          { color: isActive ? (isDark ? '#60A5FA' : '#1D4ED8') : colors.text, fontWeight: isActive ? '800' : '600' }
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {sec.title}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.menuItemCount,
-                          { color: isActive ? (isDark ? '#60A5FA' : '#1D4ED8') : (isDark ? '#9CA3AF' : '#6B7280'), fontWeight: isActive ? '800' : '600' }
-                        ]}
-                      >
-                        {sec.count}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      )}
 
       {/* Hospital Facilities & Info Modal */}
       {isInfoModalOpen && (
@@ -1122,32 +1027,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: Fonts.bold,
   },
-  floatingMenuBtn: {
-    position: 'absolute',
-    bottom: 24,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 14,
-    gap: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 100,
-  },
-  floatingMenuText: {
-    fontFamily: Fonts.semiBold,
-    color: '#FFFFFF',
-    fontSize: 13.5,
-    fontWeight: '600',
-  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

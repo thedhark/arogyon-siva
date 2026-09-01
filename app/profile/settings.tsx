@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft, Bell, Shield, CircleHelp, LogOut, Activity, RefreshCw, Smartphone, ChevronRight, FileText, Star, Lock, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Bell, Shield, CircleHelp, LogOut, Activity, RefreshCw, Smartphone, ChevronRight, FileText, Star, Lock, Trash2, User, SquarePen } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
@@ -13,6 +13,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
+  const userProfile = useProfileStore((state) => state.userProfile);
   const settings = useProfileStore((state) => state.settings);
   const updateSettings = useProfileStore((state) => state.updateSettings);
 
@@ -39,6 +40,37 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+
+        {/* Account & Profile Edit Entry */}
+        <Text style={[styles.sectionHeading, { color: colors.text, marginTop: 12 }]}>Account Profile</Text>
+        <TouchableOpacity
+          style={[styles.profileNavCard, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}
+          onPress={() => router.push('/profile/edit')}
+          activeOpacity={0.8}
+        >
+          {userProfile.avatar ? (
+            <Image source={{ uri: userProfile.avatar }} style={styles.profileNavAvatar} />
+          ) : (
+            <View style={[styles.profileNavAvatarFallback, { backgroundColor: colors.accent }]}>
+              <Text style={styles.profileNavInitials}>
+                {userProfile.name
+                  ? userProfile.name.trim().split(' ').length >= 2
+                    ? `${userProfile.name.trim().split(' ')[0][0]}${userProfile.name.trim().split(' ')[1][0]}`.toUpperCase()
+                    : userProfile.name.substring(0, 2).toUpperCase()
+                  : 'U'}
+              </Text>
+            </View>
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.profileNavName, { color: colors.text }]}>{userProfile.name}</Text>
+            <Text style={[styles.profileNavSub, { color: colors.textMuted }]}>
+              {userProfile.email || 'user@arogyon.com'} • Edit Details
+            </Text>
+          </View>
+          <View style={[styles.editPill, { backgroundColor: isDark ? '#2A2A2A' : '#F3F4F6' }]}>
+            <SquarePen size={15} color={colors.accent} />
+          </View>
+        </TouchableOpacity>
 
         {/* Notifications & Alerts */}
         <Text style={[styles.sectionHeading, { color: colors.text, marginTop: 24 }]}>Notifications & Alerts</Text>
@@ -280,6 +312,53 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '700' },
   content: { padding: 20, paddingBottom: 60 },
   sectionHeading: { fontSize: 16, fontWeight: '800', marginBottom: 12, letterSpacing: -0.3 },
+  profileNavCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+    marginBottom: 8,
+  },
+  profileNavAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 14,
+  },
+  profileNavAvatarFallback: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  profileNavInitials: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  profileNavName: {
+    fontSize: 16.5,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  profileNavSub: {
+    fontSize: 12.5,
+  },
+  editPill: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   card: {
     borderRadius: 20,
     borderWidth: 1,

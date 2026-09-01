@@ -38,7 +38,8 @@ export default function SeniorBanner({ onBack }: Props) {
 const styles = StyleSheet.create({
   bannerContainer: {
     width: '100%',
-    aspectRatio: 4 / 3,
+    aspectRatio: 1 / 1,
+    minHeight: 340,
     position: 'relative',
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,

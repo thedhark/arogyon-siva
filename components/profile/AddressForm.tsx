@@ -53,11 +53,12 @@ export default function AddressForm({ onSuccess }: AddressFormProps) {
   const [phone, setPhone] = useState('');
 
   const handleSubmit = () => {
-    if (!addressLine) return;
-    const fullAddressStr = [flatNo, addressLine, landmark, pincode].filter(Boolean).join(', ');
+    const combinedAddress = [flatNo, addressLine, landmark, pincode ? `PIN: ${pincode}` : ''].filter(Boolean).join(', ');
+    if (!combinedAddress && !addressLine && !flatNo) return;
+
     addAddress({
       type,
-      address: fullAddressStr || addressLine,
+      address: combinedAddress || addressLine || flatNo || 'Saved Address',
       flatNo,
       landmark,
       pincode,

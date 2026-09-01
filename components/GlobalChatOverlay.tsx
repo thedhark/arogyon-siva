@@ -25,7 +25,8 @@ import { Heart, Home } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
-import ExpertBentoGrid from './expert/ExpertBentoGrid';
+import WorldClassTreatmentCard from '@/components/care/WorldClassTreatmentCard';
+import SeniorSecondOpinionCard from '@/components/care/SeniorSecondOpinionCard';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 const AVATAR_URL = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
@@ -58,65 +59,47 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
     opacity: interpolate(chatModeProgress.value, [0, 1], [0, 0.65], Extrapolation.CLAMP),
   }));
 
-  const pageStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(chatModeProgress.value, [0, 1], [SCREEN_HEIGHT, 0], Extrapolation.CLAMP);
-    const opacity = interpolate(chatModeProgress.value, [0, 0.15, 1], [0, 0.6, 1], Extrapolation.CLAMP);
-
+  const sheetStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      chatModeProgress.value,
+      [0, 1],
+      [SCREEN_HEIGHT, 0],
+      Extrapolation.CLAMP
+    );
     return {
-      opacity,
       transform: [{ translateY }],
     };
   });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning,';
-    if (hour < 17) return 'Good Afternoon,';
-    return 'Good Evening,';
+    if (hour < 12) return 'Good morning,';
+    if (hour < 17) return 'Good afternoon,';
+    return 'Good evening,';
   };
 
   return (
     <Animated.View
-      style={[StyleSheet.absoluteFill, styles.overlayWrapper]}
       pointerEvents={isPointerActive ? 'auto' : 'none'}
+      style={[StyleSheet.absoluteFillObject, styles.overlayWrapper]}
     >
-      {/* Dimmed Backdrop */}
-      <Pressable onPress={onClose} style={StyleSheet.absoluteFill}>
-        <Animated.View style={[styles.backdrop, backdropStyle]} />
-      </Pressable>
+      {/* Dim Backdrop */}
+      <Animated.View style={[styles.backdrop, backdropStyle]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      </Animated.View>
 
-      {/* Full Screen Ultra-Minimal Care Page */}
-      <Animated.View
-        style={[
-          styles.fullScreenPage,
-          isDark ? styles.pageDark : styles.pageLight,
-          pageStyle,
-        ]}
-      >
-        {supportsLiquid ? (
-          <GlassView
-            glassEffectStyle="regular"
-            style={StyleSheet.absoluteFill}
-          />
-        ) : Platform.OS === 'ios' ? (
-          <BlurView
-            intensity={95}
-            tint={isDark ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        ) : null}
-
-        <View style={styles.flexContainer}>
-          {/* Main Content Area */}
+      {/* Full Screen Slide-in Page */}
+      <Animated.View style={[styles.fullScreenPage, sheetStyle]}>
+        <View style={[styles.flexContainer, isDark ? styles.pageDark : styles.pageLight]}>
           <ScrollView
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={[
               styles.scrollContent,
               {
-                paddingTop: Math.max(insets.top + 8, 20),
-                paddingBottom: Math.max(insets.bottom + 20, 40),
+                paddingTop: insets.top + (Platform.OS === 'ios' ? 12 : 16),
+                paddingBottom: insets.bottom + 24,
               },
             ]}
-            showsVerticalScrollIndicator={false}
             bounces={true}
             style={styles.scrollArea}
           >
@@ -186,12 +169,22 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
               </TouchableOpacity>
             </View>
 
-            {/* ── Care & Specialities Bento Grid ── */}
-            <View style={styles.careSection}>
-              <ExpertBentoGrid
-                isDark={isDark}
-                title="Care & Specialities"
-                onNavigate={onClose}
+            {/* ── 3:4 Aspect Ratio Care Cards ──────────────────── */}
+            <View style={styles.careCardsList}>
+              {/* Card 1: World-Class Treatment India (International Patient Care) */}
+              <WorldClassTreatmentCard
+                onPress={() => {
+                  onClose();
+                  router.push('/care/international' as any);
+                }}
+              />
+
+              {/* Card 2: Senior Specialist 2nd Opinion */}
+              <SeniorSecondOpinionCard
+                onPress={() => {
+                  onClose();
+                  router.push('/care/opinion' as any);
+                }}
               />
             </View>
           </ScrollView>
@@ -227,10 +220,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 40,
-    gap: 18,
+    gap: 16,
   },
 
   /* ── Top Header Row (Home Navigation & Profile Avatar) ─────── */
@@ -304,9 +297,33 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  /* ── Care Section ──────────────────────── */
-  careSection: {
-    marginTop: 8,
+  /* ── 3:4 Care Cards ──────────────────────── */
+  careCardsList: {
+    gap: 16,
+    marginTop: 12,
+    paddingBottom: 24,
+  },
+  card34Wrapper: {
     width: '100%',
+    aspectRatio: 3 / 4,
+    borderRadius: 28,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
+    backgroundColor: 'transparent',
+  },
+  card34Inner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 28,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  card34Image: {
+    width: '100%',
+    height: '100%',
   },
 });

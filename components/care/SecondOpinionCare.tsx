@@ -204,7 +204,7 @@ export default function SecondOpinionCare({ isDark }: Props) {
         {/* Hero Cover Image Banner */}
         <View style={styles.heroCoverContainer}>
           <Image
-            source="https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1000"
+            source={require('@/assets/images/second_opinion_specialists.jpg')}
             style={styles.heroCoverImage}
             contentFit="cover"
           />
@@ -418,7 +418,7 @@ export default function SecondOpinionCare({ isDark }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContainer: { paddingBottom: 40 },
-  heroCoverContainer: { height: 200, position: 'relative' },
+  heroCoverContainer: { height: 265, position: 'relative' },
   heroCoverImage: { width: '100%', height: '100%', position: 'absolute' },
   heroCoverGradient: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between', padding: 16 },
   topActionsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },

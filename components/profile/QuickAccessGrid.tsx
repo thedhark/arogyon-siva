@@ -9,7 +9,7 @@ const QUICK_ACTIONS = [
   { id: '1', title: 'Bookings', route: '/appointments', icon: Calendar, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
   { id: '2', title: 'Family Members', route: '/profile/family', icon: Users, color: '#3B82F6', bgColor: 'rgba(59, 130, 246, 0.1)' },
   { id: '3', title: 'Health Records', route: '/profile/records', icon: FileText, color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' },
-  { id: '4', title: 'Addresses', route: '/profile/addresses', icon: MapPin, color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)' },
+  { id: '4', title: 'Location', route: '/location', icon: MapPin, color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)' },
   { id: '5', title: 'Saved', route: '/profile/saved', icon: Bookmark, color: '#EC4899', bgColor: 'rgba(236, 72, 153, 0.1)' },
   { id: '6', title: 'Insurance', route: '/profile/insurance', icon: ShieldCheck, color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' },
   { id: '7', title: 'Payments', route: '/profile/payments', icon: CreditCard, color: '#6366F1', bgColor: 'rgba(99, 102, 241, 0.1)' },

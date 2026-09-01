@@ -30,8 +30,8 @@ const TAB_META: Record<string, { label: string }> = {
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 function getTabIcon(routeName: string, color: string, isFocused: boolean) {
-  const size = 22;
-  const strokeWidth = isFocused ? 2.4 : 1.9;
+  const size = 19;
+  const strokeWidth = isFocused ? 2.3 : 1.8;
 
   switch (routeName) {
     case 'index':
@@ -53,7 +53,7 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
 
   return (
     <Animated.View style={[styles.logoWrapper, logoStyle]} pointerEvents="none">
-      <Svg width={43.5} height={21} viewBox="0 0 91 44">
+      <Svg width={42.5} height={20.5} viewBox="0 0 91 44">
         <Defs>
           <LinearGradient id="o-grad" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor="#38BDF8" />
@@ -83,23 +83,38 @@ function PremiumLogo({ progress }: { progress: SharedValue<number> }) {
 
 function TabItem({ route, isFocused, meta, onPress }: any) {
   const { isDark } = useTheme();
-  const activeColor = isDark ? '#FFFFFF' : '#000000';
-  const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.42)';
+  const activeColor = isDark ? '#FFFFFF' : '#0F172A';
+  const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.45)';
+
+  const scale = useSharedValue(isFocused ? 1 : 0.95);
+
+  useEffect(() => {
+    scale.value = withSpring(isFocused ? 1.05 : 1, {
+      damping: 15,
+      stiffness: 300,
+    });
+  }, [isFocused]);
+
+  const animatedItemStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={0.75}
       onPress={onPress}
       style={styles.tabButton}
     >
-      <View style={styles.iconWrapper}>
-        {getTabIcon(route.name, isFocused ? activeColor : inactiveColor, isFocused)}
-      </View>
-      <View style={styles.textCapsule}>
-        <Text style={[styles.tabLabel, { color: isFocused ? activeColor : inactiveColor, fontWeight: isFocused ? '800' : '600' }]}>
-          {meta.label}
-        </Text>
-      </View>
+      <Animated.View style={[styles.tabContentInner, animatedItemStyle]}>
+        <View style={styles.iconWrapper}>
+          {getTabIcon(route.name, isFocused ? activeColor : inactiveColor, isFocused)}
+        </View>
+        <View style={styles.textCapsule}>
+          <Text style={[styles.tabLabel, { color: isFocused ? activeColor : inactiveColor, fontWeight: isFocused ? '800' : '600' }]}>
+            {meta.label}
+          </Text>
+        </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 }
@@ -114,6 +129,34 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
   const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
   const tabBarScrollAnim = useSharedValue(0);
 
+  const visibleRoutes = state.routes.filter((route: any) => {
+    const { options } = descriptors[route.key];
+    return (options as { href?: string | null }).href !== null && TAB_META[route.name];
+  });
+
+  const activeIndex = visibleRoutes.findIndex((r: any) => r.key === state.routes[state.index]?.key);
+  const activeTabAnim = useSharedValue(activeIndex >= 0 ? activeIndex : 0);
+
+  useEffect(() => {
+    if (activeIndex >= 0) {
+      activeTabAnim.value = withSpring(activeIndex, {
+        damping: 18,
+        stiffness: 240,
+        mass: 0.6,
+      });
+    }
+  }, [activeIndex]);
+
+  const numTabs = Math.max(visibleRoutes.length, 1);
+
+  const activeIndicatorStyle = useAnimatedStyle(() => {
+    const tabWidthPercent = 100 / numTabs;
+    return {
+      left: `${activeTabAnim.value * tabWidthPercent}%`,
+      width: `${tabWidthPercent}%`,
+    };
+  });
+
   useEffect(() => {
     tabBarScrollAnim.value = withSpring(isTabBarVisible ? 0 : 130, {
       damping: 20,
@@ -127,11 +170,6 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
       transform: [{ translateY: tabBarScrollAnim.value }],
       opacity: interpolate(tabBarScrollAnim.value, [0, 90], [1, 0], Extrapolation.CLAMP),
     };
-  });
-
-  const visibleRoutes = state.routes.filter((route: any) => {
-    const { options } = descriptors[route.key];
-    return (options as { href?: string | null }).href !== null && TAB_META[route.name];
   });
 
   const handleLogoPress = useCallback(() => {
@@ -199,12 +237,34 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
           style={[styles.navContainer, containerBgStyle, navContainerStyle]} 
         >
           {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
-            <GlassView glassEffectStyle="regular" isInteractive={false} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+            <GlassView 
+              glassEffectStyle="regular" 
+              colorScheme={isDark ? 'dark' : 'light'}
+              isInteractive={true} 
+              style={[StyleSheet.absoluteFill, { borderRadius: 25.6, overflow: 'hidden' }]} 
+            />
           ) : (
             Platform.OS === 'ios' && (
-              <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+              <BlurView 
+                intensity={85} 
+                tint={isDark ? 'dark' : 'light'} 
+                style={[StyleSheet.absoluteFill, { borderRadius: 25.6, overflow: 'hidden' }]} 
+              />
             )
           )}
+
+          {/* Active Sliding Glass Pill Pop Indicator */}
+          <Animated.View style={[styles.activeIndicatorWrapper, activeIndicatorStyle]}>
+            <View style={[styles.activeIndicatorPill, isDark ? styles.activeIndicatorDark : styles.activeIndicatorLight]}>
+              {Platform.OS === 'ios' && (
+                <BlurView 
+                  intensity={40} 
+                  tint={isDark ? 'light' : 'default'} 
+                  style={[StyleSheet.absoluteFill, { borderRadius: 21 }]} 
+                />
+              )}
+            </View>
+          </Animated.View>
 
           {visibleRoutes.map((route: any) => {
             const isFocused = state.index === state.routes.indexOf(route);
@@ -250,10 +310,20 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
           ]}
         >
           {Platform.OS === 'android' ? null : supportsLiquidGlass ? (
-            <GlassView glassEffectStyle="regular" tintColor={isDark ? '#333333' : '#ffffff'} isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+            <GlassView 
+              glassEffectStyle="regular" 
+              colorScheme={isDark ? 'dark' : 'light'}
+              tintColor={isDark ? '#333333' : '#ffffff'} 
+              isInteractive={true} 
+              style={[StyleSheet.absoluteFill, { borderRadius: 25.6, overflow: 'hidden' }]} 
+            />
           ) : (
             Platform.OS === 'ios' && (
-              <BlurView intensity={85} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 31, overflow: 'hidden' }]} />
+              <BlurView 
+                intensity={85} 
+                tint={isDark ? 'dark' : 'light'} 
+                style={[StyleSheet.absoluteFill, { borderRadius: 25.6, overflow: 'hidden' }]} 
+              />
             )
           )}
           {/* Default Logo */}
@@ -306,7 +376,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: Platform.OS === 'ios' ? 34 : 24,
+    bottom: Platform.OS === 'ios' ? 32 : 22,
     zIndex: 999,
   },
   wrapper: {
@@ -314,24 +384,24 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    gap: 24,
+    gap: 22,
   },
   fogBackground: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: Platform.OS === 'ios' ? 34 + 62 : 24 + 62,
+    height: Platform.OS === 'ios' ? 32 + 51.2 : 22 + 51.2,
     zIndex: 998,
   },
   navContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 62,
-    borderRadius: 31,
+    height: 51.2,
+    borderRadius: 25.6,
     borderCurve: 'continuous',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
   tabSlot: {
     flex: 1,
@@ -340,9 +410,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   logoContainer: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+    width: 51.2,
+    height: 51.2,
+    borderRadius: 25.6,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
@@ -405,27 +475,76 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  activeIndicatorWrapper: {
+    position: 'absolute',
+    top: 4,
+    bottom: 4,
+    paddingHorizontal: 3,
+    zIndex: 1,
+  },
+  activeIndicatorPill: {
+    flex: 1,
+    borderRadius: 21,
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+  },
+  activeIndicatorLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  activeIndicatorDark: {
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
   tabButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    paddingTop: 4,
+    zIndex: 2,
+  },
+  tabContentInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 3,
   },
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   textCapsule: {
-    marginTop: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    marginTop: 1.5,
+    paddingHorizontal: 4,
   },
   tabLabel: {
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
+    letterSpacing: 0.55,
   },
 });
 

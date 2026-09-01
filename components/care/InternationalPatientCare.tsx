@@ -156,7 +156,7 @@ export default function InternationalPatientCare({ colors, isDark }: Props) {
         {/* Full-Bleed Hero Cover Image Banner */}
         <View style={styles.heroCoverContainer}>
           <Image
-            source="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1000"
+            source={require('@/assets/images/intl_patient_care.jpg')}
             style={styles.heroCoverImage}
             contentFit="cover"
           />
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroCoverContainer: {
-    height: 232,
+    height: 310,
     width: '100%',
     position: 'relative',
     borderBottomLeftRadius: 28,
