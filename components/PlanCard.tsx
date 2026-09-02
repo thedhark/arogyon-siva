@@ -36,13 +36,7 @@ export default function PlanCard({ image, title, tag, colors = ['transparent', '
   return (
     <TouchableOpacity
       activeOpacity={0.88}
-      style={[
-        styles.planCard,
-        {
-          backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)',
-        },
-      ]}
+      style={styles.planCard}
       onPress={handlePress}
     >
       <View style={styles.imageWrapper}>
@@ -76,24 +70,24 @@ const styles = StyleSheet.create({
     width: PLAN_CARD_WIDTH,
     height: PLAN_CARD_HEIGHT,
     borderRadius: scale(12),
-    borderWidth: 1,
     overflow: 'hidden',
+    backgroundColor: 'transparent',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.08,
         shadowRadius: 4,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
         shadowColor: '#000',
       },
     }),
   },
   imageWrapper: {
     flex: 1,
-    borderRadius: scale(11),
+    borderRadius: scale(12),
     overflow: 'hidden',
     position: 'relative',
   },
@@ -110,8 +104,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(8),
     paddingBottom: scale(8),
     justifyContent: 'flex-end',
-    borderBottomLeftRadius: scale(11),
-    borderBottomRightRadius: scale(11),
+    borderBottomLeftRadius: scale(12),
+    borderBottomRightRadius: scale(12),
     zIndex: 2,
   },
   planTag: {

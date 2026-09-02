@@ -118,7 +118,6 @@ export default function RecommendedPlans() {
             styles.seeAllCard,
             {
               backgroundColor: isDark ? 'rgba(47, 168, 130, 0.12)' : '#EDF8F5',
-              borderColor: isDark ? 'rgba(47, 168, 130, 0.3)' : 'rgba(47, 168, 130, 0.25)',
             },
           ]}
           onPress={() => router.push('/(tabs)/package' as any)}
@@ -161,7 +160,6 @@ const styles = StyleSheet.create({
     width: PLAN_CARD_WIDTH,
     height: PLAN_CARD_HEIGHT,
     borderRadius: scale(12),
-    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: scale(8),
