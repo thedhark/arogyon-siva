@@ -126,14 +126,13 @@ export default function HomeScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[4]}
           style={[styles.scrollView, { marginTop: statusBarHeight }]}
           contentContainerStyle={styles.scrollContent}
           bounces={false}
           overScrollMode="never"
         >
 
-          {/* Index 0: Header & Search Bar */}
+          {/* Header & Search Bar */}
           <View style={{ marginBottom: 8, paddingHorizontal: 16 }}>
             <View style={{ marginBottom: 4 }}>
               <HomeHeader currentCity={currentCity} />
@@ -143,12 +142,12 @@ export default function HomeScreen() {
             </Animated.View>
           </View>
 
-          {/* Index 1: Recommended Plans */}
+          {/* Recommended Plans */}
           <View style={{ marginBottom: 4 }}>
             <RecommendedPlans />
           </View>
 
-          {/* Index 2: Spotlight Banner (50% OFF Offers & Direct Access) */}
+          {/* Spotlight Banner (Offers & Direct Access) */}
           <Animated.View entering={FadeInDown.delay(200)} style={{ marginBottom: 12 }}>
             <View style={[styles.sectionHeader, { paddingHorizontal: 16 }]}>
               <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>SPOTLIGHT</Text>
@@ -156,34 +155,26 @@ export default function HomeScreen() {
             <SpotlightBanner />
           </Animated.View>
 
-          {/* Index 3: Category Section Header: What's On Your Mind? & See More (Scrolls naturally) */}
-          <Animated.View entering={FadeInDown.delay(280)} style={styles.categorySectionHeaderContainer}>
-            <Text style={[styles.categorySectionTitle, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
-              WHAT'S ON YOUR MIND?
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setIsCategoriesModalVisible(true);
-              }}
-              activeOpacity={0.7}
-              style={styles.categoryActionBtn}
-            >
-              <Text style={[styles.categoryActionLabel, { color: isDark ? '#34D399' : '#059669' }]}>
-                See More
+          {/* Categories Section (Unified Natural Layout - No separate index or elevation) */}
+          <View style={{ marginBottom: 2 }}>
+            <View style={styles.categorySectionHeaderContainer}>
+              <Text style={[styles.categorySectionTitle, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
+                WHAT'S ON YOUR MIND?
               </Text>
-            </TouchableOpacity>
-          </Animated.View>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setIsCategoriesModalVisible(true);
+                }}
+                activeOpacity={0.7}
+                style={styles.categoryActionBtn}
+              >
+                <Text style={[styles.categoryActionLabel, { color: isDark ? '#34D399' : '#059669' }]}>
+                  See More
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          {/* Index 4: Sticky Explore Categories (Single instance, zero duplication, zero gap) */}
-          <View
-            style={[
-              styles.stickyCategoryWrapper,
-              {
-                backgroundColor: themeBgColor,
-              },
-            ]}
-          >
             <ExploreCategories
               activeTab={activeDirectoryTab}
               onTabChange={setActiveDirectoryTab}
@@ -193,12 +184,12 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* Index 5: Inline Explore Filters (Below Categories) */}
+          {/* Inline Explore Filters (Below Categories) */}
           <View style={{ marginBottom: 6 }}>
             <ExploreFilters />
           </View>
 
-          {/* Index 6: Directory Content */}
+          {/* Directory Content */}
           <View style={{ paddingHorizontal: 12, paddingTop: 6 }}>
             <DirectoryContent activeTab={activeDirectoryTab} />
           </View>
@@ -222,10 +213,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-  },
-  stickyCategoryWrapper: {
-    zIndex: 100,
-    elevation: 25,
   },
   scrollContent: {
     paddingTop: 8,
