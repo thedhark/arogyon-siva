@@ -126,6 +126,7 @@ export default function HomeScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[3]}
           style={[styles.scrollView, { marginTop: statusBarHeight }]}
           contentContainerStyle={styles.scrollContent}
           bounces={false}
@@ -155,8 +156,15 @@ export default function HomeScreen() {
             <SpotlightBanner />
           </Animated.View>
 
-          {/* Categories Section (Unified Natural Layout - No separate index or elevation) */}
-          <View style={{ marginBottom: 2 }}>
+          {/* Categories Section (Sticky with seamless flat background & zero Android elevation shadow) */}
+          <View
+            style={[
+              styles.stickyCategoryWrapper,
+              {
+                backgroundColor: themeBgColor,
+              },
+            ]}
+          >
             <View style={styles.categorySectionHeaderContainer}>
               <Text style={[styles.categorySectionTitle, { color: isDark ? '#9CA3AF' : '#71717A' }]}>
                 WHAT'S ON YOUR MIND?
@@ -213,6 +221,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
+  },
+  stickyCategoryWrapper: {
+    zIndex: 100,
+    elevation: 0,
   },
   scrollContent: {
     paddingTop: 8,
