@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Pla
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/useTheme';
 import { resolveImageSource } from '@/utils/imageUtils';
-import { LayoutGrid, X, Check, Stethoscope, AlertCircle, Activity, Search } from 'lucide-react-native';
+import { LayoutGrid, X, Check, Search } from 'lucide-react-native';
 import Animated, { 
   FadeInRight, 
   useSharedValue, 
@@ -53,10 +53,6 @@ export const ALL_EXPLORE_CATEGORIES = [
   { id: 'Stomach & Digestion', label: 'Stomach', image: CATEGORY_ICONS.stomach },
   { id: 'Diabetes Management', label: 'Diabetes', image: CATEGORY_ICONS.diabetes },
   { id: 'Cancer Specialist', label: 'Cancer', image: CATEGORY_ICONS.cancer },
-  { id: 'Plastic Surgery', label: 'Plastic', image: CATEGORY_ICONS.plastic },
-  { id: "Men's Health", label: "Men's", image: CATEGORY_ICONS.mens },
-  { id: 'Veterinary', label: 'Pet / Vet', image: CATEGORY_ICONS.veterinary },
-  { id: 'Hair & Scalp', label: 'Hair Care', image: CATEGORY_ICONS.hair },
 ];
 
 export const SITUATIONS_DATA = [
@@ -406,9 +402,8 @@ export default function ExploreCategories({
                   onPress={() => handleTabSwitch('specialties', 0)}
                   activeOpacity={0.8}
                 >
-                  <Stethoscope size={13} color={modalTab === 'specialties' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A')} />
                   <Text style={[styles.capsuleTabText, { color: modalTab === 'specialties' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A') }]}>
-                    Specialties ({filteredSpecialties.length})
+                    Specialties
                   </Text>
                 </TouchableOpacity>
 
@@ -423,9 +418,8 @@ export default function ExploreCategories({
                   onPress={() => handleTabSwitch('situations', 1)}
                   activeOpacity={0.8}
                 >
-                  <AlertCircle size={13} color={modalTab === 'situations' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A')} />
                   <Text style={[styles.capsuleTabText, { color: modalTab === 'situations' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A') }]}>
-                    Situations ({filteredSituations.length})
+                    Situations
                   </Text>
                 </TouchableOpacity>
 
@@ -440,9 +434,8 @@ export default function ExploreCategories({
                   onPress={() => handleTabSwitch('surgeries', 2)}
                   activeOpacity={0.8}
                 >
-                  <Activity size={13} color={modalTab === 'surgeries' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A')} />
                   <Text style={[styles.capsuleTabText, { color: modalTab === 'surgeries' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A') }]}>
-                    Surgeries ({filteredSurgeries.length})
+                    Surgeries
                   </Text>
                 </TouchableOpacity>
               </View>
