@@ -85,11 +85,17 @@ export default function RecommendedDoctorCard({
   return (
     <View style={styles.cardContainer}>
       <View style={styles.topRow}>
-        {/* Left Info Column (Clickable to open Doctor Details) */}
+        {/* Left Info Column (Clickable to trigger Visit Booking) */}
         <TouchableOpacity
           style={styles.infoCol}
           activeOpacity={0.8}
-          onPress={() => onCardPress?.(doctor)}
+          onPress={() => {
+            if (onCardPress) {
+              onCardPress(doctor);
+            } else {
+              onBookVisitPress(doctor, availableTimeText);
+            }
+          }}
         >
           {/* Doctor Name & Emoji */}
           <View style={styles.nameRow}>
@@ -174,7 +180,13 @@ export default function RecommendedDoctorCard({
           <TouchableOpacity
             style={styles.portraitWrapper}
             activeOpacity={0.8}
-            onPress={() => onCardPress?.(doctor)}
+            onPress={() => {
+              if (onCardPress) {
+                onCardPress(doctor);
+              } else {
+                onBookVisitPress(doctor, availableTimeText);
+              }
+            }}
           >
             <Image
               source={{ uri: doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400' }}

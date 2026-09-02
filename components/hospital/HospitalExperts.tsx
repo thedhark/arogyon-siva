@@ -4,7 +4,6 @@ import { ChevronUp, ChevronDown, X, CheckCircle2, SlidersHorizontal } from 'luci
 import { useRouter } from 'expo-router';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import HospitalFilterBar from './HospitalFilterBar';
-import FrequentlyBookedSection, { FrequentlyBookedItem } from './FrequentlyBookedSection';
 import RecommendedDoctorCard, { DoctorData } from './RecommendedDoctorCard';
 import { Fonts } from '@/constants/theme';
 
@@ -161,27 +160,14 @@ export default function HospitalExperts({
   const addCartItem = useBookingStore((state) => state.addCartItem);
 
   const handleCardPress = (doctor: DoctorData) => {
-    router.push({
-      pathname: '/doctor/[id]',
-      params: { id: doctor.id, slot: doctor.availableSlots?.[0] || '10:00 AM' },
-    });
+    if (onAddVisitPress) {
+      onAddVisitPress(doctor, doctor.availableSlots?.[0] || '10:00 AM');
+    }
   };
 
   const handleBookVisit = (doctor: DoctorData, selectedSlot?: string, patient?: any, count?: number) => {
     if (onAddVisitPress) {
       onAddVisitPress(doctor, selectedSlot);
-    }
-  };
-
-  const handleFrequentlyBookedPress = (item: FrequentlyBookedItem) => {
-    if (onAddVisitPress) {
-      onAddVisitPress({
-        id: item.id,
-        name: item.title,
-        speciality: 'Care Service',
-        fee: item.price.replace('₹', '').replace(',', ''),
-        image: item.image,
-      });
     }
   };
 
@@ -200,10 +186,7 @@ export default function HospitalExperts({
         />
       )}
 
-      {/* 2. Frequently Booked Together Section */}
-      <FrequentlyBookedSection onItemPress={handleFrequentlyBookedPress} />
-
-      {/* 3. Recommended Doctors Section Header */}
+      {/* 2. Recommended Doctors Section Header */}
       <View style={styles.recommendedHeader}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Recommended doctors
