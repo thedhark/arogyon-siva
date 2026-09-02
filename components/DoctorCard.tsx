@@ -71,8 +71,6 @@ export default function DoctorCard({
     return (
       <RecommendedDoctorCard
         doctor={recommendedData}
-        isBookmarked={isLiked}
-        onBookmarkToggle={onLikePress}
         onCardPress={onPress}
         onBookVisitPress={(d, slot) => {
           if (onAddPress) onAddPress(slot);

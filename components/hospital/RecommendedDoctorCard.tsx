@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, Share } from 'react-native';
-import { MapPin, Globe, Bookmark, Share2, Calendar } from 'lucide-react-native';
+import React from 'react';
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { MapPin, Globe, Calendar } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
 import { scale, verticalScale } from '@/utils/responsive';
@@ -32,14 +32,11 @@ interface Props {
 
 export default function RecommendedDoctorCard({
   doctor,
-  isBookmarked = false,
-  onBookmarkToggle,
   onBookVisitPress,
   onCardPress,
   hideLocation = false,
 }: Props) {
   const { colors, isDark } = useTheme();
-  const [bookmarked, setBookmarked] = useState(isBookmarked);
 
   const cartItems = useBookingStore((state) => state.cartItems);
   const docCartItems = cartItems.filter(
@@ -52,21 +49,6 @@ export default function RecommendedDoctorCard({
     (doctor.availableSlots && doctor.availableSlots.length > 0
       ? doctor.availableSlots[0]
       : '10:00 AM');
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Book a visit with ${doctor.name} (${doctor.speciality}) at ${doctor.hospitalName || doctor.location || 'Arogyon Clinic'} on Arogyon Premium!`,
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleToggleBookmark = () => {
-    setBookmarked(!bookmarked);
-    if (onBookmarkToggle) onBookmarkToggle();
-  };
 
   const doctorEmoji =
     doctor.emoji ||
@@ -143,35 +125,6 @@ export default function RecommendedDoctorCard({
             <Text style={[styles.availabilityText, { color: isDark ? '#94A3B8' : '#475569' }]}>
               Next avail: <Text style={[styles.timeHighlight, { color: isDark ? '#60A5FA' : '#1D4ED8' }]}>{availableTimeText}</Text>
             </Text>
-          </View>
-
-          {/* Left Action Buttons (Bookmark & Share) */}
-          <View style={styles.leftActions}>
-            <TouchableOpacity
-              style={[
-                styles.iconBtn,
-                { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#27272A' : '#FFFFFF' },
-              ]}
-              onPress={handleToggleBookmark}
-              activeOpacity={0.7}
-            >
-              <Bookmark
-                size={16}
-                color={bookmarked ? (isDark ? '#60A5FA' : '#2563EB') : (isDark ? '#CBD5E1' : '#475569')}
-                fill={bookmarked ? (isDark ? '#60A5FA' : '#2563EB') : 'transparent'}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.iconBtn,
-                { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#27272A' : '#FFFFFF' },
-              ]}
-              onPress={handleShare}
-              activeOpacity={0.7}
-            >
-              <Share2 size={16} color={isDark ? '#CBD5E1' : '#475569'} />
-            </TouchableOpacity>
           </View>
         </TouchableOpacity>
 
@@ -322,19 +275,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     color: '#2563EB',
     fontWeight: '700',
-  },
-  leftActions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 5,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   rightCol: {
     width: scale(163),

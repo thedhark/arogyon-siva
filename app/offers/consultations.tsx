@@ -213,8 +213,6 @@ export default function ConsultationsOfferScreen() {
                     availableSlots: ['10:00 AM', '01:30 PM', '05:00 PM'],
                     nextAvailableTime: doc.nextAvailable,
                   }}
-                  isBookmarked={likedDocs[doc.id] || false}
-                  onBookmarkToggle={() => toggleDocLike(doc.id)}
                   onBookVisitPress={handleBookVisit}
                   onCardPress={handleCardPress}
                   hideLocation={false}

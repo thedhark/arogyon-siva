@@ -996,8 +996,6 @@ export default function CategoryScreen() {
             <RecommendedDoctorCard
               key={doc.id}
               doctor={doc}
-              isBookmarked={likedDocs[doc.id] || false}
-              onBookmarkToggle={() => toggleDocLike(doc.id)}
               onBookVisitPress={handleBookVisit}
               onCardPress={handleDoctorPress}
               hideLocation={false}

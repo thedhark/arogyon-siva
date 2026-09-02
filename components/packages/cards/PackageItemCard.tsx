@@ -3,8 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Share, Platform } from
 import {
   Plus,
   ChevronRight,
-  Bookmark,
-  Share2,
   Bed,
   Baby,
   Headphones,
@@ -51,19 +49,8 @@ export default function PackageItemCard({
   titleNumberOfLines,
 }: PackageItemCardProps) {
   const { colors, isDark } = useTheme();
-  const [isSaved, setIsSaved] = useState(false);
   const displayTitle = (item.title || '').replace(/^1\s*x\s*/i, '');
   const buttonLabel = ctaText ?? 'ADD';
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Check out ${displayTitle} (${item.price}) on Arogyon!`,
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const getPackageFeatureTags = () => {
     const lower = displayTitle.toLowerCase();
@@ -234,44 +221,8 @@ export default function PackageItemCard({
           </View>
         </View>
 
-        {/* Bottom Actions Row: Left Bookmark/Share Box Buttons + Right Book Button */}
+        {/* Bottom Actions Row: Right Book Button */}
         <View style={styles.cardBottomActionsRow}>
-          <View style={styles.leftActionButtons}>
-            <TouchableOpacity
-              style={[
-                styles.actionBoxBtn,
-                {
-                  backgroundColor: isDark ? '#27272A' : '#FFFFFF',
-                  borderColor: isDark ? '#3F3F46' : '#E2E8F0',
-                },
-              ]}
-              onPress={() => setIsSaved(!isSaved)}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Bookmark
-                size={17}
-                color={isSaved ? '#E11D48' : (isDark ? '#9CA3AF' : '#64748B')}
-                fill={isSaved ? '#E11D48' : 'none'}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.actionBoxBtn,
-                {
-                  backgroundColor: isDark ? '#27272A' : '#FFFFFF',
-                  borderColor: isDark ? '#3F3F46' : '#E2E8F0',
-                },
-              ]}
-              onPress={handleShare}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Share2 size={17} color={isDark ? '#9CA3AF' : '#64748B'} />
-            </TouchableOpacity>
-          </View>
-
           {/* Right Action Button */}
           <View style={styles.rightActionBtnWrapper}>
             <BookVisitSelector
@@ -591,26 +542,17 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     fontWeight: '700',
   },
+  cardBottomActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
   zomatoBottomActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-  },
-  zomatoActionLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  actionBoxBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   rightActionBtnWrapper: {
     width: scale(163),

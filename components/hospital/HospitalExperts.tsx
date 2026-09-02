@@ -212,8 +212,6 @@ export default function HospitalExperts({
             <RecommendedDoctorCard
               key={doc.id}
               doctor={doc}
-              isBookmarked={likedDocs[doc.id] || false}
-              onBookmarkToggle={() => toggleDocLike(doc.id)}
               onBookVisitPress={handleBookVisit}
               onCardPress={handleCardPress}
               hideLocation={true}
