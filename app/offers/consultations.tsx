@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 import OfferHeroBanner from '@/components/offers/OfferHeroBanner';
 import OfferCategoryBar from '@/components/offers/OfferCategoryBar';
 import RecommendedDoctorCard, { DoctorData } from '@/components/hospital/RecommendedDoctorCard';
+import AddVisitModal from '@/components/booking/AddVisitModal';
 import { OFFER_CATEGORIES, OFFER_DOCTORS } from '@/constants/offers-data';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
@@ -35,6 +36,7 @@ export default function ConsultationsOfferScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedQuickFilter, setSelectedQuickFilter] = useState('all');
   const [likedDocs, setLikedDocs] = useState<Record<string, boolean>>({});
+  const [selectedDoctorForVisit, setSelectedDoctorForVisit] = useState<any>(null);
 
   const toggleDocLike = (docId: string) => {
     setLikedDocs((prev) => ({ ...prev, [docId]: !prev[docId] }));
@@ -46,26 +48,17 @@ export default function ConsultationsOfferScreen() {
     patient?: SelectedPatientInfo,
     count?: number
   ) => {
-    addCartItem({
-      type: 'visit',
-      itemId: doctor.id,
-      title: doctor.name,
-      subtitle: `${doctor.speciality} • ${doctor.hospitalName || 'Arogyon Clinic'}`,
-      price: typeof doctor.fee === 'number' ? doctor.fee : parseInt(String(doctor.fee).replace(/\D/g, '') || '500', 10),
-      image: doctor.image,
-      hospitalName: doctor.hospitalName || 'Arogyon Clinic',
-      selectedTime: selectedSlot || doctor.nextAvailableTime || '10:00 AM',
-      assignedPatientId: patient?.id,
-      assignedPatientName: patient?.name,
-      assignedPatientRelation: patient?.relation,
-      assignedPatientAvatar: patient?.avatar,
+    setSelectedDoctorForVisit({
+      ...doctor,
+      availableSlots: doctor.availableSlots || ['10:00 AM', '01:30 PM', '05:00 PM'],
     });
-
-    router.push('/booking/checkout' as any);
   };
 
   const handleCardPress = (doctor: DoctorData) => {
-    router.push(`/doctor/${doctor.id}` as any);
+    setSelectedDoctorForVisit({
+      ...doctor,
+      availableSlots: doctor.availableSlots || ['10:00 AM', '01:30 PM', '05:00 PM'],
+    });
   };
 
   // Filter Doctors
@@ -251,6 +244,16 @@ export default function ConsultationsOfferScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Add Visit Slot Modal Popup */}
+      {!!selectedDoctorForVisit && (
+        <AddVisitModal
+          visible={!!selectedDoctorForVisit}
+          doctor={selectedDoctorForVisit}
+          hospitalName={selectedDoctorForVisit?.hospitalName || selectedDoctorForVisit?.hospital || 'Arogyon Clinic'}
+          onClose={() => setSelectedDoctorForVisit(null)}
+        />
+      )}
     </View>
   );
 }

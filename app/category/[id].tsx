@@ -13,6 +13,8 @@ import HospitalFilterBar from '@/components/hospital/HospitalFilterBar';
 import FrequentlyBookedSection, { FrequentlyBookedItem } from '@/components/hospital/FrequentlyBookedSection';
 import RecommendedDoctorCard, { DoctorData } from '@/components/hospital/RecommendedDoctorCard';
 import PackageItemCard, { PackageItemCardData } from '@/components/packages/cards/PackageItemCard';
+import AddVisitModal from '@/components/booking/AddVisitModal';
+import AddPackageModal from '@/components/booking/AddPackageModal';
 
 import PlannedSurgeryCare from '@/components/care/PlannedSurgeryCare';
 import InternationalPatientCare from '@/components/care/InternationalPatientCare';
@@ -873,6 +875,8 @@ export default function CategoryScreen() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [likedDocs, setLikedDocs] = useState<Record<string, boolean>>({});
+  const [selectedDoctorForVisit, setSelectedDoctorForVisit] = useState<any>(null);
+  const [selectedPackageForAdd, setSelectedPackageForAdd] = useState<any>(null);
 
   // Package Filter States
   const [activePackageSubFilter, setActivePackageSubFilter] = useState('all');
@@ -899,27 +903,11 @@ export default function CategoryScreen() {
   }, [categoryConfig.packages, activePackageSubFilter]);
 
   const handleDoctorPress = (doctor: DoctorData) => {
-    router.push({
-      pathname: '/doctor/[id]',
-      params: { id: doctor.id, slot: doctor.availableSlots?.[0] || '10:00 AM' },
-    });
+    setSelectedDoctorForVisit(doctor);
   };
 
   const handleBookVisit = (doctor: DoctorData, selectedSlot?: string, patient?: any, count?: number) => {
-    addCartItem({
-      type: 'visit',
-      itemId: doctor.id,
-      title: doctor.name,
-      subtitle: doctor.speciality,
-      price: Number(doctor.fee) || 800,
-      image: doctor.image,
-      selectedDate: '24 May 2024',
-      selectedTime: selectedSlot || '10:00 AM',
-      hospitalName: doctor.hospitalName || 'Arogyon Partner Hospital, Bengaluru',
-      assignedPatientId: patient?.id || 'me',
-      assignedPatientName: patient?.name || 'Me',
-      assignedPatientRelation: patient?.relation || 'Self',
-    });
+    setSelectedDoctorForVisit(doctor);
   };
 
   const handleFrequentlyBookedPress = (item: FrequentlyBookedItem) => {
@@ -937,17 +925,7 @@ export default function CategoryScreen() {
   };
 
   const handleAddPackage = (pkg: any) => {
-    addCartItem({
-      type: 'package',
-      itemId: pkg.id,
-      title: pkg.title,
-      subtitle: pkg.subtitle || categoryConfig.title,
-      price: Number(String(pkg.price).replace(/[^0-9]/g, '')) || 4999,
-      image: pkg.image,
-      selectedDate: 'Tomorrow',
-      selectedTime: '10:00 AM',
-      hospitalName: pkg.hospitalName || 'Arogyon Partner Hospital',
-    });
+    setSelectedPackageForAdd(pkg);
   };
 
   const renderDoctorsList = () => (
@@ -1085,7 +1063,7 @@ export default function CategoryScreen() {
             item={pkg}
             layout="horizontal"
             variant="hospital"
-            onPress={(id) => router.push(`/packages/detail/${id}` as any)}
+            onPress={() => setSelectedPackageForAdd(pkg)}
             onAddPress={handleAddPackage}
           />
         ))}
@@ -1243,6 +1221,26 @@ export default function CategoryScreen() {
             </View>
           </View>
         </Modal>
+      )}
+
+      {/* Add Visit Slot Modal Popup */}
+      {!!selectedDoctorForVisit && (
+        <AddVisitModal
+          visible={!!selectedDoctorForVisit}
+          doctor={selectedDoctorForVisit}
+          hospitalName={selectedDoctorForVisit?.hospitalName || categoryConfig.title}
+          onClose={() => setSelectedDoctorForVisit(null)}
+        />
+      )}
+
+      {/* Add Package Modal Popup */}
+      {!!selectedPackageForAdd && (
+        <AddPackageModal
+          visible={!!selectedPackageForAdd}
+          packageItem={selectedPackageForAdd}
+          hospitalName={selectedPackageForAdd?.hospitalName || 'Arogyon Partner Hospital'}
+          onClose={() => setSelectedPackageForAdd(null)}
+        />
       )}
     </SafeAreaView>
   );

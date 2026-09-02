@@ -13,6 +13,7 @@ import { useTheme } from '@/hooks/useTheme';
 import OfferHeroBanner from '@/components/offers/OfferHeroBanner';
 import OfferCategoryBar from '@/components/offers/OfferCategoryBar';
 import PackageItemCard, { PackageItemCardData } from '@/components/packages/cards/PackageItemCard';
+import AddPackageModal from '@/components/booking/AddPackageModal';
 import {
   OFFER_PACKAGE_CATEGORIES,
   OFFER_PACKAGES,
@@ -34,25 +35,14 @@ export default function PackagesOfferScreen() {
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedQuickFilter, setSelectedQuickFilter] = useState('all');
+  const [selectedPackageForAdd, setSelectedPackageForAdd] = useState<any>(null);
 
-  const handlePackagePress = (pkgId: string) => {
-    router.push(`/packages/detail/${pkgId}` as any);
+  const handlePackagePress = (pkg: typeof OFFER_PACKAGES[0]) => {
+    setSelectedPackageForAdd(pkg);
   };
 
   const handleAddPackage = (pkg: typeof OFFER_PACKAGES[0]) => {
-    addCartItem({
-      type: 'package',
-      itemId: pkg.id,
-      title: pkg.title,
-      subtitle: `${pkg.category} • ${pkg.hospitalName}`,
-      price: pkg.discountedPrice,
-      originalPrice: pkg.originalPrice,
-      savingsAmount: pkg.originalPrice - pkg.discountedPrice,
-      image: pkg.image,
-      hospitalName: pkg.hospitalName,
-      selectedTime: 'Standard Schedule',
-    });
-    router.push('/booking/checkout' as any);
+    setSelectedPackageForAdd(pkg);
   };
 
   // Filter Packages
@@ -202,7 +192,7 @@ export default function PackagesOfferScreen() {
                   }}
                   layout="horizontal"
                   variant="hospital"
-                  onPress={() => handlePackagePress(pkg.id)}
+                  onPress={() => handlePackagePress(pkg)}
                   onAddPress={() => handleAddPackage(pkg)}
                   ctaText="ADD"
                 />
@@ -240,6 +230,16 @@ export default function PackagesOfferScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Add Package Modal Popup */}
+      {!!selectedPackageForAdd && (
+        <AddPackageModal
+          visible={!!selectedPackageForAdd}
+          packageItem={selectedPackageForAdd}
+          hospitalName={selectedPackageForAdd?.hospitalName || selectedPackageForAdd?.hospital || 'Manipal Hospital'}
+          onClose={() => setSelectedPackageForAdd(null)}
+        />
+      )}
     </View>
   );
 }
