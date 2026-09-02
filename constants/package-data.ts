@@ -296,43 +296,6 @@ export const CATEGORY_INDEX_REGISTRY: Record<string, CategoryIndex> = {
     ],
   },
 
-  braces: {
-    id: 'braces',
-    aliases: ['aligners', 'orthodontics', 'braces-aligners', '7'],
-    title: 'BRACES & CLEAR ALIGNERS',
-    subtitle: 'Metal, ceramic braces & invisible clear aligner transformation',
-    emoji: '😁',
-    heroImage: require('../assets/images/package-banners/teeth.png'),
-    offer: 'FREE 3D SMILE SCAN',
-    cardColors: ['#F0F9FF', '#E0F2FE', '#BAE6FD'],
-    cardBadge: 'ALIGNMENT',
-    subcategories: [
-      'Metal Braces',
-      'Ceramic Braces',
-      'Clear Aligners',
-      'Orthodontic Assessment',
-      'Braces Follow-up Program',
-      'Smile Alignment Program',
-    ],
-    packages: [
-      {
-        id: 'braces-clear-aligner-pack',
-        categoryId: 'braces',
-        subcategory: 'Clear Aligners',
-        title: 'Invisible Clear Aligners & 3D Scan Package',
-        price: '₹34,999',
-        originalPrice: '₹55,000',
-        discount: '36% OFF',
-        image: require('../assets/images/package-banners/teeth.png'),
-        hospitalName: 'Toothsi / MakeO Clinic',
-        hospitalLocation: 'Indiranagar, Bangalore',
-        testsCount: 6,
-        inclusions: ['3D Intraoral Scan', 'Orthodontist Plan', 'Custom Aligner Sets', 'Retainer Box'],
-        summary: 'Modern comfortable clear aligners correcting teeth gaps and misalignment discreetly.',
-      },
-    ],
-  },
-
   eye: {
     id: 'eye',
     aliases: ['vision', 'ophthalmology', 'cataract', 'lasik', '8'],
