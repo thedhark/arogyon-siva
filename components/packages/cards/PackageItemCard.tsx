@@ -471,17 +471,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     marginVertical: 12,
   },
-  cardBottomActionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  leftActionButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
   tagPill: {
     alignItems: 'center',
     paddingVertical: 5,
