@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Platform, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Platform, Pressable, useWindowDimensions, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/useTheme';
 import { resolveImageSource } from '@/utils/imageUtils';
-import { LayoutGrid, X, Check, Stethoscope, AlertCircle, Activity } from 'lucide-react-native';
+import { LayoutGrid, X, Check, Stethoscope, AlertCircle, Activity, Search } from 'lucide-react-native';
 import Animated, { 
   FadeInRight, 
   useSharedValue, 
@@ -53,42 +53,65 @@ export const ALL_EXPLORE_CATEGORIES = [
   { id: 'Stomach & Digestion', label: 'Stomach', image: CATEGORY_ICONS.stomach },
   { id: 'Diabetes Management', label: 'Diabetes', image: CATEGORY_ICONS.diabetes },
   { id: 'Cancer Specialist', label: 'Cancer', image: CATEGORY_ICONS.cancer },
+  { id: 'Plastic Surgery', label: 'Plastic', image: CATEGORY_ICONS.plastic },
+  { id: "Men's Health", label: "Men's", image: CATEGORY_ICONS.mens },
+  { id: 'Veterinary', label: 'Pet / Vet', image: CATEGORY_ICONS.veterinary },
+  { id: 'Hair & Scalp', label: 'Hair Care', image: CATEGORY_ICONS.hair },
 ];
 
 export const SITUATIONS_DATA = [
-  { id: 'fever', label: 'High Fever', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
-  { id: 'chestPain', label: 'Chest Pain', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
-  { id: 'breathing', label: 'Breathing Issue', mappedCategory: 'Lungs & Breathing', image: CATEGORY_ICONS.lungs },
-  { id: 'stomachAche', label: 'Stomach Pain', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
-  { id: 'fracture', label: 'Fracture & Injury', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
-  { id: 'migraine', label: 'Migraine / Head', mappedCategory: 'Brain & Nerves', image: CATEGORY_ICONS.brain },
-  { id: 'pimpleAcne', label: 'Acne & Skin', mappedCategory: 'Skin', image: CATEGORY_ICONS.skin },
-  { id: 'hairLoss', label: 'Hair Loss', mappedCategory: 'Skin', image: CATEGORY_ICONS.hair },
-  { id: 'periodPain', label: 'Period Pain', mappedCategory: "Women's Health", image: CATEGORY_ICONS.womens },
-  { id: 'stressAnxiety', label: 'Stress & Anxiety', mappedCategory: 'Mental Wellness', image: CATEGORY_ICONS.mental },
-  { id: 'allergy', label: 'Severe Allergy', mappedCategory: 'Lungs & Breathing', image: CATEGORY_ICONS.lungs },
-  { id: 'bpCrisis', label: 'BP / Heart Rate', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
-  { id: 'accident', label: 'Accident Trauma', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
-  { id: 'animalBite', label: 'Animal Bite', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
+  { id: 'fever', label: 'High Fever & Flu', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
+  { id: 'chestPain', label: 'Chest Pain & Tightness', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
+  { id: 'breathing', label: 'Breathing Issue & Asthma', mappedCategory: 'Lungs & Breathing', image: CATEGORY_ICONS.lungs },
+  { id: 'stomachAche', label: 'Stomach Pain & Acidity', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
+  { id: 'fracture', label: 'Fracture & Bone Injury', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'migraine', label: 'Migraine / Headaches', mappedCategory: 'Brain & Nerves', image: CATEGORY_ICONS.brain },
+  { id: 'pimpleAcne', label: 'Acne, Pimples & Rashes', mappedCategory: 'Skin', image: CATEGORY_ICONS.skin },
+  { id: 'hairLoss', label: 'Hair Loss & Dandruff', mappedCategory: 'Skin', image: CATEGORY_ICONS.hair },
+  { id: 'periodPain', label: 'Period Pain & PCOS', mappedCategory: "Women's Health", image: CATEGORY_ICONS.womens },
+  { id: 'stressAnxiety', label: 'Stress, Anxiety & Sleep', mappedCategory: 'Mental Wellness', image: CATEGORY_ICONS.mental },
+  { id: 'allergy', label: 'Severe Allergy & Sneezing', mappedCategory: 'Lungs & Breathing', image: CATEGORY_ICONS.lungs },
+  { id: 'bpCrisis', label: 'BP / Heart Rate Fluctuation', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
+  { id: 'accident', label: 'Accident Trauma & Sprain', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'animalBite', label: 'Animal / Dog Bite', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
   { id: 'weightCare', label: 'Weight Management', mappedCategory: 'Diabetes Management', image: CATEGORY_ICONS.diabetes },
+  { id: 'throatPain', label: 'Throat Pain & Tonsils', mappedCategory: 'Ear Nose Throat', image: CATEGORY_ICONS.ent },
+  { id: 'backPain', label: 'Back Pain & Slip Disc', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'utiBurning', label: 'UTI & Burning Sensation', mappedCategory: 'Urinary Issues', image: CATEGORY_ICONS.urinary },
+  { id: 'highSugar', label: 'Diabetes & High Sugar', mappedCategory: 'Diabetes Management', image: CATEGORY_ICONS.diabetes },
+  { id: 'toothPain', label: 'Tooth Pain & Cavity', mappedCategory: 'Dentist', image: CATEGORY_ICONS.dentist },
+  { id: 'eyeRedness', label: 'Red / Dry Eye & Blur', mappedCategory: 'Eye', image: CATEGORY_ICONS.eye },
+  { id: 'dizziness', label: 'Dizziness & Vertigo', mappedCategory: 'Brain & Nerves', image: CATEGORY_ICONS.brain },
+  { id: 'childFever', label: 'Child Fever & Cold', mappedCategory: 'Child Care', image: CATEGORY_ICONS.child },
+  { id: 'looseMotion', label: 'Loose Motion & Vomiting', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
+  { id: 'jointStiffness', label: 'Swelling & Joint Stiffness', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'pregnancyCare', label: 'Pregnancy & Trimester Care', mappedCategory: "Women's Health", image: CATEGORY_ICONS.womens },
 ];
 
 export const SURGERIES_DATA = [
   { id: 'cataract', label: 'Cataract Surgery', mappedCategory: 'Eye', image: CATEGORY_ICONS.eye },
-  { id: 'kneeReplacement', label: 'Knee Replacement', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
-  { id: 'hernia', label: 'Hernia Repair', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
-  { id: 'kidneyStone', label: 'Kidney Stone Laser', mappedCategory: 'Urinary Issues', image: CATEGORY_ICONS.urinary },
-  { id: 'gallbladder', label: 'Gallbladder Removal', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
-  { id: 'piles', label: 'Laser Piles Surgery', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
-  { id: 'lasik', label: 'LASIK Eye Surgery', mappedCategory: 'Eye', image: CATEGORY_ICONS.eye },
+  { id: 'kneeReplacement', label: 'Total Knee Replacement', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'hernia', label: 'Laparoscopic Hernia Repair', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
+  { id: 'kidneyStone', label: 'Kidney Stone Laser Lithotripsy', mappedCategory: 'Urinary Issues', image: CATEGORY_ICONS.urinary },
+  { id: 'gallbladder', label: 'Gallbladder Laparoscopic Removal', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
+  { id: 'piles', label: 'Laser Piles & Fistula Surgery', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
+  { id: 'lasik', label: 'LASIK Laser Eye Surgery', mappedCategory: 'Eye', image: CATEGORY_ICONS.eye },
   { id: 'acl', label: 'ACL Reconstruction', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
-  { id: 'plasticSurgery', label: 'Cosmetic / Plastic', mappedCategory: 'Skin', image: CATEGORY_ICONS.plastic },
-  { id: 'hairTransplant', label: 'Hair Transplant', mappedCategory: 'Skin', image: CATEGORY_ICONS.hair },
-  { id: 'dentalImplants', label: 'Dental Implants', mappedCategory: 'Dentist', image: CATEGORY_ICONS.dentist },
-  { id: 'cardiacBypass', label: 'Cardiac Angioplasty', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
-  { id: 'spineSurgery', label: 'Spine & Disc Surgery', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
-  { id: 'appendectomy', label: 'Appendectomy', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
-  { id: 'gynecSurgery', label: 'Gynecology Surgery', mappedCategory: "Women's Health", image: CATEGORY_ICONS.womens },
+  { id: 'plasticSurgery', label: 'Cosmetic / Plastic Surgery', mappedCategory: 'Skin', image: CATEGORY_ICONS.plastic },
+  { id: 'hairTransplant', label: 'Hair Transplant FUE', mappedCategory: 'Skin', image: CATEGORY_ICONS.hair },
+  { id: 'dentalImplants', label: 'Dental Implants & RCT', mappedCategory: 'Dentist', image: CATEGORY_ICONS.dentist },
+  { id: 'cardiacBypass', label: 'Cardiac Angioplasty & Bypass', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
+  { id: 'spineSurgery', label: 'Spine & Slip Disc Surgery', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'appendectomy', label: 'Laparoscopic Appendectomy', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
+  { id: 'gynecSurgery', label: 'Gynecology & Fibroid Removal', mappedCategory: "Women's Health", image: CATEGORY_ICONS.womens },
+  { id: 'bariatric', label: 'Bariatric Weight Loss Surgery', mappedCategory: 'Stomach & Digestion', image: CATEGORY_ICONS.stomach },
+  { id: 'prostate', label: 'Prostate Laser TURP', mappedCategory: 'Urinary Issues', image: CATEGORY_ICONS.urinary },
+  { id: 'varicoseVeins', label: 'Varicose Veins Laser Ablation', mappedCategory: 'Heart Specialist', image: CATEGORY_ICONS.heart },
+  { id: 'tympanoplasty', label: 'Tympanoplasty Ear Surgery', mappedCategory: 'Ear Nose Throat', image: CATEGORY_ICONS.ent },
+  { id: 'lipomaCyst', label: 'Lipoma & Sebaceous Cyst', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
+  { id: 'hipReplacement', label: 'Hip Replacement Surgery', mappedCategory: 'Joints & Bones', image: CATEGORY_ICONS.bones },
+  { id: 'sinusSurgery', label: 'Sinus FESS Surgery', mappedCategory: 'Ear Nose Throat', image: CATEGORY_ICONS.ent },
+  { id: 'thyroidSurgery', label: 'Thyroidectomy Surgery', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
 ];
 
 const TOP_CATEGORIES = ALL_EXPLORE_CATEGORIES.slice(0, 7);
@@ -166,9 +189,36 @@ export default function ExploreCategories({
     scrollViewRef.current?.scrollTo({ x: scrollTarget, animated: true });
   };
 
+  const [modalSearchQuery, setModalSearchQuery] = useState('');
+
+  const filteredSpecialties = useMemo(() => {
+    const q = modalSearchQuery.trim().toLowerCase();
+    if (!q) return ALL_EXPLORE_CATEGORIES;
+    return ALL_EXPLORE_CATEGORIES.filter(cat => 
+      cat.id.toLowerCase().includes(q) || cat.label.toLowerCase().includes(q)
+    );
+  }, [modalSearchQuery]);
+
+  const filteredSituations = useMemo(() => {
+    const q = modalSearchQuery.trim().toLowerCase();
+    if (!q) return SITUATIONS_DATA;
+    return SITUATIONS_DATA.filter(sit => 
+      sit.label.toLowerCase().includes(q) || sit.mappedCategory.toLowerCase().includes(q)
+    );
+  }, [modalSearchQuery]);
+
+  const filteredSurgeries = useMemo(() => {
+    const q = modalSearchQuery.trim().toLowerCase();
+    if (!q) return SURGERIES_DATA;
+    return SURGERIES_DATA.filter(sur => 
+      sur.label.toLowerCase().includes(q) || sur.mappedCategory.toLowerCase().includes(q)
+    );
+  }, [modalSearchQuery]);
+
   const handleSelectFromModal = (categoryName: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onTabChange(categoryName);
+    setModalSearchQuery('');
     setModalVisible(false);
   };
 
@@ -208,7 +258,7 @@ export default function ExploreCategories({
         nestedScrollEnabled={true}
         keyboardShouldPersistTaps="always"
       >
-        {/* Sleek, 50% Reduced Animated Green Gradient Slider */}
+        {/* Sleek Animated Green Gradient Slider */}
         <Animated.View pointerEvents="none" style={[styles.sliderTrack, animatedSliderStyle]}>
           <LinearGradient
             colors={['#34D399', '#10B981', '#059669']}
@@ -237,7 +287,7 @@ export default function ExploreCategories({
                   />
                 </View>
                 <Text 
-                  numberOfLines={1}
+                  numberOfLines={1} 
                   style={[
                     styles.categoryLabel, 
                     { color: isActive ? '#10B981' : (isDark ? '#9CA3AF' : '#6B7280') },
@@ -273,24 +323,33 @@ export default function ExploreCategories({
         </Animated.View>
       </ScrollView>
 
-      {/* Full Specialties, Situations & Surgeries Modal Sheet with Carousel Effect */}
+      {/* Full Specialties, Situations & Surgeries Modal Sheet with Carousel & Search */}
       <Modal
         visible={isModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => {
+          setModalSearchQuery('');
+          setModalVisible(false);
+        }}
       >
         <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setModalVisible(false)} />
+          <Pressable 
+            style={StyleSheet.absoluteFill} 
+            onPress={() => {
+              setModalSearchQuery('');
+              setModalVisible(false);
+            }} 
+          />
           
-          <View style={[styles.modalContent, { backgroundColor: isDark ? '#18181B' : '#FFFFFF', height: Math.round(screenHeight * 0.85) }]}>
+          <View style={[styles.modalContent, { backgroundColor: isDark ? '#18181B' : '#FFFFFF', height: Math.round(screenHeight * 0.88) }]}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View style={styles.dragHandle} />
               
               {/* Header Title Row */}
               <View style={styles.modalTitleRow}>
-                <View>
+                <View style={{ flex: 1, paddingRight: 10 }}>
                   <Text style={[styles.modalTitle, { color: isDark ? '#FFFFFF' : '#18181B' }]}>
                     Explore Care & Treatments
                   </Text>
@@ -300,10 +359,38 @@ export default function ExploreCategories({
                 </View>
                 <TouchableOpacity 
                   style={[styles.closeBtn, { backgroundColor: isDark ? '#27272A' : '#F4F4F5' }]} 
-                  onPress={() => setModalVisible(false)}
+                  onPress={() => {
+                    setModalSearchQuery('');
+                    setModalVisible(false);
+                  }}
                 >
                   <X size={18} color={isDark ? '#FFF' : '#000'} />
                 </TouchableOpacity>
+              </View>
+
+              {/* Search Bar in Modal */}
+              <View style={[styles.modalSearchBar, { backgroundColor: isDark ? '#27272A' : '#F4F4F5', borderColor: isDark ? '#3F3F46' : '#E4E4E7' }]}>
+                <Search size={16} color={isDark ? '#9CA3AF' : '#71717A'} />
+                <TextInput
+                  style={[styles.modalSearchInput, { color: isDark ? '#FFFFFF' : '#18181B' }]}
+                  placeholder={
+                    modalTab === 'specialties'
+                      ? 'Search specialties (e.g. Skin, Heart, Dentist)...'
+                      : modalTab === 'situations'
+                      ? 'Search symptoms & conditions (e.g. Fever, Pain)...'
+                      : 'Search planned surgeries (e.g. LASIK, Knee)...'
+                  }
+                  placeholderTextColor={isDark ? '#71717A' : '#A1A1AA'}
+                  value={modalSearchQuery}
+                  onChangeText={setModalSearchQuery}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {modalSearchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setModalSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <X size={15} color={isDark ? '#9CA3AF' : '#71717A'} />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* 3-Way Segmented Capsule Switcher (Specialties, Situations, Surgeries) */}
@@ -321,7 +408,7 @@ export default function ExploreCategories({
                 >
                   <Stethoscope size={13} color={modalTab === 'specialties' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A')} />
                   <Text style={[styles.capsuleTabText, { color: modalTab === 'specialties' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A') }]}>
-                    Specialties
+                    Specialties ({filteredSpecialties.length})
                   </Text>
                 </TouchableOpacity>
 
@@ -338,7 +425,7 @@ export default function ExploreCategories({
                 >
                   <AlertCircle size={13} color={modalTab === 'situations' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A')} />
                   <Text style={[styles.capsuleTabText, { color: modalTab === 'situations' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A') }]}>
-                    Situations
+                    Situations ({filteredSituations.length})
                   </Text>
                 </TouchableOpacity>
 
@@ -355,7 +442,7 @@ export default function ExploreCategories({
                 >
                   <Activity size={13} color={modalTab === 'surgeries' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A')} />
                   <Text style={[styles.capsuleTabText, { color: modalTab === 'surgeries' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#71717A') }]}>
-                    Surgeries
+                    Surgeries ({filteredSurgeries.length})
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -375,42 +462,57 @@ export default function ExploreCategories({
                 <ScrollView 
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.gridScrollContent}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <View style={styles.specialtyGrid}>
-                    {ALL_EXPLORE_CATEGORIES.map((cat) => {
-                      const isSelected = activeTab === cat.id;
-                      return (
-                        <TouchableOpacity
-                          key={cat.id}
-                          style={styles.gridItem}
-                          onPress={() => handleSelectFromModal(cat.id)}
-                          activeOpacity={0.75}
-                        >
-                          <View style={[styles.gridImageContainer, isSelected && styles.selectedImageContainer]}>
-                            <Image 
-                              source={resolveImageSource(cat.image)} 
-                              style={styles.gridImage} 
-                              resizeMode="cover"
-                            />
-                            {isSelected && (
-                              <View style={styles.checkBadge}>
-                                <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                              </View>
-                            )}
-                          </View>
-                          <Text 
-                            numberOfLines={2} 
-                            style={[
-                              styles.gridLabel, 
-                              { color: isSelected ? '#10B981' : (isDark ? '#F3F4F6' : '#1F2937'), fontWeight: isSelected ? '700' : '600' }
-                            ]}
+                  {filteredSpecialties.length === 0 ? (
+                    <View style={styles.emptySearchContainer}>
+                      <Text style={[styles.emptySearchTitle, { color: isDark ? '#FFFFFF' : '#18181B' }]}>
+                        No matching specialties
+                      </Text>
+                      <Text style={[styles.emptySearchSub, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+                        Try searching with a different medical term or symptom
+                      </Text>
+                      <TouchableOpacity style={styles.clearSearchBtn} onPress={() => setModalSearchQuery('')}>
+                        <Text style={styles.clearSearchText}>Clear Search</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.specialtyGrid}>
+                      {filteredSpecialties.map((cat) => {
+                        const isSelected = activeTab === cat.id;
+                        return (
+                          <TouchableOpacity
+                            key={cat.id}
+                            style={styles.gridItem}
+                            onPress={() => handleSelectFromModal(cat.id)}
+                            activeOpacity={0.75}
                           >
-                            {cat.id}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                            <View style={[styles.gridImageContainer, isSelected && styles.selectedImageContainer]}>
+                              <Image 
+                                source={resolveImageSource(cat.image)} 
+                                style={styles.gridImage} 
+                                resizeMode="cover"
+                              />
+                              {isSelected && (
+                                <View style={styles.checkBadge}>
+                                  <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                                </View>
+                              )}
+                            </View>
+                            <Text 
+                              numberOfLines={2} 
+                              style={[
+                                styles.gridLabel, 
+                                { color: isSelected ? '#10B981' : (isDark ? '#F3F4F6' : '#1F2937'), fontWeight: isSelected ? '700' : '600' }
+                              ]}
+                            >
+                              {cat.id}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </ScrollView>
               </View>
 
@@ -419,48 +521,63 @@ export default function ExploreCategories({
                 <ScrollView 
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.gridScrollContent}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <View style={styles.specialtyGrid}>
-                    {SITUATIONS_DATA.map((sit) => {
-                      const isSelected = activeTab === sit.mappedCategory;
-                      return (
-                        <TouchableOpacity
-                          key={sit.id}
-                          style={styles.gridItem}
-                          onPress={() => handleSelectFromModal(sit.mappedCategory)}
-                          activeOpacity={0.75}
-                        >
-                          <View style={[styles.gridImageContainer, isSelected && styles.selectedImageContainer]}>
-                            <Image 
-                              source={resolveImageSource(sit.image)} 
-                              style={styles.gridImage} 
-                              resizeMode="cover"
-                            />
-                            {isSelected && (
-                              <View style={styles.checkBadge}>
-                                <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                              </View>
-                            )}
-                          </View>
-                          <Text 
-                            numberOfLines={1} 
-                            style={[
-                              styles.gridLabel, 
-                              { color: isSelected ? '#10B981' : (isDark ? '#F3F4F6' : '#1F2937'), fontWeight: isSelected ? '700' : '600' }
-                            ]}
+                  {filteredSituations.length === 0 ? (
+                    <View style={styles.emptySearchContainer}>
+                      <Text style={[styles.emptySearchTitle, { color: isDark ? '#FFFFFF' : '#18181B' }]}>
+                        No matching health situations
+                      </Text>
+                      <Text style={[styles.emptySearchSub, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+                        Try searching with a symptom like fever, chest pain, or headache
+                      </Text>
+                      <TouchableOpacity style={styles.clearSearchBtn} onPress={() => setModalSearchQuery('')}>
+                        <Text style={styles.clearSearchText}>Clear Search</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.specialtyGrid}>
+                      {filteredSituations.map((sit) => {
+                        const isSelected = activeTab === sit.mappedCategory;
+                        return (
+                          <TouchableOpacity
+                            key={sit.id}
+                            style={styles.gridItem}
+                            onPress={() => handleSelectFromModal(sit.mappedCategory)}
+                            activeOpacity={0.75}
                           >
-                            {sit.label}
-                          </Text>
-                          <Text 
-                            numberOfLines={1} 
-                            style={[styles.mappedCategoryTag, { color: isDark ? '#9CA3AF' : '#6B7280' }]}
-                          >
-                            {sit.mappedCategory}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                            <View style={[styles.gridImageContainer, isSelected && styles.selectedImageContainer]}>
+                              <Image 
+                                source={resolveImageSource(sit.image)} 
+                                style={styles.gridImage} 
+                                resizeMode="cover"
+                              />
+                              {isSelected && (
+                                <View style={styles.checkBadge}>
+                                  <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                                </View>
+                              )}
+                            </View>
+                            <Text 
+                              numberOfLines={2} 
+                              style={[
+                                styles.gridLabel, 
+                                { color: isSelected ? '#10B981' : (isDark ? '#F3F4F6' : '#1F2937'), fontWeight: isSelected ? '700' : '600' }
+                              ]}
+                            >
+                              {sit.label}
+                            </Text>
+                            <Text 
+                              numberOfLines={1} 
+                              style={[styles.mappedCategoryTag, { color: isDark ? '#9CA3AF' : '#6B7280' }]}
+                            >
+                              {sit.mappedCategory}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </ScrollView>
               </View>
 
@@ -469,48 +586,63 @@ export default function ExploreCategories({
                 <ScrollView 
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.gridScrollContent}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <View style={styles.specialtyGrid}>
-                    {SURGERIES_DATA.map((sur) => {
-                      const isSelected = activeTab === sur.mappedCategory;
-                      return (
-                        <TouchableOpacity
-                          key={sur.id}
-                          style={styles.gridItem}
-                          onPress={() => handleSelectFromModal(sur.mappedCategory)}
-                          activeOpacity={0.75}
-                        >
-                          <View style={[styles.gridImageContainer, isSelected && styles.selectedImageContainer]}>
-                            <Image 
-                              source={resolveImageSource(sur.image)} 
-                              style={styles.gridImage} 
-                              resizeMode="cover"
-                            />
-                            {isSelected && (
-                              <View style={styles.checkBadge}>
-                                <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                              </View>
-                            )}
-                          </View>
-                          <Text 
-                            numberOfLines={1} 
-                            style={[
-                              styles.gridLabel, 
-                              { color: isSelected ? '#10B981' : (isDark ? '#F3F4F6' : '#1F2937'), fontWeight: isSelected ? '700' : '600' }
-                            ]}
+                  {filteredSurgeries.length === 0 ? (
+                    <View style={styles.emptySearchContainer}>
+                      <Text style={[styles.emptySearchTitle, { color: isDark ? '#FFFFFF' : '#18181B' }]}>
+                        No matching surgeries
+                      </Text>
+                      <Text style={[styles.emptySearchSub, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+                        Try searching for cataract, knee replacement, or hernia
+                      </Text>
+                      <TouchableOpacity style={styles.clearSearchBtn} onPress={() => setModalSearchQuery('')}>
+                        <Text style={styles.clearSearchText}>Clear Search</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.specialtyGrid}>
+                      {filteredSurgeries.map((sur) => {
+                        const isSelected = activeTab === sur.mappedCategory;
+                        return (
+                          <TouchableOpacity
+                            key={sur.id}
+                            style={styles.gridItem}
+                            onPress={() => handleSelectFromModal(sur.mappedCategory)}
+                            activeOpacity={0.75}
                           >
-                            {sur.label}
-                          </Text>
-                          <Text 
-                            numberOfLines={1} 
-                            style={[styles.mappedCategoryTag, { color: isDark ? '#9CA3AF' : '#6B7280' }]}
-                          >
-                            {sur.mappedCategory}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                            <View style={[styles.gridImageContainer, isSelected && styles.selectedImageContainer]}>
+                              <Image 
+                                source={resolveImageSource(sur.image)} 
+                                style={styles.gridImage} 
+                                resizeMode="cover"
+                              />
+                              {isSelected && (
+                                <View style={styles.checkBadge}>
+                                  <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                                </View>
+                              )}
+                            </View>
+                            <Text 
+                              numberOfLines={2} 
+                              style={[
+                                styles.gridLabel, 
+                                { color: isSelected ? '#10B981' : (isDark ? '#F3F4F6' : '#1F2937'), fontWeight: isSelected ? '700' : '600' }
+                              ]}
+                            >
+                              {sur.label}
+                            </Text>
+                            <Text 
+                              numberOfLines={1} 
+                              style={[styles.mappedCategoryTag, { color: isDark ? '#9CA3AF' : '#6B7280' }]}
+                            >
+                              {sur.mappedCategory}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </ScrollView>
               </View>
             </ScrollView>
@@ -737,5 +869,51 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     textAlign: 'center',
     marginTop: 0,
+  },
+  modalSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 9 : 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 10,
+    marginBottom: 8,
+    gap: 8,
+  },
+  modalSearchInput: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    paddingVertical: 0,
+  },
+  emptySearchContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  emptySearchTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptySearchSub: {
+    fontSize: 12.5,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  clearSearchBtn: {
+    marginTop: 10,
+    backgroundColor: '#10B981',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+  clearSearchText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
