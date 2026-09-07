@@ -93,15 +93,6 @@ export default function RecommendedDoctorCard({
             {doctor.speciality}
           </Text>
 
-          {/* Fee Row */}
-          <View style={styles.feeRow}>
-            <Text style={[styles.feeVal, { color: colors.text }]}>
-              ₹{doctor.fee}
-            </Text>
-            <Text style={styles.feeDot}>•</Text>
-            <Text style={styles.feeLabel}>Consultation fee</Text>
-          </View>
-
           {/* Location Row */}
           {!hideLocation && (
             <View style={styles.detailRow}>
@@ -126,6 +117,15 @@ export default function RecommendedDoctorCard({
             <Text style={[styles.availabilityText, { color: isDark ? '#94A3B8' : '#475569' }]}>
               Next avail: <Text style={[styles.timeHighlight, { color: isDark ? '#60A5FA' : '#1D4ED8' }]}>{availableTimeText}</Text>
             </Text>
+          </View>
+
+          {/* Fee Row (Positioned at bottom) */}
+          <View style={styles.feeRow}>
+            <Text style={[styles.feeVal, { color: colors.text }]}>
+              ₹{doctor.fee}
+            </Text>
+            <Text style={styles.feeDot}>•</Text>
+            <Text style={styles.feeLabel}>Consultation fee</Text>
           </View>
         </TouchableOpacity>
 
@@ -223,30 +223,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#64748B',
-    marginBottom: 5,
+    marginBottom: 6,
     lineHeight: 16.5,
-  },
-  feeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  feeVal: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.15,
-  },
-  feeDot: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginHorizontal: 5,
-  },
-  feeLabel: {
-    fontFamily: Fonts.medium,
-    fontSize: 11.5,
-    color: '#64748B',
-    fontWeight: '500',
   },
   detailRow: {
     flexDirection: 'row',
@@ -266,8 +244,8 @@ const styles = StyleSheet.create({
   availabilityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 3,
-    marginBottom: 7,
+    marginTop: 2,
+    marginBottom: 6,
   },
   availabilityText: {
     fontFamily: Fonts.medium,
@@ -279,6 +257,28 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     color: '#2563EB',
     fontWeight: '700',
+  },
+  feeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 3,
+  },
+  feeVal: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 16.5,
+    fontWeight: '700',
+    letterSpacing: -0.15,
+  },
+  feeDot: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginHorizontal: 5,
+  },
+  feeLabel: {
+    fontFamily: Fonts.medium,
+    fontSize: 11.5,
+    color: '#64748B',
+    fontWeight: '500',
   },
   rightCol: {
     width: scale(163),

@@ -19,7 +19,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import GlobalChatOverlay from './GlobalChatOverlay';
-import { useTabBarStore } from '@/hooks/useTabBarStore';
 
 const TAB_META: Record<string, { label: string }> = {
   index: { label: 'Home' },
@@ -126,62 +125,19 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Chromi
   const isDesktopWeb = Platform.OS === 'web' && windowWidth >= 1024;
   const supportsLiquidGlass = isLiquidGlassAvailable();
   const chatModeProgress = useSharedValue(0);
-  const isTabBarVisible = useTabBarStore((s) => s.isTabBarVisible);
-  const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
-  const tabBarScrollAnim = useSharedValue(0);
-
   const visibleRoutes = state.routes.filter((route: any) => {
     const { options } = descriptors[route.key];
     return (options as { href?: string | null }).href !== null && TAB_META[route.name];
   });
 
-  const activeIndex = visibleRoutes.findIndex((r: any) => r.key === state.routes[state.index]?.key);
-  const activeTabAnim = useSharedValue(activeIndex >= 0 ? activeIndex : 0);
-
-  useEffect(() => {
-    if (activeIndex >= 0) {
-      activeTabAnim.value = withSpring(activeIndex, {
-        damping: 18,
-        stiffness: 240,
-        mass: 0.6,
-      });
-    }
-  }, [activeIndex]);
-
-  const numTabs = Math.max(visibleRoutes.length, 1);
-
-  const activeIndicatorStyle = useAnimatedStyle(() => {
-    const tabWidthPercent = 100 / numTabs;
-    return {
-      left: `${activeTabAnim.value * tabWidthPercent}%`,
-      width: `${tabWidthPercent}%`,
-    };
-  });
-
-  useEffect(() => {
-    tabBarScrollAnim.value = withSpring(isTabBarVisible ? 0 : 130, {
-      damping: 20,
-      stiffness: 220,
-      mass: 0.6,
-    });
-  }, [isTabBarVisible]);
-
-  const tabBarScrollAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: tabBarScrollAnim.value }],
-      opacity: interpolate(tabBarScrollAnim.value, [0, 90], [1, 0], Extrapolation.CLAMP),
-    };
-  });
-
   const handleLogoPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setTabBarVisible(true);
     if (chatModeProgress.value > 0.5) {
       chatModeProgress.value = withTiming(0, { duration: 250 });
     } else {
       chatModeProgress.value = withTiming(1, { duration: 300 });
     }
-  }, [setTabBarVisible]);
+  }, []);
 
   const handleCloseChat = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -248,26 +204,12 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Chromi
             )
           )}
 
-          {/* Active Sliding Glass Pill Pop Indicator */}
-          <Animated.View style={[styles.activeIndicatorWrapper, activeIndicatorStyle]}>
-            <View style={[styles.activeIndicatorPill, isDark ? styles.activeIndicatorDark : styles.activeIndicatorLight]}>
-              {Platform.OS === 'ios' && (
-                <BlurView 
-                  intensity={40} 
-                  tint={isDark ? 'light' : 'default'} 
-                  style={[StyleSheet.absoluteFill, { borderRadius: 21 }]} 
-                />
-              )}
-            </View>
-          </Animated.View>
-
           {visibleRoutes.map((route: any) => {
             const isFocused = state.index === state.routes.indexOf(route);
             const meta = TAB_META[route.name];
 
             const onPress = () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setTabBarVisible(true);
               const event = navigation.emit({
                 type: 'tabPress',
                 target: route.key,
@@ -339,7 +281,7 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Chromi
         onClose={handleCloseChat} 
       />
 
-      <Animated.View style={[styles.wrapperOuter, tabBarScrollAnimatedStyle]} pointerEvents="box-none">
+      <View style={styles.wrapperOuter} pointerEvents="box-none">
         {supportsLiquidGlass ? (
           <GlassContainer spacing={24} style={styles.wrapper}>
             {renderPillContainers()}
@@ -349,7 +291,7 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Chromi
             {renderPillContainers()}
           </View>
         )}
-      </Animated.View>
+      </View>
     </>
   );
 }
@@ -447,51 +389,6 @@ const styles = StyleSheet.create({
       android: {
         elevation: 8,
         shadowColor: '#000000',
-      },
-    }),
-  },
-  activeIndicatorWrapper: {
-    position: 'absolute',
-    top: 4,
-    bottom: 4,
-    paddingHorizontal: 3,
-    zIndex: 1,
-  },
-  activeIndicatorPill: {
-    flex: 1,
-    borderRadius: 21,
-    borderCurve: 'continuous',
-    overflow: 'hidden',
-  },
-  activeIndicatorLight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  activeIndicatorDark: {
-    backgroundColor: 'rgba(255, 255, 255, 0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.35,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
       },
     }),
   },

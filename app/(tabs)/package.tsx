@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView } from 'react-native';
-import Animated, { FadeInDown, useSharedValue, useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
-import { useTabBarStore } from '@/hooks/useTabBarStore';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,23 +30,7 @@ export default function PlansScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
   const [selectedChip, setSelectedChip] = useState('all');
-  const scrollY = useSharedValue(0);
-  const lastScrollY = useSharedValue(0);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      const currentY = event.contentOffset.y;
-      if (currentY > lastScrollY.value + 8 && currentY > 50) {
-        runOnJS(setTabBarVisible)(false);
-      } else if (currentY < lastScrollY.value - 6 || currentY <= 30) {
-        runOnJS(setTabBarVisible)(true);
-      }
-      lastScrollY.value = currentY;
-      scrollY.value = currentY;
-    },
-  });
 
   const filteredCards = useMemo(() => {
     let cards = ALL_CATEGORY_CARDS;
@@ -67,8 +50,6 @@ export default function PlansScreen() {
     <AnimatedScreen entrance="up">
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <Animated.ScrollView
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           bounces={false}
           overScrollMode="never"

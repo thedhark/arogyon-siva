@@ -10,8 +10,7 @@ import PremiumSearchBar from '@/components/PremiumSearchBar';
 import SpotlightBanner from '@/components/SpotlightBanner';
 import DirectoryHeader from '@/components/DirectoryHeader';
 import DirectoryContent from '@/components/DirectoryContent';
-import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation, withTiming, runOnJS } from 'react-native-reanimated';
-import { useTabBarStore } from '@/hooks/useTabBarStore';
+import Animated, { FadeInDown, SlideInDown, useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation, withTiming } from 'react-native-reanimated';
 
 // Extracted sections
 import HomeHeader from '@/components/HomeHeader';
@@ -64,13 +63,9 @@ export default function HomeScreen() {
     })();
   }, []);
 
-  const setTabBarVisible = useTabBarStore((s) => s.setTabBarVisible);
   const scrollY = useSharedValue(0);
-  const lastScrollY = useSharedValue(0);
-  const isScrollingDown = useSharedValue(false);
   const categoriesY = useSharedValue(0);
   const filtersY = useSharedValue(0);
-
 
   const supportsLiquidGlass = isLiquidGlassAvailable();
   const statusBarHeight = insets.top > 0 ? insets.top : (Platform.OS === 'android' ? 24 : 44);
@@ -78,19 +73,7 @@ export default function HomeScreen() {
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      const currentY = event.contentOffset.y;
-
-      // Track scroll direction with a threshold to prevent jitter
-      if (currentY > lastScrollY.value + 8 && currentY > 50) {
-        isScrollingDown.value = true;
-        runOnJS(setTabBarVisible)(false);
-      } else if (currentY < lastScrollY.value - 6 || currentY <= 30) {
-        isScrollingDown.value = false;
-        runOnJS(setTabBarVisible)(true);
-      }
-
-      lastScrollY.value = currentY;
-      scrollY.value = currentY;
+      scrollY.value = event.contentOffset.y;
     },
   });
 
