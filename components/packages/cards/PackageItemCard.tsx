@@ -16,6 +16,9 @@ import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/Boo
 
 import { resolveImageSource } from '@/utils/imageUtils';
 import { scale, verticalScale } from '@/utils/responsive';
+import { LinearGradient } from 'expo-linear-gradient';
+import OfferBadgeIcon from '@/components/ui/OfferBadgeIcon';
+import HospitalPackageCard from './HospitalPackageCard';
 
 export interface PackageItemCardData {
   id: string;
@@ -25,6 +28,8 @@ export interface PackageItemCardData {
   originalPrice?: string;
   discount?: string;
   image: any;
+  category?: string;
+  categorySlug?: string;
   inclusions?: string[];
   hospitalName?: string;
 }
@@ -97,17 +102,24 @@ export default function PackageItemCard({
   const featureHighlights = getPackageFeatureTags();
 
   if (layout === 'horizontal') {
-    const isHospital = variant === 'hospital';
+    if (variant === 'hospital') {
+      return (
+        <HospitalPackageCard
+          item={item}
+          onPress={onPress}
+          onAddPress={onAddPress}
+          titleNumberOfLines={titleNumberOfLines}
+        />
+      );
+    }
     return (
       <View
         style={[
           styles.horizontalZomatoCard,
-          isHospital
-            ? styles.hospitalHorizontalCard
-            : {
-                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
-              },
+          {
+            backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
+          },
         ]}
       >
         {/* Top Info Row: Left Thumbnail Image + Right Details */}
@@ -238,15 +250,6 @@ export default function PackageItemCard({
             />
           </View>
         </View>
-
-        {isHospital && (
-          <View
-            style={[
-              styles.minimalDividerWithBreaks,
-              { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)' },
-            ]}
-          />
-        )}
       </View>
     );
   }
@@ -272,9 +275,18 @@ export default function PackageItemCard({
           resizeMode="cover"
         />
         {item.discount ? (
-          <View style={styles.topImageDiscountBadge}>
-            <Text style={styles.topImageDiscountText}>{item.discount}</Text>
-          </View>
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.85)']}
+            locations={[0, 0.5, 1]}
+            style={styles.verticalBannerBottomGradient}
+          >
+            <View style={styles.offerOverlayRow}>
+              <OfferBadgeIcon size={14} color="#FF5200" percentColor="#FFFFFF" />
+              <Text style={styles.offerOverlayText} numberOfLines={1}>
+                {item.discount.toUpperCase().includes('OFF') ? item.discount : `${item.discount} OFF`}
+              </Text>
+            </View>
+          </LinearGradient>
         ) : null}
       </View>
 
@@ -574,21 +586,31 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: scale(11),
     borderTopRightRadius: scale(11),
   },
-  topImageDiscountBadge: {
+  verticalBannerBottomGradient: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(225, 29, 72, 0.92)',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 48,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 9,
+    paddingBottom: 7,
+    zIndex: 6,
   },
-  topImageDiscountText: {
-    color: '#FFFFFF',
+  offerOverlayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  offerOverlayText: {
     fontFamily: Fonts.bold,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 0.2,
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.55)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   verticalCardBody: {
     padding: 12,

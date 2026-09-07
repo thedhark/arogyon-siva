@@ -14,6 +14,12 @@ export default function TabLayout() {
       tabBar={(props) => <ChromicTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+        },
         sceneStyle: { backgroundColor: colors.background },
       }}>
       <Tabs.Screen
@@ -25,7 +31,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="package"
         options={{
-          title: 'Package',
+          title: 'Care',
         }}
       />
     </Tabs>

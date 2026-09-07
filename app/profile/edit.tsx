@@ -7,6 +7,7 @@ import AnimatedScreen from '@/components/AnimatedScreen';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import * as ImagePicker from 'expo-image-picker';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const GENDERS: Array<'Male' | 'Female' | 'Other'> = ['Male', 'Female', 'Other'];
@@ -177,7 +178,7 @@ export default function EditProfileScreen() {
           <Animated.View entering={FadeInDown.delay(100)} style={styles.avatarSection}>
             <TouchableOpacity style={styles.avatarContainer} onPress={() => setShowAvatarModal(true)}>
               {avatar ? (
-                <Image source={{ uri: avatar }} style={styles.avatar} />
+                <Image source={resolveImageSource(avatar)} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatarPlaceholder, { backgroundColor: colors.accent }]}>
                   <Text style={styles.initialsText}>{getInitials(name)}</Text>
@@ -428,7 +429,7 @@ export default function EditProfileScreen() {
                     setShowAvatarModal(false);
                   }}
                 >
-                  <Image source={{ uri: url }} style={styles.presetImg} />
+                  <Image source={resolveImageSource(url)} style={styles.presetImg} />
                   {avatar === url && (
                     <View style={[styles.checkBadge, { backgroundColor: colors.accent }]}>
                       <Check size={12} color="#FFF" />

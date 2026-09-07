@@ -5,6 +5,7 @@ import { ChevronLeft, Heart, Share2 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import Svg, { Path, Rect, Defs, LinearGradient as SvgGradient, Stop, G } from 'react-native-svg';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface Props {
   image?: any;
@@ -129,7 +130,7 @@ export default function PackageHeroBanner({
     ? ['#0A1D1A', '#0D2723', '#0F172A'] as const
     : ['#EBF8F5', '#E1F5EF', '#F8FAFC'] as const;
 
-  const imageSource = typeof image === 'string' ? { uri: image } : image;
+  const imageSource = resolveImageSource(image);
 
   return (
     <View style={styles.container}>

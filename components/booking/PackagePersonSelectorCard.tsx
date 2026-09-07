@@ -9,12 +9,14 @@ interface PackagePersonSelectorCardProps {
   assignedPatients: PatientSlotAssignment[];
   onAddPersonPress: () => void;
   onRemovePerson: (id: string) => void;
+  style?: any;
 }
 
 export default function PackagePersonSelectorCard({
   assignedPatients,
   onAddPersonPress,
   onRemovePerson,
+  style,
 }: PackagePersonSelectorCardProps) {
   const { isDark } = useTheme();
 
@@ -35,6 +37,7 @@ export default function PackagePersonSelectorCard({
           backgroundColor: isDark ? '#16181D' : '#FFFFFF',
           borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
         },
+        style,
       ]}
     >
       {/* Title & Beneficiary Count */}

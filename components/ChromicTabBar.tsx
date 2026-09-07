@@ -1,7 +1,9 @@
 import React, { useEffect, useCallback } from 'react';
 import { Platform, StyleSheet, View, Text, TouchableOpacity, BackHandler, useWindowDimensions } from 'react-native';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { Tabs } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+
+export type ChromicTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>>[0];
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,10 +13,9 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { Grid, HeartPulse, Heart } from 'lucide-react-native';
+import { Grid, HeartPulse, Heart, BadgePercent } from 'lucide-react-native';
 import Svg, { Path, Defs, LinearGradient, Stop, Mask, Rect, Circle } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import GlobalChatOverlay from './GlobalChatOverlay';
@@ -22,7 +23,7 @@ import { useTabBarStore } from '@/hooks/useTabBarStore';
 
 const TAB_META: Record<string, { label: string }> = {
   index: { label: 'Home' },
-  package: { label: 'Packages' },
+  package: { label: 'Care' },
   care: { label: 'Care' },
   today: { label: 'Today' },
 };
@@ -37,8 +38,8 @@ function getTabIcon(routeName: string, color: string, isFocused: boolean) {
     case 'index':
       return <Grid size={size} color={color} strokeWidth={strokeWidth} />;
     case 'package':
-      return <HeartPulse size={size} color={color} strokeWidth={strokeWidth} />;
     case 'care':
+      return <BadgePercent size={size} color={color} strokeWidth={strokeWidth} />;
     case 'today':
       return <Heart size={size} color={color} strokeWidth={strokeWidth} />;
     default:
@@ -119,7 +120,7 @@ function TabItem({ route, isFocused, meta, onPress }: any) {
   );
 }
 
-export default function ChromicTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export default function ChromicTabBar({ state, descriptors, navigation }: ChromicTabBarProps) {
   const { isDark } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
   const isDesktopWeb = Platform.OS === 'web' && windowWidth >= 1024;
@@ -217,12 +218,6 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
       transform: [
         { scale: interpolate(chatModeProgress.value, [0, 0.2], [1, 0.8], Extrapolation.CLAMP) }
       ],
-    };
-  });
-
-  const fogStyle = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(chatModeProgress.value, [0, 0.2], [1, 0], Extrapolation.CLAMP),
     };
   });
 
@@ -344,18 +339,6 @@ export default function ChromicTabBar({ state, descriptors, navigation }: Bottom
         onClose={handleCloseChat} 
       />
 
-      <Animated.View style={[styles.fogBackground, fogStyle, tabBarScrollAnimatedStyle]} pointerEvents="none">
-        <ExpoLinearGradient
-          colors={[
-            isDark ? 'rgba(18,18,18,0)' : 'rgba(253,253,253,0)',
-            isDark ? 'rgba(18,18,18,0.7)' : 'rgba(253,253,253,0.85)',
-            isDark ? 'rgba(18,18,18,1)' : '#FDFDFD'
-          ]}
-          locations={[0, 0.4, 1]}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-
       <Animated.View style={[styles.wrapperOuter, tabBarScrollAnimatedStyle]} pointerEvents="box-none">
         {supportsLiquidGlass ? (
           <GlassContainer spacing={24} style={styles.wrapper}>
@@ -385,14 +368,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     gap: 22,
-  },
-  fogBackground: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: Platform.OS === 'ios' ? 32 + 51.2 : 22 + 51.2,
-    zIndex: 998,
   },
   navContainer: {
     flex: 1,

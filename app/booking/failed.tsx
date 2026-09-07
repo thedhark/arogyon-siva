@@ -18,6 +18,7 @@ import {
   Home,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
 import { Fonts } from '@/constants/theme';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useBookingStore } from '@/hooks/useBookingStore';
@@ -167,7 +168,7 @@ export default function PaymentFailedScreen() {
           ]}
         >
           <View style={styles.doctorRow}>
-            <Image source={{ uri: doctorImage }} style={styles.doctorAvatar} />
+            <Image source={resolveImageSource(doctorImage)} style={styles.doctorAvatar} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.docName, { color: colors.text }]} numberOfLines={1}>
                 {doctorName}

@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { BlurView } from 'expo-blur';
 import { useAddressStore } from '@/hooks/useAddressStore';
 import { useProfileStore } from '@/hooks/useProfileStore';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const DEFAULT_FALLBACK_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
 
@@ -49,7 +50,7 @@ export default function HomeHeader({ currentCity, avatarUrl }: { currentCity: st
       <View style={styles.rightGroup}>
         <TouchableOpacity style={styles.avatarContainer} onPress={() => router.push('/profile')}>
           <View style={[styles.avatarBackdrop, { backgroundColor: isDark ? '#333' : '#E2E8F0' }]} />
-          <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+          <Image source={resolveImageSource(displayAvatar)} style={styles.avatar} />
         </TouchableOpacity>
       </View>
     </Animated.View>

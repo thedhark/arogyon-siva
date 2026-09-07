@@ -47,7 +47,7 @@ export default function OfferHeroBanner({
   return (
     <View style={[styles.container, { shadowColor }]}>
       {/* Background Starburst SVG Graphic */}
-      <View style={StyleSheet.absoluteFillObject}>
+      <View style={StyleSheet.absoluteFill}>
         <Svg width={width} height={BANNER_HEIGHT} viewBox={`0 0 ${width} ${BANNER_HEIGHT}`}>
           {/* Base Hospital Color Fill */}
           <Rect x="0" y="0" width={width} height={BANNER_HEIGHT} fill={baseColor} />

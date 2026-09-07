@@ -4,7 +4,7 @@ import { Calendar, Clock, Tag } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 interface PackagePricingCardProps {
-  price: string;
+  price?: string;
   originalPrice?: string;
   discount?: string;
   tokenPrice?: string;
@@ -12,16 +12,18 @@ interface PackagePricingCardProps {
   validitySubtext?: string;
   duration?: string;
   durationSubtext?: string;
+  showPriceRow?: boolean;
 }
 
 export default function PackagePricingCard({
-  price,
+  price = '',
   originalPrice,
   discount,
   validity = '12 Months',
   validitySubtext,
   duration = '1 Year',
   durationSubtext,
+  showPriceRow = false,
 }: PackagePricingCardProps) {
   const { isDark } = useTheme();
 
@@ -46,49 +48,53 @@ export default function PackagePricingCard({
           },
         ]}
       >
-        {/* Top: Price Row with savings tag */}
-        <View style={styles.priceHeaderRow}>
-          <View style={styles.priceCol}>
-            <View style={styles.priceLabelRow}>
-              <Tag size={13} color={isDark ? '#34D399' : '#0D9488'} />
-              <Text style={[styles.priceLabel, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-                PACKAGE PRICE
-              </Text>
-            </View>
-            <View style={styles.priceValuesRow}>
-              <Text style={[styles.priceValue, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
-                {price}
-              </Text>
-              {displayOriginalPrice ? (
-                <Text style={styles.originalPrice}>{displayOriginalPrice}</Text>
+        {/* Top: Price Row with savings tag (Hidden by default since price is in bottom bar) */}
+        {showPriceRow && price ? (
+          <>
+            <View style={styles.priceHeaderRow}>
+              <View style={styles.priceCol}>
+                <View style={styles.priceLabelRow}>
+                  <Tag size={13} color={isDark ? '#34D399' : '#0D9488'} />
+                  <Text style={[styles.priceLabel, { color: isDark ? '#94A3B8' : '#64748B' }]}>
+                    PACKAGE PRICE
+                  </Text>
+                </View>
+                <View style={styles.priceValuesRow}>
+                  <Text style={[styles.priceValue, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
+                    {price}
+                  </Text>
+                  {displayOriginalPrice ? (
+                    <Text style={styles.originalPrice}>{displayOriginalPrice}</Text>
+                  ) : null}
+                </View>
+              </View>
+
+              {savings > 0 ? (
+                <View
+                  style={[
+                    styles.savingsBadge,
+                    {
+                      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5',
+                      borderColor: isDark ? 'rgba(52, 211, 153, 0.25)' : '#A7F3D0',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.savingsText, { color: isDark ? '#34D399' : '#059669' }]}>
+                    Save ₹{savings.toLocaleString('en-IN')}
+                  </Text>
+                  {discountPercent ? (
+                    <Text style={[styles.discountText, { color: isDark ? '#6EE7B7' : '#047857' }]}>
+                      {discountPercent}
+                    </Text>
+                  ) : null}
+                </View>
               ) : null}
             </View>
-          </View>
 
-          {savings > 0 ? (
-            <View
-              style={[
-                styles.savingsBadge,
-                {
-                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5',
-                  borderColor: isDark ? 'rgba(52, 211, 153, 0.25)' : '#A7F3D0',
-                },
-              ]}
-            >
-              <Text style={[styles.savingsText, { color: isDark ? '#34D399' : '#059669' }]}>
-                Save ₹{savings.toLocaleString('en-IN')}
-              </Text>
-              {discountPercent ? (
-                <Text style={[styles.discountText, { color: isDark ? '#6EE7B7' : '#047857' }]}>
-                  {discountPercent}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-        </View>
-
-        {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9' }]} />
+            {/* Divider */}
+            <View style={[styles.divider, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9' }]} />
+          </>
+        ) : null}
 
         {/* Bottom Details Row: Validity & Duration */}
         <View style={styles.detailsRow}>

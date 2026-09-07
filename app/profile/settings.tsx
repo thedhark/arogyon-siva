@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import { PremiumSwitch } from '@/components/PremiumSwitch';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function SettingsScreen() {
           activeOpacity={0.8}
         >
           {userProfile.avatar ? (
-            <Image source={{ uri: userProfile.avatar }} style={styles.profileNavAvatar} />
+            <Image source={resolveImageSource(userProfile.avatar)} style={styles.profileNavAvatar} />
           ) : (
             <View style={[styles.profileNavAvatarFallback, { backgroundColor: colors.accent }]}>
               <Text style={styles.profileNavInitials}>

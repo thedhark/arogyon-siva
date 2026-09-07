@@ -46,10 +46,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bannerImage: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   headerBar: {
     position: 'absolute',

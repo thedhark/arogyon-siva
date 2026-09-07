@@ -12,6 +12,7 @@ import {
 import { useTheme } from '@/hooks/useTheme';
 import { X, Check, ShieldCheck, Mail } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface SocialUserOption {
   name: string;
@@ -133,7 +134,7 @@ export default function SocialAuthModal({
                     disabled={isProcessing}
                     activeOpacity={0.7}
                   >
-                    <Image source={{ uri: acc.avatar }} style={styles.avatar} />
+                    <Image source={resolveImageSource(acc.avatar)} style={styles.avatar} />
                     <View style={styles.accountInfo}>
                       <Text style={[styles.accName, { color: colors.text }]}>{acc.name}</Text>
                       <Text style={[styles.accEmail, { color: colors.textSecondary }]}>{acc.email}</Text>
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   card: {
     borderTopLeftRadius: 24,

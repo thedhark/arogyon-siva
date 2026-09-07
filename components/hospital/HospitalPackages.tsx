@@ -31,23 +31,23 @@ interface HealthPackage {
 
 export const PACKAGE_CATEGORIES = [
   { id: 'all', name: 'All' },
+  { id: 'labs', name: 'Diagnostics & Health' },
   { id: 'pregnancy', name: 'Pregnancy & Maternity' },
   { id: 'cardiac', name: 'Cardiac Care' },
   { id: 'knee', name: 'Knee & Joint' },
   { id: 'ortho', name: 'Orthopedics & Spine' },
   { id: 'skin', name: 'Dermatology & Skin' },
-  { id: 'labs', name: 'Diagnostics & Health' },
   { id: 'diabetes', name: 'Diabetes' },
 ];
 
 export const ALL_PACKAGE_CATEGORIES = [
   { id: 'all', name: 'All Packages' },
+  { id: 'labs', name: 'Diagnostics & Full Body' },
   { id: 'pregnancy', name: 'Pregnancy & Maternity' },
   { id: 'cardiac', name: 'Cardiac Care' },
   { id: 'knee', name: 'Knee & Joint Recovery' },
   { id: 'ortho', name: 'Orthopedics & Spine' },
   { id: 'skin', name: 'Dermatology & Skin Care' },
-  { id: 'labs', name: 'Diagnostics & Full Body' },
   { id: 'diabetes', name: 'Diabetes & Metabolism' },
   { id: 'gastro', name: 'Gastro & Digestive' },
   { id: 'hernia', name: 'Hernia Repair' },
@@ -55,6 +55,18 @@ export const ALL_PACKAGE_CATEGORIES = [
 ];
 
 export const MOCK_PACKAGES: HealthPackage[] = [
+  {
+    id: 'pkg-fullbody-1',
+    category: 'Diagnostics & Health',
+    categorySlug: 'labs',
+    title: 'Full Body Checkup',
+    subtitle: 'Complete health checkup with 120+ tests to assess your overall health.',
+    price: '₹999',
+    originalPrice: '₹2,499',
+    discount: '60% OFF',
+    image: require('@/assets/images/package-banners/health_checkups.png'),
+    inclusions: ['120+ Vital Tests', 'CBC & Hemogram', 'Lipid & Cholesterol', 'Liver & Kidney Profile', 'Free Home Sample Pickup'],
+  },
   {
     id: 'pkg-preg-1',
     category: 'Pregnancy Care',

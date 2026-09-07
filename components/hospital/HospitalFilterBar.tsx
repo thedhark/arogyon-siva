@@ -31,11 +31,15 @@ export default function HospitalFilterBar({
   const activeBg = isDark ? '#172554' : '#EFF6FF';
   const activeBorder = isDark ? '#2563EB' : '#BFDBFE';
   const activeText = isDark ? '#60A5FA' : '#1D4ED8';
+  const defaultText = isDark ? '#E2E8F0' : '#1E293B';
+  const iconColor = isDark ? '#9CA3AF' : '#64748B';
 
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      nestedScrollEnabled={true}
       contentContainerStyle={styles.container}
     >
       {/* 1. Filters Button */}
@@ -45,11 +49,11 @@ export default function HospitalFilterBar({
           { backgroundColor: chipBg, borderColor: chipBorder },
         ]}
         onPress={onOpenFilterModal}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
-        <SlidersHorizontal size={14} color={isDark ? '#9CA3AF' : '#475569'} />
-        <Text style={[styles.chipText, { color: colors.text }]}>Filters</Text>
-        <ChevronDown size={14} color={isDark ? '#9CA3AF' : '#475569'} />
+        <SlidersHorizontal size={14} color={iconColor} />
+        <Text style={[styles.chipText, { color: defaultText }]}>Filters</Text>
+        <ChevronDown size={14} color={iconColor} />
       </TouchableOpacity>
 
       {/* 2. Highly Recommended Pill */}
@@ -61,15 +65,22 @@ export default function HospitalFilterBar({
             : { backgroundColor: chipBg, borderColor: chipBorder },
         ]}
         onPress={onToggleHighlyRecommended}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
-        <View style={[styles.starBadge, isHighlyRecommended && { backgroundColor: '#2563EB' }]}>
-          <Star size={11} color="#FFFFFF" fill="#FFFFFF" />
+        <View style={[
+          styles.starBadge, 
+          { backgroundColor: isHighlyRecommended ? '#2563EB' : (isDark ? '#27272A' : '#EFF6FF') }
+        ]}>
+          <Star 
+            size={11} 
+            color={isHighlyRecommended ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#2563EB')} 
+            fill={isHighlyRecommended ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#2563EB')} 
+          />
         </View>
         <Text
           style={[
             styles.chipText,
-            { color: isHighlyRecommended ? activeText : colors.text },
+            { color: isHighlyRecommended ? activeText : defaultText },
           ]}
         >
           Highly recommended
@@ -85,20 +96,20 @@ export default function HospitalFilterBar({
             : { backgroundColor: chipBg, borderColor: chipBorder },
         ]}
         onPress={onOpenSpecialtyModal}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <Text style={{ fontSize: 13, marginRight: 2 }}>{categoryEmoji}</Text>
         <Text
           style={[
             styles.chipText,
-            { color: selectedSpecialty !== 'All' ? activeText : colors.text },
+            { color: selectedSpecialty !== 'All' ? activeText : defaultText },
           ]}
         >
           {selectedSpecialty === 'All' ? 'Cardiology' : selectedSpecialty}
         </Text>
         <ChevronDown
           size={14}
-          color={selectedSpecialty !== 'All' ? activeText : (isDark ? '#9CA3AF' : '#475569')}
+          color={selectedSpecialty !== 'All' ? activeText : iconColor}
         />
       </TouchableOpacity>
 
@@ -111,16 +122,16 @@ export default function HospitalFilterBar({
             : { backgroundColor: chipBg, borderColor: chipBorder },
         ]}
         onPress={onToggleAvailableToday}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <Calendar
           size={14}
-          color={isAvailableToday ? activeText : (isDark ? '#9CA3AF' : '#475569')}
+          color={isAvailableToday ? activeText : iconColor}
         />
         <Text
           style={[
             styles.chipText,
-            { color: isAvailableToday ? activeText : colors.text },
+            { color: isAvailableToday ? activeText : defaultText },
           ]}
         >
           Available today
@@ -135,32 +146,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 6,
     gap: 8,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 6,
+    height: 36,
     borderRadius: 20,
     borderWidth: 1,
     gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
   },
   chipText: {
     fontSize: 12.5,
     fontWeight: '600',
+    includeFontPadding: false,
   },
   starBadge: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
   },

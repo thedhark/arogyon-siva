@@ -7,6 +7,7 @@ import { StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ArrowRight, Star, SlidersHorizontal, ShoppingBag, X, Check } from 'lucide-react-native';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const HEADER_HEIGHT = 240;
@@ -491,7 +492,7 @@ export default function PlanDetailsScreen() {
       >
         {/* Banner Promo Section */}
         <View style={styles.bannerContainer}>
-          <Image source={{ uri: catalog.bannerImage }} style={styles.bannerImage} />
+          <Image source={resolveImageSource(catalog.bannerImage)} style={styles.bannerImage} />
           {/* Overlay Darkening Gradient */}
           <View style={styles.gradientOverlay} />
 
@@ -596,7 +597,7 @@ export default function PlanDetailsScreen() {
                       end={{ x: 0.6, y: 0 }} 
                       style={styles.horizontalImageGradientOverlay} 
                     />
-                    <Image source={{ uri: pkg.image }} style={styles.horizontalImage} resizeMode="cover" />
+                    <Image source={resolveImageSource(pkg.image)} style={styles.horizontalImage} resizeMode="cover" />
                   </View>
                 </LinearGradient>
               </TouchableOpacity>

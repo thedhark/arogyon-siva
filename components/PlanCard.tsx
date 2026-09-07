@@ -42,7 +42,7 @@ export default function PlanCard({ image, title, tag, colors = ['transparent', '
       <View style={styles.imageWrapper}>
         <Image
           source={resolveImageSource(image)}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           contentFit="cover"
           transition={200}
         />

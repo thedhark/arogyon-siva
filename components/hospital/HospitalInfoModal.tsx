@@ -22,9 +22,11 @@ import {
   Image as ImageIcon,
   PhoneCall,
   FileText,
-  MapPin
+  MapPin,
+  CheckCircle2 
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface HospitalInfoModalProps {
   visible: boolean;
@@ -199,7 +201,7 @@ export default function HospitalInfoModal({
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photosScroll}>
               {SAMPLE_PHOTOS.map((imgUri, idx) => (
-                <Image key={idx} source={{ uri: imgUri }} style={styles.photoThumbnail} />
+                <Image key={idx} source={resolveImageSource(imgUri)} style={styles.photoThumbnail} />
               ))}
             </ScrollView>
           </View>

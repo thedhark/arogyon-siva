@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Plus, Check } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { PackageItem } from '@/constants/package-data';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface AddOnPackageCardProps {
   item: PackageItem;
@@ -25,7 +26,7 @@ export default function AddOnPackageCard({ item, isAdded, onToggle }: AddOnPacka
     >
       {/* Top Banner Image with Red Discount Badge */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
+        <Image source={resolveImageSource(item.image)} style={styles.image} resizeMode="cover" />
         <View style={styles.discountBadge}>
           <Text style={styles.discountBadgeText}>{item.discount}</Text>
         </View>

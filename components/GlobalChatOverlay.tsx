@@ -55,6 +55,11 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
     [chatModeProgress]
   );
 
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: chatModeProgress.value > 0.01 ? 1 : 0,
+    display: chatModeProgress.value > 0.001 ? 'flex' : 'none',
+  }));
+
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: interpolate(chatModeProgress.value, [0, 1], [0, 0.65], Extrapolation.CLAMP),
   }));
@@ -63,7 +68,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
     const translateY = interpolate(
       chatModeProgress.value,
       [0, 1],
-      [SCREEN_HEIGHT, 0],
+      [SCREEN_HEIGHT + 400, 0],
       Extrapolation.CLAMP
     );
     return {
@@ -81,7 +86,7 @@ export default function GlobalChatOverlay({ chatModeProgress, onClose }: GlobalC
   return (
     <Animated.View
       pointerEvents={isPointerActive ? 'auto' : 'none'}
-      style={[StyleSheet.absoluteFillObject, styles.overlayWrapper]}
+      style={[StyleSheet.absoluteFill, styles.overlayWrapper, containerStyle]}
     >
       {/* Dim Backdrop */}
       <Animated.View style={[styles.backdrop, backdropStyle]}>
@@ -199,7 +204,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#000000',
   },
   fullScreenPage: {

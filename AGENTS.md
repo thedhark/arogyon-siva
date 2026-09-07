@@ -1,7 +1,7 @@
 # Project Architectural Rules & Guidelines
 
 ## 1. Environment & SDK
-- **Framework**: Expo SDK 54 (`react-native` with Expo Router).
+- **Framework**: Expo SDK 57 (`react-native` with Expo Router).
 
 ## 2. Component Design & Modular Architecture
 - **Keep Components Small & Focused**: Avoid monolithic, oversized component files. Split screens into small, single-responsibility sub-components.

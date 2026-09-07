@@ -110,7 +110,10 @@ export const SURGERIES_DATA = [
   { id: 'thyroidSurgery', label: 'Thyroidectomy Surgery', mappedCategory: 'General Physician', image: CATEGORY_ICONS.general },
 ];
 
-const TOP_CATEGORIES = ALL_EXPLORE_CATEGORIES.slice(0, 7);
+const cancerIndex = ALL_EXPLORE_CATEGORIES.findIndex(c => c.id === 'Cancer Specialist');
+const TOP_CATEGORIES = cancerIndex !== -1 
+  ? ALL_EXPLORE_CATEGORIES.slice(0, cancerIndex + 1)
+  : ALL_EXPLORE_CATEGORIES;
 
 const ITEM_WIDTH = 68;
 const GAP = 6;
@@ -277,9 +280,9 @@ export default function ExploreCategories({
               >
                 <View style={styles.imageContainer}>
                   <Image 
-                    source={typeof cat.image === 'string' ? { uri: cat.image } : cat.image} 
+                    source={resolveImageSource(cat.image)} 
                     style={styles.categoryImage} 
-                    resizeMode="cover"
+                    resizeMode="contain"
                   />
                 </View>
                 <Text 
@@ -686,14 +689,13 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   categoryImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
   },
   categoryLabel: {
     fontSize: 11,
@@ -825,19 +827,19 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    overflow: 'hidden',
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   selectedImageContainer: {
     borderWidth: 2.5,
     borderColor: '#10B981',
   },
   gridImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 58,
+    height: 58,
+    resizeMode: 'contain',
   },
   checkBadge: {
     position: 'absolute',

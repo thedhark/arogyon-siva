@@ -39,7 +39,7 @@ export default function StickyBookingPaymentBar({
   originalPrice,
   discountText,
   taxSubtext,
-  ctaText = 'ADD Package',
+  ctaText = 'Confirm Appointment',
   tokenCtaText,
   ctaIcon = 'calendar',
   showBookmark = false,
@@ -57,11 +57,9 @@ export default function StickyBookingPaymentBar({
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 14 : 10);
   
   const isHospitalVariant = variant === 'hospital';
-  const ctaGradientColors = isHospitalVariant 
-    ? ['#9BF229', '#14CE65'] 
-    : ['#2A2C33', '#16171B', '#0B0C0E'];
-  const ctaTextColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
-  const ctaIconColor = isHospitalVariant ? '#052E16' : '#FFFFFF';
+  const ctaGradientColors = ['#3B82F6', '#2563EB', '#1D4ED8'];
+  const ctaTextColor = '#FFFFFF';
+  const ctaIconColor = '#FFFFFF';
   
   const [offerIndex, setOfferIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -406,9 +404,9 @@ const styles = StyleSheet.create({
   ctaBtnWrapper: {
     borderRadius: 999,
     minWidth: 125,
-    shadowColor: '#000',
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 6,
   },

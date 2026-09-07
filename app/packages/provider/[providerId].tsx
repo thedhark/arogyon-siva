@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   heroGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   headerBar: {
     flexDirection: 'row',

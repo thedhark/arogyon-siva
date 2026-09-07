@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-na
 import { ShieldCheck, Download, Share2, CheckCircle2, Building2, Calendar, FileText, QrCode } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { Appointment } from '@/hooks/useBookingStore';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface PaymentInvoiceModalProps {
   appointment: Appointment | null;
@@ -53,7 +54,7 @@ export default function PaymentInvoiceModal({ appointment, onClose }: PaymentInv
             <Text style={[styles.subText, { color: colors.textSecondary }]}>{appointment.speciality}</Text>
             <Text style={[styles.subText, { color: colors.textSecondary }]}>{appointment.hospitalName}</Text>
           </View>
-          <Image source={{ uri: qrUrl }} style={styles.qrCode} />
+          <Image source={resolveImageSource(qrUrl)} style={styles.qrCode} />
         </View>
 
         <View style={[styles.dashedLine, { borderColor: isDark ? '#333' : '#E0E0E0' }]} />

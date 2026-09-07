@@ -187,8 +187,8 @@ async function extractImageText(uri: string): Promise<string> {
       const { NativeModulesProxy } = require('expo-modules-core');
       const hasNativeModule = !!(
         NativeModulesProxy?.RNMLKitTextRecognitionModule ||
-        (global as any).expo?.modules?.RNMLKitTextRecognitionModule ||
-        (global as any).expo?.modules?.RNMLKitTextRecognition
+        (globalThis as any).expo?.modules?.RNMLKitTextRecognitionModule ||
+        (globalThis as any).expo?.modules?.RNMLKitTextRecognition
       );
 
       if (hasNativeModule) {

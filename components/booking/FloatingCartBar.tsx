@@ -9,6 +9,7 @@ import { useBookingStore } from '@/hooks/useBookingStore';
 import { useTabBarStore } from '@/hooks/useTabBarStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface FloatingCartBarProps {
   variant?: 'home' | 'hospital' | 'detail';
@@ -124,11 +125,10 @@ export default function FloatingCartBar({
               ]}
             >
               <Image
-                source={{
-                  uri:
-                    latestItem.image ||
-                    'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200',
-                }}
+                source={resolveImageSource(
+                  latestItem.image,
+                  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200'
+                )}
                 style={styles.homeLogoImage}
                 resizeMode="cover"
               />
@@ -151,15 +151,15 @@ export default function FloatingCartBar({
               {displayTitle}
             </Text>
             <View style={styles.homeLinkRow}>
-              <Text style={styles.homeLinkText}>View Care</Text>
-              <ChevronRight size={14} color="#E11D48" strokeWidth={2.6} />
+              <Text style={[styles.homeLinkText, { color: isDark ? '#38BDF8' : '#2563EB' }]}>View Care</Text>
+              <ChevronRight size={13} color={isDark ? '#38BDF8' : '#2563EB'} strokeWidth={2.6} />
             </View>
           </TouchableOpacity>
 
-          {/* Right Red Action Button & Dismiss Icon */}
+          {/* Right Blue Action Button & Dismiss Icon */}
           <View style={styles.homeRightSection}>
             <TouchableOpacity
-              style={styles.homeRedPillButton}
+              style={styles.homeBluePillButton}
               onPress={handleContinue}
               activeOpacity={0.85}
             >
@@ -247,7 +247,10 @@ export default function FloatingCartBar({
               {previewImages.map((imgUri, idx) => (
                 <Image
                   key={idx}
-                  source={{ uri: imgUri }}
+                  source={resolveImageSource(
+                    imgUri,
+                    'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200'
+                  )}
                   style={[
                     styles.detailItemAvatar,
                     idx > 0 && styles.detailItemAvatarOverlap,
@@ -288,8 +291,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 26,
+    paddingVertical: 6,
+    borderRadius: 20,
     borderWidth: 1,
   },
   homeLeftSection: {
@@ -297,9 +300,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   homeLogoFrame: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -308,59 +311,59 @@ const styles = StyleSheet.create({
   homeLogoImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
+    borderRadius: 9,
   },
   homeMiddleSection: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 10,
     marginRight: 8,
     justifyContent: 'center',
   },
   homeTitleText: {
     fontFamily: Fonts.bold,
-    fontSize: 15.5,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   homeLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 1,
     gap: 1,
   },
   homeLinkText: {
     fontFamily: Fonts.semiBold,
-    fontSize: 13.5,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#E11D48', // Crimson Red
+    color: '#2563EB',
   },
   homeRightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  homeRedPillButton: {
-    backgroundColor: '#E11D48',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  homeBluePillButton: {
+    backgroundColor: '#2563EB',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 95,
+    minWidth: 82,
   },
   homePillTitleText: {
     fontFamily: Fonts.bold,
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
     letterSpacing: -0.2,
   },
   homePillSubtitleText: {
     fontFamily: Fonts.medium,
     color: 'rgba(255, 255, 255, 0.95)',
-    fontSize: 11.5,
+    fontSize: 10.5,
     fontWeight: '600',
-    marginTop: 1,
+    marginTop: 0.5,
   },
   homeCloseButton: {
     padding: 4,
@@ -418,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailMainActionBar: {
-    backgroundColor: '#E11D48', // Vibrant Crimson Red
+    backgroundColor: '#2563EB', // Royal Arogyon Blue
     marginHorizontal: 14,
     marginTop: 8,
     paddingHorizontal: 16,

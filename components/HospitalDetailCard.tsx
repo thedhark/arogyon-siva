@@ -4,6 +4,9 @@ import { Heart, Star } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
+import { LinearGradient } from 'expo-linear-gradient';
+import OfferBadgeIcon from '@/components/ui/OfferBadgeIcon';
 
 const CATEGORY_ICON_MAP: Record<string, any> = {
   general: require('@/assets/images/category-icons/general-physician.png'),
@@ -146,6 +149,89 @@ function parseDepartmentIcons(departmentsText?: string, specialityText?: string)
   };
 }
 
+export function getRealLifeHeroBadge(data: {
+  heroBadge?: string;
+  name?: string;
+  departments?: string;
+  speciality?: string;
+  category?: string;
+}): string {
+  if (data.heroBadge) return data.heroBadge;
+
+  const text = `${data.name || ''} ${data.departments || ''} ${data.speciality || ''} ${data.category || ''}`.toLowerCase();
+
+  // 1. Kids & Pediatric Emergencies
+  if (text.includes('pediatric') || text.includes('child') || text.includes('baby') || text.includes('rainbow') || text.includes('kids')) {
+    return 'Pediatrician on Duty · 24/7 Child Care';
+  }
+
+  // 2. Teeth & Dental Pain
+  if (text.includes('dent') || text.includes('tooth') || text.includes('teeth') || text.includes('clove') || text.includes('partha')) {
+    return 'Severe Toothache Relief · Same Day';
+  }
+
+  // 3. Eye Emergency & Foreign Body
+  if (text.includes('eye') || text.includes('vision') || text.includes('lenskart') || text.includes('cataract') || text.includes('nethralaya') || text.includes('agarwal')) {
+    return 'Eye Emergency & Foreign Body Care';
+  }
+
+  // 4. Bone, Fracture & Joint Injury
+  if (text.includes('bone') || text.includes('ortho') || text.includes('fracture') || text.includes('joint') || text.includes('sparsh') || text.includes('spine')) {
+    return 'Fracture & Trauma · X-Ray Ready';
+  }
+
+  // 5. Heart Attack & Chest Pain
+  if (text.includes('heart') || text.includes('cardio') || text.includes('cardiac') || text.includes('vascular')) {
+    return 'Cardiac Cath Lab · 24/7 Active';
+  }
+
+  // 6. Pregnancy, Labour & Delivery
+  if (text.includes('maternity') || text.includes('women') || text.includes('gynec') || text.includes('birth') || text.includes('cloudnine') || text.includes('motherhood')) {
+    return 'Labour & Delivery · 24/7 On Duty';
+  }
+
+  // 7. Asthma, Breathing & Chest
+  if (text.includes('lung') || text.includes('pulmo') || text.includes('chest') || text.includes('breath') || text.includes('asthma')) {
+    return 'Asthma & Breathlessness · Oxygen Ready';
+  }
+
+  // 8. Brain Stroke & Neurological
+  if (text.includes('neuro') || text.includes('brain') || text.includes('stroke') || text.includes('nimhans')) {
+    return 'Brain Stroke Care · 24/7 CT Scan';
+  }
+
+  // 9. Stomach Pain, Vomiting & Food Poisoning
+  if (text.includes('gastro') || text.includes('stomach') || text.includes('digest') || text.includes('liver') || text.includes('aig')) {
+    return 'Severe Stomach Pain · Ultrasound Ready';
+  }
+
+  // 10. Kidney, Urology & Stones
+  if (text.includes('uro') || text.includes('kidney') || text.includes('nephro') || text.includes('stone') || text.includes('dialysis')) {
+    return 'Kidney Stone & Acute Care · 24/7';
+  }
+
+  // 11. Snake Bite & Poisoning
+  if (text.includes('snake') || text.includes('venom')) {
+    return 'Anti-Venom · Available 24/7';
+  }
+  if (text.includes('poison') || text.includes('toxic')) {
+    return 'Poison & Toxicology · ICU Ready';
+  }
+
+  // 12. Apollo / Major Trauma Centers
+  if (text.includes('apollo')) {
+    return 'Accident & Trauma · 0 Min Wait';
+  }
+
+  // 13. High Fever & General In-Clinic
+  if (text.includes('fortis') || text.includes('clinic') || text.includes('primary')) {
+    return 'High Fever Care · Doctor on Duty';
+  }
+
+  // Default Real-Life Panic / Emergency Assurance:
+  return 'High Fever & Emergency Care · 24/7';
+}
+
 interface Props {
   id?: string;
   name?: string;
@@ -158,6 +244,9 @@ interface Props {
   logo?: string | any;
   fee?: string;
   nextAvailable?: string;
+  offer?: string;
+  heroBadge?: string;
+  category?: string;
 }
 
 export default function HospitalDetailCard({
@@ -171,16 +260,43 @@ export default function HospitalDetailCard({
   departments = "Cardiology • Neurology • +12 more",
   logo = "https://cdn-icons-png.flaticon.com/512/2966/2966327.png",
   fee = "₹1500 onwards",
-  nextAvailable = "Today, 02:00 PM"
+  nextAvailable = "Today, 02:00 PM",
+  offer,
+  heroBadge,
+  category,
 }: Props) {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const [isFavorited, setIsFavorited] = React.useState(false);
   const cardRadius = 14;
 
+  const displayOffer = offer ?? React.useMemo(() => {
+    const offersMap: Record<string, string> = {
+      'hosp-1': '50% off upto ₹150',
+      'hosp-2': 'Flat ₹140 OFF above ₹199',
+      'hosp-3': '60% off upto ₹200',
+      'hosp-4': 'Flat ₹175 OFF above ₹449',
+      'hosp-5': '30% off upto ₹100',
+      'hosp-6': 'Flat ₹150 OFF on Consult',
+      'hosp-7': '40% off upto ₹250',
+      'hosp-8': 'Flat ₹120 OFF',
+    };
+    return offersMap[id] || '50% off upto ₹150';
+  }, [id, offer]);
+
   const departmentData = React.useMemo(() => {
     return parseDepartmentIcons(departments, speciality);
   }, [departments, speciality]);
+
+  const heroBadgeText = React.useMemo(() => {
+    return getRealLifeHeroBadge({
+      heroBadge,
+      name,
+      departments,
+      speciality,
+      category,
+    });
+  }, [heroBadge, name, departments, speciality, category]);
 
   return (
     <TouchableOpacity 
@@ -211,10 +327,42 @@ export default function HospitalDetailCard({
         {/* Top Image Section */}
         <View style={[styles.imageSection, { borderTopLeftRadius: cardRadius - 1, borderTopRightRadius: cardRadius - 1 }]}>
           <Image 
-            source={{ uri: image }} 
+            source={resolveImageSource(image)} 
             style={[styles.mainImage, { borderTopLeftRadius: cardRadius - 1, borderTopRightRadius: cardRadius - 1 }]}
             resizeMode="cover"
           />
+
+          {/* Top Left Floating Minimal Hero Badge (Real-Life Scenario) */}
+          {heroBadgeText ? (
+            <View style={styles.topLeftHeroBadge}>
+              <LinearGradient
+                colors={['rgba(15, 23, 42, 0.90)', 'rgba(30, 41, 59, 0.84)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroBadgeGradient}
+              >
+                <Text style={styles.heroBadgeText} numberOfLines={1}>
+                  {heroBadgeText}
+                </Text>
+              </LinearGradient>
+            </View>
+          ) : null}
+
+          {/* Controlled Bottom Gradient for Offer Overlay */}
+          {displayOffer ? (
+            <LinearGradient
+              colors={['transparent', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.85)']}
+              locations={[0, 0.52, 1]}
+              style={styles.imageBottomGradient}
+            >
+              <View style={styles.offerOverlayRow}>
+                <OfferBadgeIcon size={16} color="#FF5200" percentColor="#FFFFFF" />
+                <Text style={styles.offerOverlayText} numberOfLines={1}>
+                  {displayOffer}
+                </Text>
+              </View>
+            </LinearGradient>
+          ) : null}
 
           {/* Top Right Heart (Love Symbol) */}
           <TouchableOpacity 
@@ -238,7 +386,7 @@ export default function HospitalDetailCard({
         <View style={[styles.bottomSection, { backgroundColor: isDark ? '#1C1E24' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }]}>
           {/* Header Row: Title and Rating */}
           <View style={styles.headerRow}>
-            {logo && <Image source={typeof logo === 'string' ? { uri: logo } : logo} style={{ width: 22, height: 22, marginRight: 8, borderRadius: 4 }} resizeMode="contain" />}
+            {logo && <Image source={resolveImageSource(logo)} style={{ width: 22, height: 22, marginRight: 8, borderRadius: 4 }} resizeMode="contain" />}
             <Text style={[styles.hospitalName, { color: isDark ? '#FFFFFF' : '#1C1C1E' }]} numberOfLines={1}>{name}</Text>
             <View style={styles.ratingRow}>
               <Star size={13} color="#F59E0B" fill="#F59E0B" />
@@ -356,7 +504,7 @@ const styles = StyleSheet.create({
   },
   imageSection: {
     width: '100%',
-    height: 180,
+    height: 215,
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#F3F4F6',
@@ -380,6 +528,66 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
+  },
+  topLeftHeroBadge: {
+    position: 'absolute',
+    top: 11,
+    left: 11,
+    borderRadius: 20,
+    zIndex: 10,
+    maxWidth: '78%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.35,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  heroBadgeGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingTop: 4,
+    paddingBottom: 4.5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  heroBadgeText: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.15,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    lineHeight: 14,
+  },
+  imageBottomGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 56,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 12,
+    paddingBottom: 9,
+    zIndex: 8,
+  },
+  offerOverlayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  offerOverlayText: {
+    fontFamily: Fonts.bold,
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.55)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   bottomSection: {
     backgroundColor: '#FFFFFF',

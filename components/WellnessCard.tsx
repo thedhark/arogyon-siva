@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Play } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export default function WellnessCard({ image, title, desc, bgColor, categorySlug, onPress }: any) {
   const { isDark, colors } = useTheme();
@@ -31,7 +32,7 @@ export default function WellnessCard({ image, title, desc, bgColor, categorySlug
           <Play size={14} color="#1b5e55" fill="#1b5e55" style={{ marginLeft: 2 }} />
         </View>
       </View>
-      <Image source={{ uri: image }} style={styles.wellnessImage} />
+      <Image source={resolveImageSource(image)} style={styles.wellnessImage} />
     </TouchableOpacity>
   );
 }

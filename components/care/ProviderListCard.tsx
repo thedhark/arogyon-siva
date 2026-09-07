@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Star, MapPin, Calendar, CheckCircle2 } from 'lucide-react-native';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface Props {
   image: string;
@@ -29,7 +30,7 @@ export default function ProviderListCard({
       <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
         <View style={styles.topSection}>
           <View style={styles.imageContainer}>
-            <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
+            <Image source={resolveImageSource(image)} style={styles.image} resizeMode="cover" />
             {topRated && (
               <View style={[styles.topRatedBadge, { borderColor: isDark ? '#1E1E1E' : '#FFFFFF' }]}>
                 <Text style={styles.topRatedText}>Top Rated</Text>

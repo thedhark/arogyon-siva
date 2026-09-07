@@ -12,6 +12,7 @@ import { Plus, Check, User, Users } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import AddFamilyMemberModal, { NewFamilyMemberPayload } from '@/components/booking/AddFamilyMemberModal';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface SelectedPatientInfo {
   id: string;
@@ -149,7 +150,7 @@ export default function PatientSelectorSection({
               <View style={styles.avatarWrapper}>
                 {member.avatar ? (
                   <Image
-                    source={{ uri: member.avatar }}
+                    source={resolveImageSource(member.avatar)}
                     style={styles.avatarImage}
                     contentFit="cover"
                   />

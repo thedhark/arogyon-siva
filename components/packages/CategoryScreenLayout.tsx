@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Star, BadgeCheck, SlidersHorizontal, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, Star, SlidersHorizontal, ChevronRight } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -210,7 +210,6 @@ export default function CategoryScreenLayout({ categorySlug }: CategoryScreenLay
                   <View style={styles.hospitalTitleBox}>
                     <View style={styles.hospitalNameRow}>
                       <Text style={[styles.hospitalName, { color: isDark ? '#FFF' : '#1A1A1A' }]}>{hospital.name}</Text>
-                      <BadgeCheck size={16} color="#00A981" fill="#E6F6F2" />
                     </View>
                     <Text style={styles.hospitalLocation}>{hospital.location}</Text>
                   </View>
@@ -314,10 +313,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   heroImage: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   heroGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   titleSection: {
     flexDirection: 'row',

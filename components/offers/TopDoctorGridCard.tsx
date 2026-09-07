@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { TrustedDoctor } from '@/constants/trusted-doctors';
 import { Fonts } from '@/constants/theme';
 import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface TopDoctorGridCardProps {
   doctor: TrustedDoctor;
@@ -80,7 +81,7 @@ export default function TopDoctorGridCard({ doctor }: TopDoctorGridCardProps) {
     >
       {/* Doctor Image Container (Isolated Container with Border Radius & Depth) */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: doctor.image }} style={styles.image} resizeMode="cover" />
+        <Image source={resolveImageSource(doctor.image)} style={styles.image} resizeMode="cover" />
       </View>
 
       {/* Doctor Details Body (Clean, Flat, No Container Depth) */}
@@ -189,10 +190,10 @@ const styles = StyleSheet.create({
   },
   doctorName: {
     flex: 1,
-    fontSize: 14.5,
-    fontFamily: Fonts.bold,
-    fontWeight: '700',
-    letterSpacing: -0.2,
+    fontSize: 15.5,
+    fontFamily: Fonts.semiBold,
+    fontWeight: '600',
+    letterSpacing: -0.15,
     marginRight: 4,
   },
   ratingBadge: {
@@ -212,8 +213,10 @@ const styles = StyleSheet.create({
   },
   hospitalText: {
     fontSize: 12,
-    fontFamily: Fonts.regular,
+    fontFamily: Fonts.medium,
+    fontWeight: '500',
     marginBottom: 4,
+    lineHeight: 16,
   },
   patientsRow: {
     flexDirection: 'row',
@@ -222,7 +225,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   patientsText: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontFamily: Fonts.regular,
   },
   dashedLine: {
@@ -231,10 +234,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   priceText: {
-    fontSize: 16.5,
-    fontFamily: Fonts.bold,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    fontSize: 17,
+    fontFamily: Fonts.semiBold,
+    fontWeight: '700',
+    letterSpacing: -0.15,
   },
   offerPill: {
     alignSelf: 'flex-start',

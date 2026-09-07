@@ -1,8 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { Image } from 'expo-image';
-import { CheckCircle2, Star, Building2 } from 'lucide-react-native';
+import { Users, Languages, Star } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { Fonts } from '@/constants/theme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface DoctorBookingHeaderCardProps {
   doctor: any;
@@ -10,196 +18,321 @@ interface DoctorBookingHeaderCardProps {
   isDark?: boolean;
 }
 
+function formatPatientsInK(raw: any): string {
+  if (!raw) return '2.5K+';
+  const str = String(raw).replace(/[^0-9]/g, '');
+  const num = parseInt(str, 10);
+  if (!num || isNaN(num)) return '2.5K+';
+  if (num >= 1000) {
+    const inK = (num / 1000).toFixed(num % 1000 >= 100 ? 1 : 0);
+    return `${inK}K+`;
+  }
+  return `${num}+`;
+}
+
+function formatLanguagesCompact(raw: any): string {
+  if (!raw) return 'Eng, Hin';
+  const list: string[] = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+    ? raw.split(',').map((s) => s.trim())
+    : [];
+
+  if (list.length === 0) return 'Eng, Hin';
+
+  const shortMap: Record<string, string> = {
+    english: 'Eng',
+    hindi: 'Hin',
+    tamil: 'Tam',
+    telugu: 'Tel',
+    kannada: 'Kan',
+    malayalam: 'Mal',
+    bengali: 'Ben',
+    marathi: 'Mar',
+    gujarati: 'Guj',
+    spanish: 'Span',
+    french: 'Fr',
+  };
+
+  const shortList = list.map((l) => shortMap[l.toLowerCase()] || l.slice(0, 3));
+  if (shortList.length <= 2) {
+    return shortList.join(', ');
+  }
+  return `${shortList.slice(0, 2).join(', ')} +${shortList.length - 2}`;
+}
+
 export default function DoctorBookingHeaderCard({
   doctor,
-  hospitalName: hospitalNameProp = 'Apollo Hospital',
+  hospitalName: hospitalNameProp = 'Apollo Clinic',
   isDark: isDarkProp,
 }: DoctorBookingHeaderCardProps) {
   const { isDark: themeDark } = useTheme();
   const isDark = isDarkProp ?? themeDark;
 
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+
   if (!doctor) return null;
 
-  const docName = doctor.name || doctor.title || 'Dr. Specialist';
-  const docSpeciality = doctor.speciality || doctor.degrees || 'Specialist';
-  const docRating = doctor.rating || '4.9';
-  const docReviews = doctor.reviews || doctor.ratingsCount || '1200+ reviews';
-  const docImage = doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=300';
-  
-  const rawFee = doctor.fee ?? doctor.price ?? 600;
-  const numericFee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee).replace(/[^0-9]/g, '')) || 600;
-  const hospitalName = doctor.hospitalName || doctor.hospital || hospitalNameProp || 'Apollo Hospital';
-  const location = doctor.location || 'Chennai';
+  const docName = doctor?.name || doctor?.title || 'Dr. William Jame';
+  const docSpeciality =
+    doctor?.specialty || doctor?.speciality || doctor?.degrees || 'Senior General Physician';
+  const docImage = resolveImageSource(
+    doctor?.image,
+    'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&q=80'
+  );
+
+  const patientsCount = formatPatientsInK(
+    doctor?.patientsTreated || doctor?.patients || doctor?.patientCount
+  );
+  const languagesText = formatLanguagesCompact(doctor?.languages);
+
+  const ratingValue = doctor?.rating
+    ? typeof doctor.rating === 'number'
+      ? doctor.rating.toFixed(1)
+      : doctor.rating
+    : '4.8';
+
+  const hospitalName =
+    doctor?.hospitalName || doctor?.hospital || hospitalNameProp || 'Apollo Clinic';
+
+  const doctorAbout =
+    doctor?.about ||
+    doctor?.bio ||
+    `${docName} is a board-certified specialist at ${hospitalName} with extensive expertise in ${docSpeciality.toLowerCase()}. Specializing in comprehensive diagnostics, compassionate patient care, and modern evidence-based therapeutic treatments.`;
+
+  const toggleAbout = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsAboutExpanded(prev => !prev);
+  };
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: isDark ? '#16181D' : '#FFFFFF',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
-        },
-      ]}
-    >
-      {/* Top Profile Info */}
-      <View style={styles.topRow}>
-        <Image source={{ uri: docImage }} style={styles.avatar} contentFit="cover" />
+    <View style={styles.wrapper}>
+      {/* 1. Unified Doctor Profile Card */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: isDark ? '#16181D' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+          },
+        ]}
+      >
+        {/* Full-width image at top touching left and right without inner borders */}
+        <Image
+          source={docImage}
+          style={styles.fullWidthPhoto}
+          contentFit="cover"
+          transition={200}
+        />
 
-        <View style={styles.infoCol}>
-          <View style={styles.nameRow}>
-            <Text style={[styles.name, { color: isDark ? '#F8FAFC' : '#0F172A' }]} numberOfLines={1}>
+        {/* Card Body containing Doctor Name, Specialty, and compact stretchable Stats */}
+        <View style={styles.cardBody}>
+          {/* Doctor Identity */}
+          <View style={styles.identityRow}>
+            <Text
+              style={[styles.doctorName, { color: isDark ? '#F8FAFC' : '#0F172A' }]}
+              numberOfLines={1}
+            >
               {docName}
             </Text>
-            <CheckCircle2 size={16} color="#3B82F6" fill="#3B82F6" stroke="#FFFFFF" />
+            <Text
+              style={[styles.doctorSpecialty, { color: isDark ? '#94A3B8' : '#64748B' }]}
+            >
+              {docSpeciality}
+            </Text>
           </View>
 
-          <Text style={[styles.speciality, { color: isDark ? '#94A3B8' : '#64748B' }]} numberOfLines={1}>
-            {docSpeciality}
-          </Text>
+          {/* 3 Clean, Compact & Stretchable Stats Badges */}
+          <View style={styles.statsRow}>
+            {/* Patients in K */}
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#E2E8F0',
+                },
+              ]}
+            >
+              <Users size={14} color="#3B82F6" />
+              <View style={styles.statTextCol}>
+                <Text
+                  style={[styles.statValue, { color: isDark ? '#F8FAFC' : '#0F172A' }]}
+                  numberOfLines={1}
+                >
+                  {patientsCount}
+                </Text>
+                <Text style={styles.statLabel}>Patients</Text>
+              </View>
+            </View>
 
-          <View style={styles.ratingRow}>
-            <Star size={13} color="#F59E0B" fill="#F59E0B" />
-            <Text style={[styles.ratingText, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
-              {docRating}
-            </Text>
-            <Text style={[styles.reviewsText, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-              ({docReviews})
-            </Text>
+            {/* Languages (compact & stretchable) */}
+            <View
+              style={[
+                styles.statPill,
+                styles.statPillFlexible,
+                {
+                  backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#E2E8F0',
+                },
+              ]}
+            >
+              <Languages size={14} color="#8B5CF6" />
+              <View style={styles.statTextCol}>
+                <Text
+                  style={[styles.statValue, { color: isDark ? '#F8FAFC' : '#0F172A' }]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {languagesText}
+                </Text>
+                <Text style={styles.statLabel}>Languages</Text>
+              </View>
+            </View>
+
+            {/* Rating */}
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#E2E8F0',
+                },
+              ]}
+            >
+              <Star size={14} color="#F59E0B" fill="#F59E0B" />
+              <View style={styles.statTextCol}>
+                <Text
+                  style={[styles.statValue, { color: isDark ? '#F8FAFC' : '#0F172A' }]}
+                  numberOfLines={1}
+                >
+                  {ratingValue}
+                </Text>
+                <Text style={styles.statLabel}>Rating</Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* Divider */}
-      <View style={[styles.divider, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9' }]} />
-
-      {/* Bottom Row: Hospital Location & Fee */}
-      <View style={styles.bottomRow}>
-        <View style={styles.hospitalInfo}>
-          <View style={[styles.hospitalIconCircle, { backgroundColor: isDark ? '#22252C' : '#F8FAFC' }]}>
-            <Building2 size={14} color={isDark ? '#94A3B8' : '#64748B'} />
-          </View>
-          <View style={styles.hospitalTextCol}>
-            <Text style={[styles.hospitalName, { color: isDark ? '#F8FAFC' : '#0F172A' }]} numberOfLines={1}>
-              {hospitalName}
+      {/* 2. About Section (Directly Below Card) */}
+      <View style={styles.aboutContainer}>
+        <Text style={[styles.aboutTitle, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
+          About
+        </Text>
+        <Text
+          style={[styles.aboutText, { color: isDark ? '#94A3B8' : '#475569' }]}
+          numberOfLines={isAboutExpanded ? undefined : 3}
+        >
+          {doctorAbout}
+        </Text>
+        {doctorAbout.length > 90 && (
+          <TouchableOpacity
+            onPress={toggleAbout}
+            activeOpacity={0.7}
+            style={styles.moreBtn}
+          >
+            <Text style={styles.moreBtnText}>
+              {isAboutExpanded ? 'Show Less' : '...More'}
             </Text>
-            <Text style={[styles.locationText, { color: isDark ? '#94A3B8' : '#64748B' }]} numberOfLines={1}>
-              {location}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.feeCol}>
-          <Text style={[styles.feeLabel, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-            Consultation Fee
-          </Text>
-          <Text style={[styles.feeValue, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
-            ₹{numericFee.toLocaleString('en-IN')}
-          </Text>
-        </View>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    marginBottom: 8,
+  },
   card: {
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: 16,
+    overflow: 'hidden',
+    marginBottom: 20,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+  fullWidthPhoto: {
+    width: '100%',
+    height: 230,
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  cardBody: {
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 14,
   },
-  infoCol: {
-    flex: 1,
+  identityRow: {
+    marginBottom: 12,
   },
-  nameRow: {
+  doctorName: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  doctorSpecialty: {
+    fontSize: 12.5,
+    fontFamily: Fonts.medium,
+    marginTop: 2,
+  },
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 3,
   },
-  name: {
-    fontSize: 16.5,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  speciality: {
-    fontSize: 12.5,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 12.5,
-    fontWeight: '700',
-  },
-  reviewsText: {
-    fontSize: 12,
-  },
-  divider: {
-    height: 1,
-    width: '100%',
-    marginVertical: 14,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  hospitalInfo: {
+  statPill: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingRight: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 7,
+    gap: 6,
+    minWidth: 0,
   },
-  hospitalIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
+  statPillFlexible: {
+    flex: 1.15,
+  },
+  statTextCol: {
+    flex: 1,
     justifyContent: 'center',
+    minWidth: 0,
   },
-  hospitalTextCol: {
-    flex: 1,
-  },
-  hospitalName: {
-    fontSize: 12.5,
+  statValue: {
+    fontSize: 11,
+    fontFamily: Fonts.bold,
     fontWeight: '700',
-    marginBottom: 2,
   },
-  locationText: {
-    fontSize: 11,
+  statLabel: {
+    fontSize: 9,
+    fontFamily: Fonts.medium,
+    color: '#94A3B8',
+    marginTop: 1,
   },
-  feeCol: {
-    alignItems: 'flex-end',
+  aboutContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 2,
   },
-  feeLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  feeValue: {
-    fontSize: 16,
+  aboutTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
     fontWeight: '800',
-    letterSpacing: -0.3,
+    marginBottom: 6,
+  },
+  aboutText: {
+    fontSize: 13.5,
+    lineHeight: 20,
+    fontFamily: Fonts.regular,
+  },
+  moreBtn: {
+    marginTop: 3,
+    alignSelf: 'flex-start',
+  },
+  moreBtnText: {
+    fontSize: 13.5,
+    fontFamily: Fonts.semiBold,
+    color: '#2563EB',
+    fontWeight: '600',
   },
 });

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfileStore } from '@/hooks/useProfileStore';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export default function ProfileCard() {
   const { colors, isDark } = useTheme();
@@ -27,7 +28,7 @@ export default function ProfileCard() {
         <View style={styles.topRow}>
           {userProfile.avatar ? (
             <Image 
-              source={{ uri: userProfile.avatar }} 
+              source={resolveImageSource(userProfile.avatar)} 
               style={styles.avatar} 
             />
           ) : (

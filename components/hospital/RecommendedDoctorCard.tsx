@@ -6,6 +6,7 @@ import { Fonts } from '@/constants/theme';
 import { scale, verticalScale } from '@/utils/responsive';
 import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
 import { useBookingStore } from '@/hooks/useBookingStore';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface DoctorData {
   id: string;
@@ -142,7 +143,10 @@ export default function RecommendedDoctorCard({
             }}
           >
             <Image
-              source={{ uri: doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400' }}
+              source={resolveImageSource(
+                doctor.image,
+                'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400'
+              )}
               style={styles.portraitImage}
               resizeMode="cover"
             />

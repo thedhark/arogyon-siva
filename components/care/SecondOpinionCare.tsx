@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   scrollContainer: { paddingBottom: 40 },
   heroCoverContainer: { height: 265, position: 'relative' },
   heroCoverImage: { width: '100%', height: '100%', position: 'absolute' },
-  heroCoverGradient: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between', padding: 16 },
+  heroCoverGradient: { ...StyleSheet.absoluteFill, justifyContent: 'space-between', padding: 16 },
   topActionsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
   roundActionBtn: {
     width: 36,

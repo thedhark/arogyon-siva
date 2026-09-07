@@ -95,16 +95,32 @@ const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
     justifyContent: 'flex-end',
+    ...(Platform.OS === 'web' ? {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+    } : {}),
   },
   overlayBg: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   contentContainer: {
+    width: '100%',
+    maxWidth: Platform.OS === 'web' ? 520 : undefined,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     minHeight: '60%',
     maxHeight: '90%',
+    ...(Platform.OS === 'web' ? {
+      borderRadius: 24,
+      alignSelf: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 24,
+      elevation: 24,
+    } : {}),
   },
   header: {
     flexDirection: 'row',

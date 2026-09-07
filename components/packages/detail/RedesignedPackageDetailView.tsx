@@ -6,8 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import PackageHeroBanner from '@/components/packages/detail/PackageHeroBanner';
-import PackagePricingCard from '@/components/packages/detail/PackagePricingCard';
-import PackageFeaturesGrid from '@/components/packages/detail/PackageFeaturesGrid';
 import PackageAssessmentCard from '@/components/packages/detail/PackageAssessmentCard';
 import PackageAboutCard from '@/components/packages/detail/PackageAboutCard';
 import PackageInclusionsCard from '@/components/packages/detail/PackageInclusionsCard';
@@ -131,25 +129,10 @@ export default function RedesignedPackageDetailView({
           />
         </Animated.View>
 
-        {/* 2. Floating Price Card */}
-        <Animated.View entering={FadeInDown.delay(75)}>
-          <PackagePricingCard
-            price={price}
-            originalPrice={originalPrice}
-            discount={discount}
-            tokenPrice="₹499"
-          />
-        </Animated.View>
-
-        {/* 3. Four Guarantees/Features Grid (Reserve with ₹499, 100% Price Lock, Cashless, Insurance) */}
-        <Animated.View entering={FadeInDown.delay(100)}>
-          <PackageFeaturesGrid isDark={isDark} />
-        </Animated.View>
-
-        {/* 4. Accordion Content Sections */}
+        {/* 2. Accordion Content Sections */}
         <View style={styles.bodySectionsContainer}>
           {/* About this plan Accordion */}
-          <Animated.View entering={FadeInDown.delay(125)}>
+          <Animated.View entering={FadeInDown.delay(100)}>
             <PackageAboutCard
               title="About this plan"
               description={summary}
@@ -159,7 +142,7 @@ export default function RedesignedPackageDetailView({
           </Animated.View>
 
           {/* What's included Accordion */}
-          <Animated.View entering={FadeInDown.delay(150)}>
+          <Animated.View entering={FadeInDown.delay(125)}>
             <PackageInclusionsCard
               inclusions={inclusions}
               isDark={isDark}
@@ -168,7 +151,7 @@ export default function RedesignedPackageDetailView({
           </Animated.View>
 
           {/* Similar Packages Carousel */}
-          <Animated.View entering={FadeInDown.delay(200)}>
+          <Animated.View entering={FadeInDown.delay(150)}>
             <SimilarPackagesCard
               isDark={isDark}
               colors={colors}
@@ -176,7 +159,7 @@ export default function RedesignedPackageDetailView({
           </Animated.View>
 
           {/* Important to know info card */}
-          <Animated.View entering={FadeInDown.delay(250)}>
+          <Animated.View entering={FadeInDown.delay(175)}>
             <PackageAssessmentCard
               isDark={isDark}
               style={{ marginHorizontal: 0, marginTop: 10, marginBottom: 16 }}
@@ -185,16 +168,14 @@ export default function RedesignedPackageDetailView({
         </View>
       </ScrollView>
 
-      {/* Sticky Bottom Booking Payment Action Bar with Dual Buttons */}
+      {/* Sticky Bottom Booking Payment Action Bar with Price on Left & Confirm on Right */}
       <StickyBookingPaymentBar
         priceDropText="Price dropped by ₹167"
         price={price}
         originalPrice={originalPrice}
         discountText={discount}
-        tokenCtaText="Reserve Slot (₹499)"
         ctaText="Confirm Package"
         ctaIcon="bag"
-        onPressTokenCTA={handleReserveToken}
         onPressCTA={handleBookFull}
         visible={isFooterVisible}
       />

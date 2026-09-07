@@ -5,6 +5,7 @@ import { Heart, Star, Flame, Zap, ThumbsUp, User, Calendar, ChevronRight } from 
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
 import RecommendedDoctorCard, { DoctorData } from '@/components/hospital/RecommendedDoctorCard';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface DoctorCardData {
   id?: string;
@@ -113,7 +114,13 @@ export default function DoctorCard({
       <View style={styles.docCardTop}>
         <View style={styles.docLeft}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: doc?.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200' }} style={styles.docAvatar} />
+            <Image
+              source={resolveImageSource(
+                doc?.image,
+                'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200'
+              )}
+              style={styles.docAvatar}
+            />
             <View style={styles.onlineDot} />
           </View>
         </View>

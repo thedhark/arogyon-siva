@@ -6,6 +6,7 @@ import { BlurView } from 'expo-blur';
 import { CategoryIndex } from '@/constants/package-data';
 import { moderateScale } from '@/utils/responsive';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface CategoryMainCardProps {
   category: CategoryIndex;
@@ -46,7 +47,7 @@ export default function CategoryMainCard({ category, onPress }: CategoryMainCard
         ]}
       >
         {/* Full-bleed Banner Artwork */}
-        <Image source={artwork} style={styles.artwork} resizeMode="cover" />
+        <Image source={resolveImageSource(artwork)} style={styles.artwork} resizeMode="cover" />
 
         {/* Floating Capsule Dock with Dedicated Shadow Layer for iOS */}
         <View style={styles.capsuleShadowWrap}>
@@ -101,70 +102,70 @@ const styles = StyleSheet.create({
   // Outer shadow wrapper (NO overflow: 'hidden' so iOS shadows render with full depth)
   shadowWrapper: {
     width: '100%',
-    height: 290,
-    borderRadius: 26,
+    aspectRatio: 1.25,
+    borderRadius: 24,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    elevation: 4,
     backgroundColor: 'transparent',
   },
   // Inner clipped container (clips artwork to rounded corners)
   innerCard: {
     width: '100%',
     height: '100%',
-    borderRadius: 26,
+    borderRadius: 24,
     borderWidth: 1.5,
     overflow: 'hidden',
     position: 'relative',
   },
   artwork: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     width: '100%',
     height: '100%',
   },
   // Capsule floating shadow container (NO overflow: 'hidden')
   capsuleShadowWrap: {
     position: 'absolute',
-    bottom: 14,
-    left: 14,
-    right: 14,
-    height: 64,
-    borderRadius: 32,
+    bottom: 12,
+    left: 12,
+    right: 12,
+    height: 54,
+    borderRadius: 27,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 14,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 6,
     backgroundColor: 'transparent',
   },
   // Capsule inner clipped layout with frosted glass and borders
   capsuleInner: {
     width: '100%',
     height: '100%',
-    borderRadius: 32,
+    borderRadius: 27,
     borderWidth: 1.5,
     overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingLeft: 20,
-    paddingRight: 12,
+    paddingLeft: 18,
+    paddingRight: 10,
   },
   title: {
     flex: 1,
-    fontSize: moderateScale(14.5, 0.2),
+    fontSize: moderateScale(13.5, 0.2),
     fontWeight: '800',
     letterSpacing: 0.1,
-    lineHeight: 20,
+    lineHeight: 18,
     includeFontPadding: false,
-    marginRight: 14,
+    marginRight: 10,
   },
   actionBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,

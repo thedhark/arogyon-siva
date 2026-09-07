@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Image, Platform } from 'react-native';
 import { Check, Plus } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -134,16 +134,38 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'flex-end',
+    ...(Platform.OS === 'web' ? {
+      alignItems: 'center',
+      justifyContent: 'center',
+    } : {}),
   },
   backdropPressable: {
     flex: 1,
+    ...(Platform.OS === 'web' ? {
+      position: 'absolute' as any,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    } : {}),
   },
   sheetContainer: {
+    width: '100%',
+    maxWidth: Platform.OS === 'web' ? 520 : undefined,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 20,
     paddingBottom: 32,
     maxHeight: '80%',
+    ...(Platform.OS === 'web' ? {
+      borderRadius: 28,
+      alignSelf: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+      elevation: 20,
+    } : {}),
   },
   dragPillWrapper: {
     alignItems: 'center',

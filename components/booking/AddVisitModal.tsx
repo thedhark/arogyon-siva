@@ -8,16 +8,20 @@ import {
   ScrollView, 
   TextInput,
   Platform,
+  useWindowDimensions,
   Share as RNShare
 } from 'react-native';
 import { 
   ArrowLeft, 
+  ChevronLeft,
+  Bell,
   Plus, 
   Calendar as CalendarIcon, 
   FileEdit,
   Share2,
   Bookmark
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
@@ -63,7 +67,10 @@ export default function AddVisitModal({
   onClose, 
   onAdded 
 }: AddVisitModalProps) {
+  const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && windowWidth >= 1024;
   const addCartItem = useBookingStore((state) => state.addCartItem);
   const userProfile = useProfileStore((state) => state.userProfile);
 
@@ -72,29 +79,18 @@ export default function AddVisitModal({
   // Global selected date for the visit
   const [selectedDate, setSelectedDate] = useState(datesList[0]);
   const [requestNotes, setRequestNotes] = useState('');
-  const [isBookmarked, setIsBookmarked] = useState(false);
 
   // Multi-patient assignment state
   const [assignedPatients, setAssignedPatients] = useState<PatientSlotAssignment[]>([
     {
       id: 'me',
-      name: userProfile?.name || 'Sridhar K.',
+      name: userProfile?.name || 'Self',
       relation: 'Self',
-      avatar: userProfile?.avatar,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250',
       selectedDate: datesList[0].fullDate,
-      selectedTime: '11:30 AM',
-      accentColor: '#6366F1',
-    },
-  ]);
-
-  // Keep patients synced if datesList initializes
-  React.useEffect(() => {
-    if (datesList.length > 0 && assignedPatients.length > 0 && !assignedPatients[0].selectedDate) {
-      setAssignedPatients((prev) =>
-        prev.map((p) => ({ ...p, selectedDate: datesList[0].fullDate }))
-      );
+      selectedTime: '10:00 AM',
     }
-  }, [datesList]);
+  ]);
 
   // Active patient for opening the "More slots" bottom sheet
   const [activeSheetPatient, setActiveSheetPatient] = useState<PatientSlotAssignment | null>(null);
@@ -103,41 +99,36 @@ export default function AddVisitModal({
 
   if (!doctor) return null;
 
-  const docName = doctor.name || doctor.title || 'Doctor';
-  const docSpeciality = doctor.speciality || doctor.degrees || 'Specialist';
-  const docImage = doctor.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=300';
-  const hospitalName = doctor.hospitalName || doctor.hospital || hospitalNameProp || 'Apollo Hospital';
-  
-  const rawFee = doctor.fee ?? doctor.price ?? 600;
-  const unitFee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee).replace(/[^0-9]/g, '')) || 600;
-  const totalFee = unitFee * assignedPatients.length;
-  const originalFee = Math.round(totalFee * 2.2);
-  const savings = originalFee - totalFee;
+  const docName = doctor.name || doctor.title || 'Dr. Specialist';
+  const hospitalName = doctor.hospitalName || hospitalNameProp;
+  const clinicFee = parseInt(String(doctor.fee || '600').replace(/[^0-9]/g, ''), 10) || 600;
+  const originalFee = Math.round(clinicFee * 1.5);
+  const totalFee = clinicFee * assignedPatients.length;
 
-  const handleDateChange = (dateItem: (typeof datesList)[0]) => {
+  const handleGlobalDateChange = (dateItem: any) => {
     if (Platform.OS !== 'web') {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch {}
     }
     setSelectedDate(dateItem);
-    // Sync all patients to the new global date
     setAssignedPatients((prev) =>
       prev.map((p) => ({ ...p, selectedDate: dateItem.fullDate }))
     );
   };
 
   const handleQuickTimeChange = (patientId: string, time: string) => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch {}
+    }
     setAssignedPatients((prev) =>
       prev.map((p) => (p.id === patientId ? { ...p, selectedTime: time } : p))
     );
   };
 
   const handleSheetSlotSelect = (patientId: string, date: string, time: string) => {
-    const matchedDate = datesList.find((d) => d.fullDate === date);
-    if (matchedDate) {
-      setSelectedDate(matchedDate);
-    }
     setAssignedPatients((prev) =>
       prev.map((p) =>
         p.id === patientId ? { ...p, selectedDate: date, selectedTime: time } : p
@@ -145,13 +136,14 @@ export default function AddVisitModal({
     );
   };
 
-  const handleRemovePerson = (patientId: string) => {
+  const handleRemovePerson = (id: string) => {
+    if (assignedPatients.length <= 1) return;
     if (Platform.OS !== 'web') {
       try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch {}
     }
-    setAssignedPatients((prev) => prev.filter((p) => p.id !== patientId));
+    setAssignedPatients((prev) => prev.filter((p) => p.id !== id));
   };
 
   const handleAddPerson = (newPerson: PatientSlotAssignment) => {
@@ -164,35 +156,25 @@ export default function AddVisitModal({
     ]);
   };
 
-  const handleShare = async () => {
-    try {
-      await RNShare.share({
-        message: `Book appointment with ${docName} (${docSpeciality}) at ${hospitalName} on Arogyon!`,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   const handleConfirmAdd = () => {
     assignedPatients.forEach((patient, idx) => {
       addCartItem({
         type: 'visit',
         itemId: `${doctor.id || 'doc'}-${patient.id}-${Date.now()}-${idx}`,
         title: docName,
-        subtitle: `${docSpeciality} • In-Clinic Visit`,
-        price: unitFee,
-        originalPrice: Math.round(unitFee * 2.2),
-        savingsAmount: Math.round(unitFee * 1.2),
-        image: docImage,
+        subtitle: `${doctor.speciality || 'Specialist'} • Clinic Consultation`,
+        price: clinicFee,
+        originalPrice: originalFee,
+        savingsAmount: originalFee - clinicFee,
+        image: doctor.image || '',
+        hospitalName: hospitalName,
         selectedDate: patient.selectedDate,
         selectedTime: patient.selectedTime,
-        hospitalName: hospitalName,
         assignedPatientId: patient.id,
         assignedPatientName: patient.name,
         assignedPatientRelation: patient.relation,
         assignedPatientAvatar: patient.avatar,
-        notes: requestNotes || undefined,
+        notes: requestNotes.trim() || undefined,
       });
     });
 
@@ -203,57 +185,84 @@ export default function AddVisitModal({
   return (
     <Modal 
       visible={visible} 
-      animationType="slide" 
-      presentationStyle="fullScreen"
+      animationType={Platform.OS === 'web' ? 'fade' : 'slide'} 
+      transparent={Platform.OS === 'web'}
+      presentationStyle={Platform.OS === 'web' ? 'overFullScreen' : 'fullScreen'}
       statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <View style={[styles.modalContent, { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' }]}>
-        {/* Top Header */}
-        <View style={[styles.topHeader, { backgroundColor: isDark ? '#16181D' : '#FFFFFF', borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }]}>
-          <TouchableOpacity 
-            style={[styles.headerBtn, { backgroundColor: isDark ? '#22252C' : '#F1F5F9' }]}
+      <View style={[styles.modalRoot, Platform.OS === 'web' && styles.webModalRoot]}>
+        {/* On Web: Backdrop click outside middle column closes modal */}
+        {Platform.OS === 'web' && (
+          <TouchableOpacity
+            style={styles.webBackdrop}
+            activeOpacity={1}
             onPress={onClose}
-            activeOpacity={0.8}
-          >
-            <ArrowLeft size={18} color={colors.text} />
-          </TouchableOpacity>
+          />
+        )}
 
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Book Appointment</Text>
-
-          <View style={styles.headerRightActions}>
+        <View
+          style={[
+            styles.modalContent,
+            { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' },
+            Platform.OS === 'web' && (
+              isDesktopWeb
+                ? {
+                    position: 'absolute' as any,
+                    left: 260,
+                    right: 350,
+                    top: 0,
+                    bottom: 0,
+                    borderLeftWidth: 1,
+                    borderRightWidth: 1,
+                    borderLeftColor: isDark ? '#262626' : '#E2E8F0',
+                    borderRightColor: isDark ? '#262626' : '#E2E8F0',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 20,
+                  }
+                : {
+                    width: '100%',
+                    maxWidth: 620,
+                    height: '100%',
+                    alignSelf: 'center',
+                    borderLeftWidth: 1,
+                    borderRightWidth: 1,
+                    borderLeftColor: isDark ? '#262626' : '#E2E8F0',
+                    borderRightColor: isDark ? '#262626' : '#E2E8F0',
+                  }
+            ),
+          ]}
+        >
+          {/* Top Header matching reference design */}
+          <View style={[styles.topHeader, { backgroundColor: isDark ? '#16181D' : '#F8FAFC' }]}>
             <TouchableOpacity 
-              style={[styles.headerBtn, { backgroundColor: isDark ? '#22252C' : '#F1F5F9' }]}
-              onPress={() => setIsBookmarked(!isBookmarked)}
+              style={[styles.headerRoundBtn, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0' }]}
+              onPress={onClose}
               activeOpacity={0.8}
             >
-              <Bookmark 
-                size={17} 
-                color={isBookmarked ? '#EF4444' : colors.text} 
-                fill={isBookmarked ? '#EF4444' : 'transparent'} 
-              />
+              <ChevronLeft size={22} color={isDark ? '#F8FAFC' : '#1E293B'} />
             </TouchableOpacity>
+
+            <Text style={[styles.headerTitle, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>Doctor Details</Text>
+
             <TouchableOpacity 
-              style={[styles.headerBtn, { backgroundColor: isDark ? '#22252C' : '#F1F5F9' }]}
-              onPress={handleShare}
+              style={[styles.headerRoundBtn, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0' }]}
+              onPress={() => {
+                onClose();
+                router.push('/notifications');
+              }}
               activeOpacity={0.8}
             >
-              <Share2 size={17} color={colors.text} />
+              <Bell size={20} color={isDark ? '#F8FAFC' : '#1E293B'} />
             </TouchableOpacity>
           </View>
-        </View>
 
         {/* Unified Scroll Content */}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* 1. Doctor Profile Overview Card */}
           <DoctorBookingHeaderCard
-            doctor={doctor}
-            hospitalName={hospitalName}
-            isDark={isDark}
-          />
-
-          {/* 1.5. Doctor About & More Options Card */}
-          <DoctorAboutCard
             doctor={doctor}
             hospitalName={hospitalName}
             isDark={isDark}
@@ -291,7 +300,7 @@ export default function AddVisitModal({
                         : (isDark ? '#2E3340' : '#E2E8F0'),
                     },
                   ]}
-                  onPress={() => handleDateChange(d)}
+                  onPress={() => handleGlobalDateChange(d)}
                   activeOpacity={0.8}
                 >
                   <Text
@@ -409,6 +418,7 @@ export default function AddVisitModal({
           ctaIcon="calendar"
           onPressCTA={handleConfirmAdd}
         />
+        </View>
       </View>
 
       {/* Categorized "More Slots" Bottom Sheet */}
@@ -432,6 +442,25 @@ export default function AddVisitModal({
 }
 
 const styles = StyleSheet.create({
+  modalRoot: {
+    flex: 1,
+  },
+  webModalRoot: {
+    position: 'fixed' as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+  },
+  webBackdrop: {
+    position: 'absolute' as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
   modalContent: {
     flex: 1,
   },
@@ -441,25 +470,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 52 : 36,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
+    paddingBottom: 10,
   },
   headerTitle: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16.5,
+    fontFamily: Fonts.bold,
+    fontSize: 18,
     fontWeight: '700',
-    letterSpacing: -0.15,
+    letterSpacing: -0.2,
   },
-  headerBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+  headerRoundBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    gap: 8,
   },
   scrollContent: {
     paddingHorizontal: 16,

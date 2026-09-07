@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -99,13 +99,9 @@ export default function RootLayout() {
                 <Stack.Screen name="offers/consultations" options={{ headerShown: false }} />
                 <Stack.Screen name="offers/packages" options={{ headerShown: false }} />
                 <Stack.Screen name="hospital/[id]" options={{ headerShown: false }} />
-                <Stack.Screen name="hospital/info" options={{ headerShown: false }} />
                 <Stack.Screen name="booking/checkout" options={{ headerShown: false }} />
                 <Stack.Screen name="booking/success" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/category/[id]" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/provider/[providerId]" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/detail/[packageId]" options={{ headerShown: false }} />
-                <Stack.Screen name="packages/checkout/[packageId]" options={{ headerShown: false }} />
+                <Stack.Screen name="packages" options={{ headerShown: false }} />
                 <Stack.Screen name="profile/index" options={{ headerShown: false }} />
                 <Stack.Screen name="profile/settings" options={{ headerShown: false }} />
                 <Stack.Screen name="profile/records" options={{ headerShown: false }} />

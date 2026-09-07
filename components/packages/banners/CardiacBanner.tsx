@@ -8,7 +8,7 @@ interface Props {
 export default function CardiacBanner({ onBack }: Props) {
   return (
     <BannerTemplate
-      image={require('../../../assets/images/package-banners/health_checkups.png')}
+      image={require('../../../assets/images/package-banners/cardiac_care.png')}
       offerHighlight="35% OFF HEART DIAGNOSTICS UNLOCKED"
       offerSubtitle="ECG, 2D Echo, TMT & Cardiologist Consults"
       onBack={onBack}

@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Star } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const HEADER_HEIGHT = 280; // Match hospital page header height
@@ -36,7 +37,7 @@ export default function PlanHeroHeader({ scrollY, image, title, subtitle }: Prop
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.imageContainer, imageAnimatedStyle]}>
-        <Animated.Image source={{ uri: image }} style={styles.image} />
+        <Animated.Image source={resolveImageSource(image)} style={styles.image} />
         {/* Top gradient to ensure text readability if image is dark at top */}
         <LinearGradient
           colors={isDark ? ['rgba(18,18,18,0.8)', 'rgba(18,18,18,0.2)', 'transparent'] : ['rgba(255,255,255,0.8)', 'rgba(255,255,255,0.3)', 'transparent']}

@@ -6,7 +6,9 @@ import {
   Modal, 
   TouchableOpacity, 
   ScrollView, 
-  Share as RNShare 
+  Share as RNShare,
+  useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
@@ -14,8 +16,6 @@ import { useProfileStore } from '@/hooks/useProfileStore';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import PackageHeroBanner from '@/components/packages/detail/PackageHeroBanner';
-import PackagePricingCard from '@/components/packages/detail/PackagePricingCard';
-import PackageFeaturesGrid from '@/components/packages/detail/PackageFeaturesGrid';
 import PackageAssessmentCard from '@/components/packages/detail/PackageAssessmentCard';
 import PackageAboutCard from '@/components/packages/detail/PackageAboutCard';
 import PackageInclusionsCard from '@/components/packages/detail/PackageInclusionsCard';
@@ -36,45 +36,45 @@ interface AddPackageModalProps {
 export default function AddPackageModal({ 
   visible, 
   packageItem, 
-  hospitalName = 'Manipal Hospital', 
+  hospitalName = 'Apollo Hospital', 
   onClose, 
   onAdded 
 }: AddPackageModalProps) {
   const { colors, isDark } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktopWeb = Platform.OS === 'web' && windowWidth >= 1024;
   const addCartItem = useBookingStore((state) => state.addCartItem);
   const userProfile = useProfileStore((state) => state.userProfile);
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
 
-  // Multi-person beneficiaries for this package (No appointment dates)
+  // Multi-patient assignment state (Packages don't need slot dates)
   const [assignedPatients, setAssignedPatients] = useState<PatientSlotAssignment[]>([
     {
       id: 'me',
-      name: userProfile?.name || 'Sridhar K.',
+      name: userProfile?.name || 'Self',
       relation: 'Self',
-      avatar: userProfile?.avatar,
-      selectedDate: '1 Year Validity',
-      selectedTime: 'Anytime',
-      accentColor: '#6366F1',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250',
+      selectedDate: '',
+      selectedTime: '',
     },
   ]);
 
   if (!packageItem) return null;
 
-  const pkgTitle = (packageItem.title || 'Health Package').replace(/^1\s*x\s*/i, '');
-  const pkgSubtitle = packageItem.subtitle || packageItem.summary || 'Full-spectrum diagnostic checkup with accredited laboratory testing and senior physician consultation.';
-  const pkgImage = packageItem.image || 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=600';
-  
-  const rawPriceStr = (packageItem.price || '4999').toString().replace(/[^0-9]/g, '');
-  const unitPrice = parseFloat(rawPriceStr) || 4999;
-  
-  const rawOrigStr = (packageItem.originalPrice || '').toString().replace(/[^0-9]/g, '');
-  const unitOriginalPrice = parseFloat(rawOrigStr) || Math.round(unitPrice * 1.35);
+  const pkgTitle = packageItem.title || 'Health Package';
+  const pkgSubtitle = packageItem.subtitle || 'Comprehensive health assessment';
+  const pkgImage = packageItem.image || 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800';
+
+  const unitPrice = parseInt(String(packageItem.price || '999').replace(/[^0-9]/g, ''), 10) || 999;
+  const unitOriginalPrice = packageItem.originalPrice 
+    ? parseInt(String(packageItem.originalPrice).replace(/[^0-9]/g, ''), 10) 
+    : Math.round(unitPrice * 1.5);
 
   const totalPrice = unitPrice * assignedPatients.length;
   const totalOriginalPrice = unitOriginalPrice * assignedPatients.length;
-  const totalSavings = Math.max(63, totalOriginalPrice - totalPrice);
+  const totalSavings = totalOriginalPrice - totalPrice;
 
   const inclusions = packageItem.inclusions || [
     'Obstetrician / Specialist Consultations',
@@ -86,14 +86,14 @@ export default function AddPackageModal({
   const handleShare = async () => {
     try {
       await RNShare.share({
-        message: `Check out ${pkgTitle} on Arogyon! Special Price: ₹${totalPrice.toLocaleString('en-IN')}`,
+        message: `Check out ${pkgTitle} at ${hospitalName} on Arogyon!`,
+        title: pkgTitle,
       });
-    } catch (e) {
-      console.log(e);
-    }
+    } catch {}
   };
 
   const handleRemovePerson = (patientId: string) => {
+    if (assignedPatients.length <= 1) return;
     setAssignedPatients((prev) => prev.filter((p) => p.id !== patientId));
   };
 
@@ -101,11 +101,15 @@ export default function AddPackageModal({
     setAssignedPatients((prev) => [
       ...prev,
       {
-        ...newPerson,
-        selectedDate: '1 Year Validity',
-        selectedTime: 'Anytime',
+        id: newPerson.id,
+        name: newPerson.name,
+        relation: newPerson.relation,
+        avatar: newPerson.avatar,
+        selectedDate: '',
+        selectedTime: '',
       },
     ]);
+    setShowAddPersonModal(false);
   };
 
   const handleReserveToken = () => {
@@ -157,12 +161,56 @@ export default function AddPackageModal({
   return (
     <Modal 
       visible={visible} 
-      animationType="slide" 
-      presentationStyle="fullScreen"
+      animationType={Platform.OS === 'web' ? 'fade' : 'slide'} 
+      transparent={Platform.OS === 'web'}
+      presentationStyle={Platform.OS === 'web' ? 'overFullScreen' : 'fullScreen'}
       statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <View style={[styles.modalContent, { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' }]}>
+      <View style={[styles.modalRoot, Platform.OS === 'web' && styles.webModalRoot]}>
+        {/* On Web: Backdrop click outside middle column closes modal */}
+        {Platform.OS === 'web' && (
+          <TouchableOpacity
+            style={styles.webBackdrop}
+            activeOpacity={1}
+            onPress={onClose}
+          />
+        )}
+
+        <View
+          style={[
+            styles.modalContent,
+            { backgroundColor: isDark ? '#0D0E11' : '#F8FAFC' },
+            Platform.OS === 'web' && (
+              isDesktopWeb
+                ? {
+                    position: 'absolute' as any,
+                    left: 260,
+                    right: 350,
+                    top: 0,
+                    bottom: 0,
+                    borderLeftWidth: 1,
+                    borderRightWidth: 1,
+                    borderLeftColor: isDark ? '#262626' : '#E2E8F0',
+                    borderRightColor: isDark ? '#262626' : '#E2E8F0',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 20,
+                  }
+                : {
+                    width: '100%',
+                    maxWidth: 620,
+                    height: '100%',
+                    alignSelf: 'center',
+                    borderLeftWidth: 1,
+                    borderRightWidth: 1,
+                    borderLeftColor: isDark ? '#262626' : '#E2E8F0',
+                    borderRightColor: isDark ? '#262626' : '#E2E8F0',
+                  }
+            ),
+          ]}
+        >
         {/* Full Package Details View Content inside ScrollView */}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
           {/* 1. Package Hero Image Banner */}
@@ -181,34 +229,10 @@ export default function AddPackageModal({
             />
           </Animated.View>
 
-          {/* 2. Pricing Breakdown Card */}
-          <Animated.View entering={FadeInDown.delay(75)}>
-            <PackagePricingCard
-              price={`₹${totalPrice.toLocaleString('en-IN')}`}
-              originalPrice={`₹${totalOriginalPrice.toLocaleString('en-IN')}`}
-              discount={`${Math.round((totalSavings / totalOriginalPrice) * 100)}% OFF`}
-              tokenPrice="₹499"
-            />
-          </Animated.View>
-
-          {/* 3. Assign Package Beneficiaries (People Selector - No Appointment Dates) */}
-          <Animated.View entering={FadeInDown.delay(90)}>
-            <PackagePersonSelectorCard
-              assignedPatients={assignedPatients}
-              onAddPersonPress={() => setShowAddPersonModal(true)}
-              onRemovePerson={handleRemovePerson}
-            />
-          </Animated.View>
-
-          {/* 4. Four Guarantees/Features Grid */}
-          <Animated.View entering={FadeInDown.delay(110)}>
-            <PackageFeaturesGrid isDark={isDark} style={{ marginHorizontal: 16 }} />
-          </Animated.View>
-
-          {/* 5. Accordion Content Sections Container */}
+          {/* 2. Content Sections Container */}
           <View style={styles.bodySectionsContainer}>
             {/* About this plan Accordion */}
-            <Animated.View entering={FadeInDown.delay(125)}>
+            <Animated.View entering={FadeInDown.delay(100)}>
               <PackageAboutCard
                 title="About this plan"
                 description={pkgSubtitle}
@@ -218,7 +242,7 @@ export default function AddPackageModal({
             </Animated.View>
 
             {/* What's included Accordion */}
-            <Animated.View entering={FadeInDown.delay(150)}>
+            <Animated.View entering={FadeInDown.delay(125)}>
               <PackageInclusionsCard
                 inclusions={inclusions}
                 isDark={isDark}
@@ -227,35 +251,44 @@ export default function AddPackageModal({
             </Animated.View>
 
             {/* Similar Packages Carousel */}
-            <Animated.View entering={FadeInDown.delay(200)}>
+            <Animated.View entering={FadeInDown.delay(150)}>
               <SimilarPackagesCard
                 isDark={isDark}
                 colors={colors}
               />
             </Animated.View>
 
+            {/* Who is this package for? (Beneficiary Selector below Similar Packages) */}
+            <Animated.View entering={FadeInDown.delay(175)}>
+              <PackagePersonSelectorCard
+                assignedPatients={assignedPatients}
+                onAddPersonPress={() => setShowAddPersonModal(true)}
+                onRemovePerson={handleRemovePerson}
+                style={{ marginHorizontal: 0, marginTop: 12, marginBottom: 16 }}
+              />
+            </Animated.View>
+
             {/* Important to know info card */}
-            <Animated.View entering={FadeInDown.delay(250)}>
+            <Animated.View entering={FadeInDown.delay(200)}>
               <PackageAssessmentCard
                 isDark={isDark}
-                style={{ marginHorizontal: 0, marginTop: 10, marginBottom: 16 }}
+                style={{ marginHorizontal: 0, marginTop: 4, marginBottom: 16 }}
               />
             </Animated.View>
           </View>
         </ScrollView>
 
-        {/* Sticky Booking Action Bar with Dynamic Person Count */}
+        {/* Sticky Booking Action Bar with Package Price on Left & Confirm Package on Right */}
         <StickyBookingPaymentBar
           priceDropText="Special Health Package Offer"
           price={`₹${totalPrice.toLocaleString('en-IN')}`}
           originalPrice={`₹${totalOriginalPrice.toLocaleString('en-IN')}`}
           discountText={`${Math.round((totalSavings / totalOriginalPrice) * 100)}% OFF`}
-          tokenCtaText="Reserve Slot (₹499)"
           ctaText={assignedPatients.length > 1 ? `Confirm (${assignedPatients.length} Persons)` : 'Confirm Package'}
           ctaIcon="bag"
-          onPressTokenCTA={handleReserveToken}
           onPressCTA={handleConfirmAdd}
         />
+        </View>
       </View>
 
       {/* Select Family Member Sheet */}
@@ -270,6 +303,25 @@ export default function AddPackageModal({
 }
 
 const styles = StyleSheet.create({
+  modalRoot: {
+    flex: 1,
+  },
+  webModalRoot: {
+    position: 'fixed' as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+  },
+  webBackdrop: {
+    position: 'absolute' as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
   modalContent: {
     flex: 1,
   },

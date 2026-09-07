@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Modal, Pressable, Platform, Share, Linking, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, StatusBar, Modal, Pressable, Platform, Share, Linking, Animated, Dimensions, Easing } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { 
   ShieldCheck, 
@@ -12,9 +12,10 @@ import {
   Sparkles, 
   Users, 
   Briefcase, 
-  Info, 
-  BadgeCheck, 
   Stethoscope, 
+  Phone,
+  Package,
+  Heart,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,12 +25,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 import HospitalHeader from '@/components/HospitalHeader';
 import HospitalExperts from '@/components/hospital/HospitalExperts';
 import HospitalPackages, { PACKAGE_CATEGORIES, ALL_PACKAGE_CATEGORIES } from '@/components/hospital/HospitalPackages';
 import HospitalFilterBar from '@/components/hospital/HospitalFilterBar';
-import HospitalInfoModal from '@/components/hospital/HospitalInfoModal';
 import HospitalOffersBanner from '@/components/hospital/HospitalOffersBanner';
 import HospitalOffersModal from '@/components/hospital/HospitalOffersModal';
 
@@ -119,12 +120,24 @@ export default function HospitalProfile() {
   const [showPackageCategoryModal, setShowPackageCategoryModal] = useState(false);
 
   const [searchFilterText, setSearchFilterText] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
   const tabIndexMap: Record<string, number> = { Experts: 0, Packages: 1 };
   const tabAnim = useRef(new Animated.Value(tabIndexMap[getInitialTabVal()] || 0)).current;
+  const contentFadeAnim = useRef(new Animated.Value(1)).current;
+
+  const SCREEN_WIDTH = Dimensions.get('window').width;
+  const tabWidth = SCREEN_WIDTH / 2;
+  const lineWidth = 72;
+  const lineLeftOffset = (tabWidth - lineWidth) / 2;
+  const lineTranslateX = tabAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, tabWidth],
+  });
+
   const scrollY = useRef(new Animated.Value(0)).current;
-  const headerHeight = insets.top + (Platform.OS === 'ios' ? 44 : 52);
+  const headerHeight = Math.round((insets.top + (Platform.OS === 'ios' ? 44 : 52)) * 0.9);
 
   const headerBackdropOpacity = scrollY.interpolate({
     inputRange: [40, 160],
@@ -138,23 +151,72 @@ export default function HospitalProfile() {
     extrapolate: 'clamp',
   });
 
-  const stickyBarOpacity = scrollY.interpolate({
-    inputRange: [295, 296],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-
+  const [filterBarY, setFilterBarY] = useState(0);
   const [isScrolledPast, setIsScrolledPast] = useState(false);
+
+  // Responsive scroll-based filter collapse with direction latching (never bounces)
+  const filterAnim = useRef(new Animated.Value(1)).current;
+  const isFilterVisibleRef = useRef(true);
+  const [isFilterVisibleState, setIsFilterVisibleState] = useState(true);
+  const scrollAnchor = useRef(0);
+  const isScrollingDown = useRef(false);
+  const animationInProgress = useRef(false);
+
+  const hideFilters = () => {
+    if (!isFilterVisibleRef.current || animationInProgress.current) return;
+    isFilterVisibleRef.current = false;
+    setIsFilterVisibleState(false);
+    animationInProgress.current = true;
+    Animated.timing(filterAnim, {
+      toValue: 0,
+      duration: 180,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: false,
+    }).start(() => {
+      animationInProgress.current = false;
+    });
+  };
+
+  const showFilters = () => {
+    if (isFilterVisibleRef.current || animationInProgress.current) return;
+    isFilterVisibleRef.current = true;
+    setIsFilterVisibleState(true);
+    animationInProgress.current = true;
+    Animated.timing(filterAnim, {
+      toValue: 1,
+      duration: 200,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: false,
+    }).start(() => {
+      animationInProgress.current = false;
+    });
+  };
+
+  const stickyBarThreshold = filterBarY > 0 ? Math.max(filterBarY - headerHeight, 0) : 450;
+  const stickyBarOpacity = filterBarY > 0
+    ? scrollY.interpolate({
+        inputRange: [stickyBarThreshold - 1, stickyBarThreshold],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+      })
+    : new Animated.Value(0);
 
   React.useEffect(() => {
     if (initialTab) {
       const targetVal = getInitialTabVal();
-      setActiveTab(targetVal);
-      Animated.timing(tabAnim, { toValue: tabIndexMap[targetVal] || 0, duration: 200, useNativeDriver: false }).start();
+      if (targetVal !== activeTab) {
+        setActiveTab(targetVal);
+        Animated.spring(tabAnim, {
+          toValue: tabIndexMap[targetVal] || 0,
+          damping: 22,
+          stiffness: 240,
+          mass: 0.8,
+          useNativeDriver: true,
+        }).start();
+      }
     }
   }, [initialTab]);
 
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
   const [likedDocs, setLikedDocs] = useState<{[key: string]: boolean}>({});
 
@@ -166,18 +228,40 @@ export default function HospitalProfile() {
   };
 
   const handleTabChange = (tab: string) => {
+    if (tab === activeTab) return;
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setActiveTab(tab);
+
     const targetIdx = tabIndexMap[tab] ?? 0;
+
+    // Smooth fluid spring for the Apple sliding underline
     Animated.spring(tabAnim, {
       toValue: targetIdx,
-      useNativeDriver: false,
-      friction: 8,
-      tension: 50,
+      tension: 68,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+
+    // Subtle clean fade on switch without any dimming or loading lag
+    contentFadeAnim.setValue(0.85);
+    Animated.timing(contentFadeAnim, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: true,
     }).start();
 
     if (tab === 'Packages') {
       setSelectedPackageCategory('all');
+    }
+
+    // Ensure filter chips for the selected tab are visible immediately
+    showFilters();
+
+    // If user is scrolled down deep into the list, smoothly reposition to tab start
+    if (isScrolledPast && scrollViewRef.current) {
+      const scrollTarget = Math.max(0, (filterBarY > 0 ? filterBarY - headerHeight : 450) + 1);
+      scrollViewRef.current.scrollTo({ y: scrollTarget, animated: true });
     }
   };
 
@@ -190,6 +274,52 @@ export default function HospitalProfile() {
       }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleCallHospital = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const phone = (hospitalData as any)?.phone || '1800-200-4444';
+    Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`).catch(err => {
+      console.warn('Could not open phone dialer', err);
+    });
+  };
+
+  const handleOpenMapLocation = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const query = encodeURIComponent(`${hospitalData.name} ${hospitalData.location}`);
+    const googleMapsWebUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+
+    if (Platform.OS === 'ios') {
+      const appleMapsUrl = `maps:0,0?q=${query}`;
+      Linking.canOpenURL(appleMapsUrl)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(appleMapsUrl);
+          } else {
+            Linking.openURL(googleMapsWebUrl);
+          }
+        })
+        .catch(() => {
+          Linking.openURL(googleMapsWebUrl);
+        });
+    } else if (Platform.OS === 'android') {
+      const androidGeoUrl = `geo:0,0?q=${query}`;
+      Linking.canOpenURL(androidGeoUrl)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(androidGeoUrl);
+          } else {
+            Linking.openURL(googleMapsWebUrl);
+          }
+        })
+        .catch(() => {
+          Linking.openURL(googleMapsWebUrl);
+        });
+    } else {
+      Linking.openURL(googleMapsWebUrl).catch((err) => {
+        console.warn('Could not open map', err);
+      });
     }
   };
 
@@ -211,158 +341,196 @@ export default function HospitalProfile() {
     );
   }
 
-  const handleOpenInfoPage = () => {
-    router.push({
-      pathname: '/hospital/info',
-      params: {
-        id: id as string,
-        hospitalName: hospitalData.name,
-        location: hospitalData.location,
-        phone: (hospitalData as any)?.phone,
-        image: hospitalData.image,
-      },
-    });
-  };
 
-  const renderSwitcherAndFilters = () => (
-    <View style={styles.switcherAndFiltersContainer}>
-      {/* Row 1: Clean Underline Tab Switcher (Doctors | Packages) - No conflicting lines! */}
-      <View style={styles.cleanTabBar}>
+
+  const renderFilterContent = () => (
+    activeTab === 'Experts' ? (
+      <HospitalFilterBar
+        selectedSpecialty={selectedDocSpec}
+        isHighlyRecommended={isHighlyRecommended}
+        isAvailableToday={isAvailableToday}
+        onToggleHighlyRecommended={() => setIsHighlyRecommended(!isHighlyRecommended)}
+        onToggleAvailableToday={() => setIsAvailableToday(!isAvailableToday)}
+        onOpenFilterModal={() => setShowDocFilterModal(true)}
+        onOpenSpecialtyModal={() => setShowDocCategoryModal(true)}
+      />
+    ) : (
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+        contentContainerStyle={styles.packagePillsContainer}
+      >
+        {PACKAGE_CATEGORIES.map((cat) => {
+          const isActive = selectedPackageCategory === cat.id;
+          if (cat.id === 'all') {
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                style={[
+                  styles.allPill,
+                  {
+                    backgroundColor: isActive ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#27272A' : '#F8FAFC'),
+                    borderColor: isActive ? 'transparent' : (isDark ? '#3F3F46' : '#E2E8F0'),
+                  },
+                ]}
+                onPress={() => setSelectedPackageCategory('all')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.allPillText, { color: isActive ? (isDark ? '#0F172A' : '#FFFFFF') : colors.text }]}>
+                  All
+                </Text>
+                {isActive && <View style={[styles.allUnderline, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]} />}
+              </TouchableOpacity>
+            );
+          }
+
+          return (
+            <TouchableOpacity
+              key={cat.id}
+              style={[
+                styles.categoryChip,
+                {
+                  backgroundColor: isActive ? (isDark ? '#2E1065' : '#F3E8FF') : (isDark ? '#1E1E24' : '#FFFFFF'),
+                  borderColor: isActive ? '#7C3AED' : (isDark ? '#333333' : '#E2E8F0'),
+                }
+              ]}
+              onPress={() => setSelectedPackageCategory(cat.id)}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  { color: isActive ? '#7C3AED' : (isDark ? '#E2E8F0' : '#1E293B'), fontWeight: isActive ? '700' : '600' }
+                ]}
+              >
+                {cat.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* "+More" Pill */}
         <TouchableOpacity
-          style={styles.cleanTabButton}
+          style={[styles.morePill, { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}
+          activeOpacity={0.7}
+          onPress={() => setShowPackageCategoryModal(true)}
+        >
+          <Text style={[styles.morePillText, { color: isDark ? '#CBD5E1' : '#334155' }]}>+More</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    )
+  );
+
+  const renderSwitcherAndFilters = (isSticky = false) => (
+    <View style={styles.switcherAndFiltersContainer}>
+      {/* Row 1: Clean Underline Tab Switcher with Fluid Sliding Line (Experts | Care) */}
+      <View 
+        style={styles.slidingUnderlineTabBar}
+      >
+        {/* Tab 1: Experts */}
+        <TouchableOpacity
+          style={styles.slidingTabButton}
           onPress={() => handleTabChange('Experts')}
           activeOpacity={0.7}
         >
-          <Text
-            style={[
-              styles.cleanTabText,
-              {
-                color: activeTab === 'Experts' ? (isDark ? '#F8FAFC' : '#0F172A') : (isDark ? '#64748B' : '#94A3B8'),
-                fontWeight: activeTab === 'Experts' ? '800' : '600',
-              }
-            ]}
-          >
-            Doctors
-          </Text>
-          {activeTab === 'Experts' ? (
-            <View 
-              style={[
-                styles.cleanTabIndicator,
-                { backgroundColor: isDark ? '#818CF8' : '#6366F1' }
-              ]} 
+          <View style={styles.slidingTabContentRow}>
+            <Heart
+              size={17}
+              color={activeTab === 'Experts' ? (isDark ? '#818CF8' : '#6366F1') : (isDark ? '#64748B' : '#94A3B8')}
+              fill={activeTab === 'Experts' ? (isDark ? '#818CF8' : '#6366F1') : 'transparent'}
+              strokeWidth={2}
             />
-          ) : (
-            <View style={styles.cleanTabIndicatorPlaceholder} />
-          )}
+            <Text
+              style={[
+                styles.slidingTabText,
+                {
+                  color: activeTab === 'Experts' ? (isDark ? '#F8FAFC' : '#0F172A') : (isDark ? '#64748B' : '#94A3B8'),
+                  fontWeight: activeTab === 'Experts' ? '800' : '600',
+                }
+              ]}
+            >
+              Experts
+            </Text>
+          </View>
         </TouchableOpacity>
 
+        {/* Tab 2: Care */}
         <TouchableOpacity
-          style={styles.cleanTabButton}
+          style={styles.slidingTabButton}
           onPress={() => handleTabChange('Packages')}
           activeOpacity={0.7}
         >
-          <Text
-            style={[
-              styles.cleanTabText,
-              {
-                color: activeTab === 'Packages' ? (isDark ? '#F8FAFC' : '#0F172A') : (isDark ? '#64748B' : '#94A3B8'),
-                fontWeight: activeTab === 'Packages' ? '800' : '600',
-              }
-            ]}
-          >
-            Packages
-          </Text>
-          {activeTab === 'Packages' ? (
-            <View 
-              style={[
-                styles.cleanTabIndicator,
-                { backgroundColor: isDark ? '#818CF8' : '#6366F1' }
-              ]} 
+          <View style={styles.slidingTabContentRow}>
+            <Package
+              size={17}
+              color={activeTab === 'Packages' ? (isDark ? '#818CF8' : '#6366F1') : (isDark ? '#64748B' : '#94A3B8')}
+              strokeWidth={activeTab === 'Packages' ? 2.4 : 1.8}
             />
-          ) : (
-            <View style={styles.cleanTabIndicatorPlaceholder} />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Row 2: Sub-Filter Bar seamlessly integrated */}
-      <View style={styles.subFilterBarWrapper}>
-        {activeTab === 'Experts' ? (
-          <HospitalFilterBar
-            selectedSpecialty={selectedDocSpec}
-            isHighlyRecommended={isHighlyRecommended}
-            isAvailableToday={isAvailableToday}
-            onToggleHighlyRecommended={() => setIsHighlyRecommended(!isHighlyRecommended)}
-            onToggleAvailableToday={() => setIsAvailableToday(!isAvailableToday)}
-            onOpenFilterModal={() => setShowDocFilterModal(true)}
-            onOpenSpecialtyModal={() => setShowDocCategoryModal(true)}
-          />
-        ) : (
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={styles.packagePillsContainer}
-          >
-            {PACKAGE_CATEGORIES.map((cat) => {
-              const isActive = selectedPackageCategory === cat.id;
-              if (cat.id === 'all') {
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    style={[
-                      styles.allPill,
-                      {
-                        backgroundColor: isActive ? (isDark ? '#38BDF8' : '#0F172A') : (isDark ? '#27272A' : '#F8FAFC'),
-                        borderColor: isActive ? 'transparent' : (isDark ? '#3F3F46' : '#E2E8F0'),
-                      },
-                    ]}
-                    onPress={() => setSelectedPackageCategory('all')}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.allPillText, { color: isActive ? (isDark ? '#0F172A' : '#FFFFFF') : colors.text }]}>
-                      All
-                    </Text>
-                    {isActive && <View style={[styles.allUnderline, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]} />}
-                  </TouchableOpacity>
-                );
-              }
-
-              return (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={[
-                    styles.categoryChip,
-                    {
-                      backgroundColor: isActive ? (isDark ? '#2E1065' : '#F3E8FF') : (isDark ? '#1E1E24' : '#FFFFFF'),
-                      borderColor: isActive ? '#7C3AED' : (isDark ? '#333333' : '#E2E8F0'),
-                    }
-                  ]}
-                  onPress={() => setSelectedPackageCategory(cat.id)}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.categoryChipText,
-                      { color: isActive ? '#7C3AED' : (isDark ? '#E2E8F0' : '#1E293B'), fontWeight: isActive ? '700' : '600' }
-                    ]}
-                  >
-                    {cat.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-
-            {/* "+More" Pill */}
-            <TouchableOpacity
-              style={[styles.morePill, { borderColor: isDark ? '#3F3F46' : '#E2E8F0', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }]}
-              activeOpacity={0.7}
-              onPress={() => setShowPackageCategoryModal(true)}
+            <Text
+              style={[
+                styles.slidingTabText,
+                {
+                  color: activeTab === 'Packages' ? (isDark ? '#F8FAFC' : '#0F172A') : (isDark ? '#64748B' : '#94A3B8'),
+                  fontWeight: activeTab === 'Packages' ? '800' : '600',
+                }
+              ]}
             >
-              <Text style={[styles.morePillText, { color: isDark ? '#CBD5E1' : '#334155' }]}>+More</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        )}
+              Care
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Smooth Gliding Active Underline */}
+        <Animated.View
+          style={[
+            styles.slidingActiveIndicator,
+            {
+              width: lineWidth,
+              left: lineLeftOffset,
+              transform: [{ translateX: lineTranslateX }],
+              backgroundColor: isDark ? '#818CF8' : '#6366F1',
+            }
+          ]}
+        />
       </View>
+
+      {/* Row 2: Sub-Filter Bar - In-flow is always static; sticky header collapses on scroll down and expands on scroll up */}
+      {isSticky ? (
+        <Animated.View
+          style={{
+            height: filterAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 48],
+              extrapolate: 'clamp',
+            }),
+            opacity: filterAnim.interpolate({
+              inputRange: [0, 0.35, 1],
+              outputRange: [0, 0, 1],
+              extrapolate: 'clamp',
+            }),
+            marginTop: filterAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 6],
+              extrapolate: 'clamp',
+            }),
+            marginBottom: filterAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 4],
+              extrapolate: 'clamp',
+            }),
+            overflow: 'hidden',
+          }}
+          pointerEvents={isFilterVisibleState ? 'auto' : 'none'}
+        >
+          {renderFilterContent()}
+        </Animated.View>
+      ) : (
+        <View style={[styles.subFilterBarWrapper, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
+          {renderFilterContent()}
+        </View>
+      )}
     </View>
   );
 
@@ -371,30 +539,7 @@ export default function HospitalProfile() {
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="light-content" />
 
-      {/* Dynamic Animated Header Solid Backdrop */}
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.fixedHeaderBackdrop,
-          {
-            height: headerHeight,
-            backgroundColor: isDark ? '#121212' : '#FFFFFF',
-            opacity: headerBackdropOpacity,
-          },
-        ]}
-      />
-
-      <HospitalHeader 
-        title={hospitalData.name}
-        onBackPress={() => router.back()}
-        onSearchChange={(text) => setSearchFilterText(text)}
-        isFavorite={isFavorite}
-        onFavoriteToggle={() => setIsFavorite(!isFavorite)}
-        onSharePress={handleShare}
-        isDark={isDark}
-        headerTitleOpacity={headerTitleOpacity}
-      />
-      
+      {/* Main Scrollable Content */}
       <Animated.ScrollView 
         ref={scrollViewRef}
         bounces={true} 
@@ -405,12 +550,46 @@ export default function HospitalProfile() {
             useNativeDriver: false,
             listener: (e: any) => {
               const y = e.nativeEvent.contentOffset.y;
-              if (y >= 295 && !isScrolledPast) {
+              const threshold = filterBarY > 0 ? filterBarY - headerHeight : 450;
+              if (y >= threshold && !isScrolledPast) {
                 setIsScrolledPast(true);
-              } else if (y < 295 && isScrolledPast) {
+              } else if (y < threshold && isScrolledPast) {
                 setIsScrolledPast(false);
               }
-            }
+
+              // When near top (above or near sticky threshold), ensure filters are visible
+              if (y <= threshold + 25) {
+                scrollAnchor.current = y;
+                isScrollingDown.current = false;
+                if (!isFilterVisibleRef.current) {
+                  showFilters();
+                }
+                return;
+              }
+
+              // Evaluate scroll distance relative to anchor
+              const delta = y - scrollAnchor.current;
+
+              if (delta > 0) {
+                // Scrolling down
+                if (!isScrollingDown.current) {
+                  isScrollingDown.current = true;
+                  scrollAnchor.current = y;
+                } else if (delta > 45) {
+                  hideFilters();
+                  scrollAnchor.current = y;
+                }
+              } else if (delta < 0) {
+                // Scrolling up
+                if (isScrollingDown.current) {
+                  isScrollingDown.current = false;
+                  scrollAnchor.current = y;
+                } else if (Math.abs(delta) > 30) {
+                  showFilters();
+                  scrollAnchor.current = y;
+                }
+              }
+            },
           }
         )}
         scrollEventThrottle={16}
@@ -421,7 +600,7 @@ export default function HospitalProfile() {
           {/* Full Bleed Hero Cover Banner */}
           <View style={styles.coverContainer}>
             <View style={styles.coverWrapper}>
-              <Image source={{ uri: hospitalData.image }} style={styles.coverImage} />
+              <Image source={resolveImageSource(hospitalData.image)} style={styles.coverImage} />
               <LinearGradient
                 colors={['rgba(0,0,0,0.7)', 'transparent', 'rgba(0,0,0,0.45)']}
                 style={styles.coverGradient}
@@ -437,7 +616,7 @@ export default function HospitalProfile() {
               { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)', backgroundColor: isDark ? '#1E1E24' : '#FFFFFF' }
             ]}>
               {(hospitalData as any).logo ? (
-                <Image source={{ uri: (hospitalData as any).logo }} style={styles.profileLogoImage} resizeMode="contain" />
+                <Image source={resolveImageSource((hospitalData as any).logo)} style={styles.profileLogoImage} resizeMode="contain" />
               ) : (
                 <View style={[styles.profileLogoPlaceholder, { backgroundColor: isDark ? '#2563EB' : '#1D4ED8' }]}>
                   <Text style={styles.profileLogoText}>
@@ -446,41 +625,76 @@ export default function HospitalProfile() {
                 </View>
               )}
             </View>
+
+            {/* Overlapping Quick Action Buttons: Phone & Location floating 50% over cover & 50% over white container */}
+            <View style={styles.quickActionsWrapper}>
+              <TouchableOpacity
+                style={[
+                  styles.quickActionCircleBtn,
+                  { 
+                    backgroundColor: isDark ? '#1E1E24' : '#FFFFFF',
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+                  }
+                ]}
+                activeOpacity={0.8}
+                onPress={handleCallHospital}
+              >
+                <Phone size={18} color={isDark ? '#38BDF8' : '#0F172A'} strokeWidth={2.4} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.quickActionCircleBtn,
+                  { 
+                    backgroundColor: isDark ? '#1E1E24' : '#FFFFFF',
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+                  }
+                ]}
+                activeOpacity={0.8}
+                onPress={handleOpenMapLocation}
+              >
+                <MapPin size={18} color={isDark ? '#38BDF8' : '#0F172A'} strokeWidth={2.4} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Main Hospital Details Section */}
           <View style={[styles.topSection, { backgroundColor: isDark ? '#121212' : '#FFFFFF' }]}>
             <View style={styles.mainInfoRow}>
-              {/* Title & Info trigger button + Location pin */}
-              <TouchableOpacity 
-                style={styles.mainInfoText} 
-                onPress={handleOpenInfoPage}
-                activeOpacity={0.7}
-              >
+              {/* Title & Location pin */}
+              <View style={styles.mainInfoText}>
                 <View style={styles.titleWithInfoRow}>
                   <Text style={[styles.hospitalName, { color: colors.text }]} numberOfLines={1}>
                     {hospitalData.name}
                   </Text>
-                  <BadgeCheck size={18} color="#00A981" fill="#E6F6F2" />
-                  <View style={styles.infoTriggerBtn}>
-                    <Info size={16} color={isDark ? '#9CA3AF' : '#475569'} />
-                  </View>
                 </View>
 
                 {/* Location Pin Row */}
-                <View style={styles.subwayLocationRow}>
+                <TouchableOpacity 
+                  style={styles.subwayLocationRow}
+                  activeOpacity={0.7}
+                  onPress={handleOpenMapLocation}
+                >
                   <MapPin size={13} color="#64748B" />
                   <Text style={styles.subwayLocationText}>
                     {hospitalData.distance || '3.7 km'} • {hospitalData.location || 'Bangalore'}
                   </Text>
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
 
-              {/* Top Right Dark Green Rating Badge */}
+              {/* Top Right Rating Badge */}
               <View style={styles.subwayRatingContainer}>
-                <View style={styles.subwayRatingPill}>
-                  <Star size={12} color="#FFFFFF" fill="#FFFFFF" />
-                  <Text style={styles.subwayRatingVal}>{hospitalData.rating || '4.0'}</Text>
+                <View style={[
+                  styles.subwayRatingPill,
+                  { 
+                    backgroundColor: isDark ? 'rgba(56, 189, 248, 0.1)' : '#EFF6FF',
+                    borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : '#BFDBFE',
+                  }
+                ]}>
+                  <Star size={12} color={isDark ? '#38BDF8' : '#2563EB'} fill={isDark ? '#38BDF8' : '#2563EB'} />
+                  <Text style={[styles.subwayRatingVal, { color: isDark ? '#38BDF8' : '#1D4ED8', fontWeight: '700' }]}>
+                    {hospitalData.rating || '4.0'}
+                  </Text>
                 </View>
                 <Text style={styles.subwayReviewsText}>By {hospitalData.ratingsCount || '2.8K+'}</Text>
               </View>
@@ -495,22 +709,27 @@ export default function HospitalProfile() {
           </View>
         </View>
 
-        {/* In-flow Switcher + Filters Bar (Normal 8px padding, zero gap!) */}
+        {/* In-flow Switcher + Filters Bar */}
         <View 
+          onLayout={(e) => {
+            const layoutY = e.nativeEvent.layout.y;
+            if (layoutY > 0 && Math.abs(layoutY - filterBarY) > 2) {
+              setFilterBarY(layoutY);
+            }
+          }}
           style={[
             styles.stickySegmentWrapper,
             { 
               backgroundColor: isDark ? '#121212' : '#FFFFFF',
-              paddingTop: 8,
             }
           ]}
         >
           {renderSwitcherAndFilters()}
         </View>
 
-        {/* Tab Content (Instant switch, no long scrolling!) */}
-        {activeTab === 'Experts' ? (
-          <View key="tab-experts">
+        {/* Tab Content: Keep both mounted for instant zero-reload synchronization */}
+        <Animated.View style={{ opacity: contentFadeAnim }}>
+          <View style={{ display: activeTab === 'Experts' ? 'flex' : 'none' }}>
             <HospitalExperts 
               doctors={doctors} 
               likedDocs={likedDocs as any} 
@@ -527,8 +746,8 @@ export default function HospitalProfile() {
               }}
             />
           </View>
-        ) : (
-          <View key="tab-packages">
+
+          <View style={{ display: activeTab === 'Packages' ? 'flex' : 'none' }}>
             <HospitalPackages 
               hospitalName={hospitalData.name} 
               colors={colors} 
@@ -540,39 +759,70 @@ export default function HospitalProfile() {
               onAddPackagePress={(pkg) => setSelectedPackageForAdd(pkg)}
             />
           </View>
-        )}
+        </Animated.View>
       </Animated.ScrollView>
 
-      {/* Floating Sticky Switcher & Filters Bar (Pinned right below navigation header with zIndex: 999 to cover all scrolling doctor cards) */}
+      {/* Unified Sticky Header: Seamless single layer containing Nav backdrop + switcher & filters */}
       <Animated.View
         pointerEvents={isScrolledPast ? 'auto' : 'none'}
         style={[
-          styles.floatingStickyBar,
+          styles.unifiedStickyContainer,
           {
-            top: headerHeight,
             backgroundColor: isDark ? '#121212' : '#FFFFFF',
+            borderBottomColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
+            shadowOpacity: isDark ? 0.3 : 0.06,
+            elevation: isDark ? 2 : 3,
             opacity: stickyBarOpacity,
-            zIndex: 999,
-            elevation: 15,
           },
         ]}
       >
-        {renderSwitcherAndFilters()}
+        {/* Top spacer matching HospitalHeader height with pointerEvents="none" so touches pass right through to HospitalHeader */}
+        <View style={{ height: headerHeight }} pointerEvents="none" />
+        {renderSwitcherAndFilters(true)}
       </Animated.View>
 
+      {/* Dynamic Animated Header Solid Backdrop */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.fixedHeaderBackdrop,
+          {
+            height: headerHeight,
+            backgroundColor: isDark ? '#121212' : '#FFFFFF',
+            opacity: isSearchActive ? 1 : headerBackdropOpacity,
+          },
+        ]}
+      />
+
+      {/* Hospital Header: Placed on top with highest zIndex for guaranteed touch responsiveness & search handling */}
+      <HospitalHeader 
+        title={hospitalData.name}
+        onBackPress={() => router.back()}
+        onSearchChange={(text) => {
+          setSearchFilterText(text);
+          if (text.trim().length > 0) {
+            const targetY = filterBarY > 0 ? Math.max(filterBarY - headerHeight + 5, 0) : 400;
+            scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+          }
+        }}
+        onSearchOpenChange={(isOpen) => {
+          setIsSearchActive(isOpen);
+          if (isOpen) {
+            const targetY = filterBarY > 0 ? Math.max(filterBarY - headerHeight + 5, 0) : 400;
+            scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+          }
+        }}
+        isFavorite={isFavorite}
+        onFavoriteToggle={() => setIsFavorite(!isFavorite)}
+        onSharePress={handleShare}
+        isDark={isDark}
+        headerTitleOpacity={headerTitleOpacity}
+        headerBackdropOpacity={isSearchActive ? 1 : headerBackdropOpacity}
+      />
 
 
-      {/* Hospital Facilities & Info Modal */}
-      {isInfoModalOpen && (
-        <HospitalInfoModal
-          visible={isInfoModalOpen}
-          onClose={() => setIsInfoModalOpen(false)}
-          hospitalName={hospitalData.name}
-          location={hospitalData.location}
-          phone={(hospitalData as any)?.phone}
-          image={hospitalData.image}
-        />
-      )}
+
+
 
       {/* Hospital Offers Bottom Sheet Modal */}
       <HospitalOffersModal
@@ -726,7 +976,7 @@ const styles = StyleSheet.create({
   coverContainer: {
     position: 'relative',
     zIndex: 20,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   coverWrapper: {
     width: '100%',
@@ -793,7 +1043,7 @@ const styles = StyleSheet.create({
   },
   imageCountBadge: {
     position: 'absolute',
-    bottom: 14,
+    bottom: 38,
     right: 16,
     backgroundColor: 'rgba(0,0,0,0.65)',
     paddingHorizontal: 10,
@@ -806,9 +1056,31 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
+  quickActionsWrapper: {
+    position: 'absolute',
+    right: 20,
+    bottom: -22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    zIndex: 35,
+  },
+  quickActionCircleBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
+    elevation: 4,
+  },
   topSection: {
     marginTop: 0,
-    paddingTop: 12,
+    paddingTop: 26,
   },
   mainInfoRow: {
     flexDirection: 'row',
@@ -833,9 +1105,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.15,
   },
-  infoTriggerBtn: {
-    padding: 2,
-  },
   subwayLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -853,15 +1122,14 @@ const styles = StyleSheet.create({
   subwayRatingPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F6D38',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 1,
     gap: 4,
   },
   subwayRatingVal: {
     fontFamily: Fonts.semiBold,
-    color: '#FFFFFF',
     fontSize: 13.5,
     fontWeight: '600',
   },
@@ -878,7 +1146,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 30,
+    zIndex: 90,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 60,
@@ -889,55 +1157,54 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  floatingStickyBar: {
+  unifiedStickyContainer: {
     position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
     zIndex: 40,
-    paddingTop: 6,
-    paddingBottom: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 3,
   },
   switcherAndFiltersContainer: {
     width: '100%',
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  cleanTabBar: {
+  slidingUnderlineTabBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    position: 'relative',
+    paddingBottom: 2,
+  },
+  slidingTabButton: {
+    flex: 1,
+    paddingTop: 8,
+    paddingBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slidingTabContentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 48,
-    paddingHorizontal: 20,
+    gap: 7,
   },
-  cleanTabButton: {
-    paddingTop: 8,
-    paddingBottom: 4,
-    paddingHorizontal: 2,
-    alignItems: 'center',
-  },
-  cleanTabText: {
-    fontSize: 18,
+  slidingTabText: {
+    fontSize: 17,
     fontFamily: Fonts.bold,
     letterSpacing: -0.2,
   },
-  cleanTabIndicator: {
-    height: 3,
+  slidingActiveIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    height: 3.5,
     borderRadius: 2,
-    marginTop: 6,
-    width: '100%',
-  },
-  cleanTabIndicatorPlaceholder: {
-    height: 3,
-    marginTop: 6,
-    width: '100%',
-    backgroundColor: 'transparent',
   },
   stickySegmentWrapper: {
-    paddingTop: 6,
-    paddingBottom: 4,
     zIndex: 25,
   },
   subFilterBarWrapper: {

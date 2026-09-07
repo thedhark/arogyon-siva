@@ -42,6 +42,7 @@ import { useProfileStore } from '@/hooks/useProfileStore';
 import StickyBookingPaymentBar from '@/components/booking/StickyBookingPaymentBar';
 import { useScrollFooter } from '@/hooks/useScrollFooter';
 import PaymentProcessingModal from '@/components/payments/PaymentProcessingModal';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -263,7 +264,7 @@ export default function GlobalPaymentScreen() {
           >
             {/* Top Row: Doctor/Booking preview */}
             <View style={styles.heroTopRow}>
-              <Image source={{ uri: doctorImage }} style={styles.doctorAvatar} resizeMode="cover" />
+              <Image source={resolveImageSource(doctorImage)} style={styles.doctorAvatar} resizeMode="cover" />
               <View style={styles.doctorInfo}>
                 <Text style={styles.doctorNameText} numberOfLines={1}>
                   {doctorName}

@@ -6,6 +6,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { verticalScale } from '@/utils/responsive';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface BannerTemplateProps {
   image: any;
@@ -25,7 +26,7 @@ export default function BannerTemplate({
   return (
     <View style={styles.bannerContainer}>
       <Image
-        source={typeof image === 'string' ? { uri: image } : image}
+        source={resolveImageSource(image)}
         style={styles.bannerImage}
         contentFit="cover"
       />
@@ -54,10 +55,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bannerImage: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   headerBar: {
     position: 'absolute',

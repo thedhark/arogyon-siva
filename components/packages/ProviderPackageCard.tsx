@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { Image } from 'expo-image';
-import { Flame, Star, Sparkles, Gift, BadgeCheck, MapPin, Baby, Bed, Stethoscope, Check, CreditCard, ArrowRight, ShieldCheck, Activity, ChevronRight } from 'lucide-react-native';
+import { Flame, Star, Sparkles, Gift, MapPin, Baby, Bed, Stethoscope, Check, CreditCard, ArrowRight, ShieldCheck, Activity, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface Props {
   id: string;
@@ -81,7 +82,7 @@ export default function ProviderPackageCard({
         {/* Left Side: Hospital Logo */}
         {hospitalLogo && (
           <View style={[styles.imageContainer, { backgroundColor: logoBg || (isDark ? '#2C2C2E' : '#F9FAFB') }]}>
-            <Image source={typeof hospitalLogo === 'string' ? { uri: hospitalLogo } : hospitalLogo} style={styles.image} contentFit="cover" />
+            <Image source={resolveImageSource(hospitalLogo)} style={styles.image} contentFit="cover" />
           </View>
         )}
 
@@ -95,7 +96,6 @@ export default function ProviderPackageCard({
               {hospitalName && (
                 <View style={styles.hospitalRow}>
                   <Text style={[styles.hospitalName, { color: isDark ? '#E5E7EB' : '#374151' }]} numberOfLines={1}>{hospitalName}</Text>
-                  <BadgeCheck size={12} color="#3B82F6" />
                 </View>
               )}
 

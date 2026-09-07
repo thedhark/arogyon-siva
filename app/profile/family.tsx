@@ -8,6 +8,7 @@ import Animated, { FadeInDown, FadeIn, ZoomIn } from 'react-native-reanimated';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import { ActionBottomSheet, ActionBottomSheetRef } from '@/components/ActionBottomSheet';
 import FamilyMemberForm from '@/components/profile/FamilyMemberForm';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export default function FamilyScreen() {
   const { colors, isDark } = useTheme();
@@ -53,7 +54,7 @@ export default function FamilyScreen() {
                 <Animated.View key={member.id} entering={FadeInDown.delay(200 + index * 100)}>
                   <View style={[styles.card, { backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF', borderColor: isDark ? '#333' : '#F0F0F0' }]}>
                     <View style={styles.cardHeader}>
-                      <Image source={{ uri: member.avatar || `https://i.pravatar.cc/150?u=${member.id}` }} style={styles.avatar} />
+                      <Image source={resolveImageSource(member.avatar, `https://i.pravatar.cc/150?u=${member.id}`)} style={styles.avatar} />
                       
                       <View style={styles.info}>
                         <Text style={[styles.name, { color: colors.text }]}>{member.name}</Text>

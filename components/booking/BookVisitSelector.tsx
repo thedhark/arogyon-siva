@@ -14,6 +14,8 @@ import { useProfileStore } from '@/hooks/useProfileStore';
 import PeopleVisitModal, { PatientMember } from '@/components/booking/PeopleVisitModal';
 import AddFamilyMemberModal, { NewFamilyMemberPayload } from '@/components/booking/AddFamilyMemberModal';
 
+import { useTheme } from '@/hooks/useTheme';
+
 export interface SelectedPatientInfo {
   id: string;
   name: string;
@@ -28,6 +30,8 @@ interface Props {
   buttonLabel?: string;
   icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   compact?: boolean;
+  buttonWidth?: number;
+  variant?: 'default' | 'outline';
   onCountChange?: (count: number, primaryMember: SelectedPatientInfo, allMembers?: SelectedPatientInfo[]) => void;
   onBookPress?: (primaryMember: SelectedPatientInfo, allMembers?: SelectedPatientInfo[]) => void;
   onMembersChange?: (allMembers: SelectedPatientInfo[]) => void;
@@ -48,10 +52,13 @@ export default function BookVisitSelector({
   buttonLabel = 'VISIT',
   icon: CustomIcon,
   compact = false,
+  buttonWidth,
+  variant = 'default',
   onCountChange,
   onBookPress,
   onMembersChange,
 }: Props) {
+  const { isDark } = useTheme();
   const userProfile = useProfileStore((state) => state.userProfile);
   const familyMembers = useProfileStore((state) => state.familyMembers);
   const addFamilyMember = useProfileStore((state) => state.addFamilyMember);
@@ -214,28 +221,47 @@ export default function BookVisitSelector({
   const overflowCount = count > maxVisibleAvatars ? count - maxVisibleAvatars : 0;
 
   return (
-    <View style={[styles.rootContainer, compact && styles.compactRootContainer]}>
+    <View style={[styles.rootContainer, compact && styles.compactRootContainer, buttonWidth ? { width: buttonWidth } : null]}>
       {/* -------------------------------------------------------------
-          STEP 0: Initial "Book Visit" Minimal Light Grape Tinted Capsule
-          Light inside + light grape border spread
+          STEP 0: Initial "Book Visit" Capsule / Outline Button
          ------------------------------------------------------------- */}
       {selectedIds.length === 0 ? (
         <TouchableOpacity
           style={[
-            styles.initialBookBtn,
-            compact && styles.compactInitialBookBtn,
+            variant === 'outline' ? styles.outlineInitialBookBtn : styles.initialBookBtn,
+            compact && (variant === 'outline' ? styles.compactOutlineInitialBookBtn : styles.compactInitialBookBtn),
+            buttonWidth ? { width: buttonWidth } : null,
+            variant === 'outline' && isDark && { backgroundColor: '#1E1E24', borderColor: '#FFFFFF' },
           ]}
           onPress={handleInitialBook}
           activeOpacity={0.85}
         >
           {CustomIcon ? (
-            <CustomIcon size={compact ? 15 : 17} color={GRAPE_TEXT} strokeWidth={2.4} />
+            <CustomIcon
+              size={compact ? 15 : 17}
+              color={variant === 'outline' ? (isDark ? '#FFFFFF' : '#111827') : GRAPE_TEXT}
+              strokeWidth={2.4}
+            />
           ) : isPackage ? (
-            <Plus size={compact ? 16 : 17} color={GRAPE_TEXT} strokeWidth={2.6} />
+            <Plus
+              size={compact ? 16 : 17}
+              color={variant === 'outline' ? (isDark ? '#FFFFFF' : '#111827') : GRAPE_TEXT}
+              strokeWidth={2.6}
+            />
           ) : (
-            <Calendar size={compact ? 15 : 17} color={GRAPE_TEXT} strokeWidth={2.4} />
+            <Calendar
+              size={compact ? 15 : 17}
+              color={variant === 'outline' ? (isDark ? '#FFFFFF' : '#111827') : GRAPE_TEXT}
+              strokeWidth={2.4}
+            />
           )}
-          <Text style={[styles.initialBookBtnText, compact && styles.compactInitialBookBtnText]}>
+          <Text
+            style={[
+              variant === 'outline' ? styles.outlineInitialBookBtnText : styles.initialBookBtnText,
+              compact && (variant === 'outline' ? styles.compactOutlineInitialBookBtnText : styles.compactInitialBookBtnText),
+              variant === 'outline' && isDark && { color: '#FFFFFF' },
+            ]}
+          >
             {buttonLabel}
           </Text>
         </TouchableOpacity>
@@ -247,6 +273,7 @@ export default function BookVisitSelector({
           style={[
             styles.mainPill,
             compact && styles.compactMainPill,
+            buttonWidth ? { width: buttonWidth } : null,
           ]}
           onPress={handleOpenPeopleModal}
           activeOpacity={0.8}
@@ -358,6 +385,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderWidth: 1.2,
   },
+  outlineInitialBookBtn: {
+    width: 136,
+    height: 42,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    borderWidth: 1.5,
+    borderColor: '#111827',
+  },
+  compactOutlineInitialBookBtn: {
+    width: 104,
+    height: 32,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderWidth: 1.3,
+    borderColor: '#111827',
+  },
   initialBookBtnText: {
     fontFamily: Fonts.bold,
     fontSize: 13,
@@ -368,6 +418,16 @@ const styles = StyleSheet.create({
   compactInitialBookBtnText: {
     fontSize: 10.5,
     letterSpacing: 0.1,
+  },
+  outlineInitialBookBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+    letterSpacing: -0.1,
+  },
+  compactOutlineInitialBookBtnText: {
+    fontSize: 13.5,
   },
   mainPill: {
     width: 136,

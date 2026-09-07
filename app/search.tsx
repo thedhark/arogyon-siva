@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import FloatingCartBar from '@/components/booking/FloatingCartBar';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 // "Think it, search it" prompt pills (Reference Image 2)
 const INSPIRATION_PILLS = [
@@ -224,7 +225,7 @@ export default function SearchScreen() {
                   onPress={() => router.push(`/doctor/${doc.id}`)}
                   activeOpacity={0.85}
                 >
-                  <Image source={{ uri: doc.image }} style={styles.docAvatar} />
+                  <Image source={resolveImageSource(doc.image)} style={styles.docAvatar} />
                   <View style={styles.docInfo}>
                     <View style={styles.docNameRow}>
                       <Text style={[styles.docName, { color: colors.text }]}>{doc.name}</Text>

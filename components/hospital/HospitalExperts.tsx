@@ -189,7 +189,7 @@ export default function HospitalExperts({
       {/* 2. Recommended Doctors Section Header */}
       <View style={styles.recommendedHeader}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Recommended doctors
+          Recommended Doctors & Experts
         </Text>
 
         <TouchableOpacity

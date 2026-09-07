@@ -109,9 +109,22 @@ export default function PaymentGatewayModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType={Platform.OS === 'web' ? 'fade' : 'slide'} onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <View style={[styles.modalSheet, { backgroundColor: isDark ? '#18181B' : '#FFFFFF' }]}>
+        {Platform.OS === 'web' && (
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={onClose}
+          />
+        )}
+        <View style={[
+          styles.modalSheet, 
+          { 
+            backgroundColor: isDark ? '#18181B' : '#FFFFFF',
+            borderColor: isDark ? '#27272A' : '#E4E4E7',
+          }
+        ]}>
           
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: isDark ? '#27272A' : '#F4F4F5' }]}>
@@ -156,13 +169,13 @@ export default function PaymentGatewayModal({
           {paymentState === 'idle' && (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
               {/* Payable Amount Summary Banner */}
-              <View style={[styles.amountCard, { backgroundColor: isDark ? '#27272A' : '#F0FDFA', borderColor: isDark ? '#3F3F46' : '#CCFBF1' }]}>
+              <View style={[styles.amountCard, { backgroundColor: isDark ? '#27272A' : '#EFF6FF', borderColor: isDark ? '#3F3F46' : '#BFDBFE' }]}>
                 <View>
                   <Text style={styles.amountCardLabel}>Payable Amount</Text>
                   <Text style={[styles.amountCardValue, { color: colors.text }]}>₹{amount.toLocaleString()}</Text>
                 </View>
                 <View style={styles.guaranteeBadge}>
-                  <ShieldCheck size={16} color="#0D9488" />
+                  <ShieldCheck size={16} color="#2563EB" />
                   <Text style={styles.guaranteeText}>Arogyon Protection</Text>
                 </View>
               </View>
@@ -179,7 +192,7 @@ export default function PaymentGatewayModal({
                   ]}
                   onPress={() => setSelectedMethod('UPI')}
                 >
-                  <Smartphone size={20} color={selectedMethod === 'UPI' ? '#0D9488' : '#71717A'} />
+                  <Smartphone size={20} color={selectedMethod === 'UPI' ? '#2563EB' : '#71717A'} />
                   <Text style={[styles.methodTabText, selectedMethod === 'UPI' && styles.methodTabTextActive]}>UPI Apps</Text>
                 </TouchableOpacity>
 
@@ -191,7 +204,7 @@ export default function PaymentGatewayModal({
                   ]}
                   onPress={() => setSelectedMethod('Card')}
                 >
-                  <CreditCard size={20} color={selectedMethod === 'Card' ? '#0D9488' : '#71717A'} />
+                  <CreditCard size={20} color={selectedMethod === 'Card' ? '#2563EB' : '#71717A'} />
                   <Text style={[styles.methodTabText, selectedMethod === 'Card' && styles.methodTabTextActive]}>Cards</Text>
                 </TouchableOpacity>
 
@@ -203,7 +216,7 @@ export default function PaymentGatewayModal({
                   ]}
                   onPress={() => setSelectedMethod('NetBanking')}
                 >
-                  <Building2 size={20} color={selectedMethod === 'NetBanking' ? '#0D9488' : '#71717A'} />
+                  <Building2 size={20} color={selectedMethod === 'NetBanking' ? '#2563EB' : '#71717A'} />
                   <Text style={[styles.methodTabText, selectedMethod === 'NetBanking' && styles.methodTabTextActive]}>Net Banking</Text>
                 </TouchableOpacity>
 
@@ -215,7 +228,7 @@ export default function PaymentGatewayModal({
                   ]}
                   onPress={() => setSelectedMethod('COD')}
                 >
-                  <Banknote size={20} color={selectedMethod === 'COD' ? '#0D9488' : '#71717A'} />
+                  <Banknote size={20} color={selectedMethod === 'COD' ? '#2563EB' : '#71717A'} />
                   <Text style={[styles.methodTabText, selectedMethod === 'COD' && styles.methodTabTextActive]}>Pay at Clinic</Text>
                 </TouchableOpacity>
               </View>
@@ -232,7 +245,7 @@ export default function PaymentGatewayModal({
                         style={[
                           styles.upiCard,
                           { backgroundColor: isDark ? '#27272A' : '#FFFFFF', borderColor: isDark ? '#3F3F46' : '#E4E4E7' },
-                          selectedUpiApp === app.id && { borderColor: '#0D9488', borderWidth: 2, backgroundColor: '#F0FDFA' },
+                          selectedUpiApp === app.id && { borderColor: '#2563EB', borderWidth: 2, backgroundColor: '#EFF6FF' },
                         ]}
                         onPress={() => setSelectedUpiApp(app.id)}
                       >
@@ -325,13 +338,13 @@ export default function PaymentGatewayModal({
                         style={[
                           styles.bankItem,
                           { backgroundColor: isDark ? '#27272A' : '#FFFFFF', borderColor: isDark ? '#3F3F46' : '#E4E4E7' },
-                          selectedBank === bank && { borderColor: '#0D9488', backgroundColor: '#F0FDFA' },
+                          selectedBank === bank && { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
                         ]}
                         onPress={() => setSelectedBank(bank)}
                       >
-                        <Building2 size={18} color={selectedBank === bank ? '#0D9488' : '#71717A'} />
+                        <Building2 size={18} color={selectedBank === bank ? '#2563EB' : '#71717A'} />
                         <Text style={[styles.bankName, { color: colors.text }]}>{bank}</Text>
-                        {selectedBank === bank && <CheckCircle2 size={16} color="#0D9488" />}
+                        {selectedBank === bank && <CheckCircle2 size={16} color="#2563EB" />}
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -369,13 +382,36 @@ export default function PaymentGatewayModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    ...(Platform.OS === 'web' ? {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+    } : {}),
   },
   modalSheet: {
-    flex: 1,
-    height: '100%',
-    paddingTop: Platform.OS === 'ios' ? 44 : 16,
-    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    width: '100%',
+    ...(Platform.OS === 'web' ? {
+      maxWidth: 580,
+      height: 'auto',
+      maxHeight: '92%',
+      borderRadius: 24,
+      overflow: 'hidden',
+      borderWidth: 1,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.35,
+      shadowRadius: 28,
+      elevation: 24,
+      paddingTop: 12,
+      paddingBottom: 20,
+      alignSelf: 'center',
+    } : {
+      flex: 1,
+      height: '100%',
+      paddingTop: Platform.OS === 'ios' ? 44 : 16,
+      paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    }),
   },
   header: {
     flexDirection: 'row',
@@ -434,7 +470,7 @@ const styles = StyleSheet.create({
   guaranteeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(13, 148, 136, 0.1)',
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
@@ -443,7 +479,7 @@ const styles = StyleSheet.create({
   guaranteeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0D9488',
+    color: '#2563EB',
   },
   sectionHeading: {
     fontSize: 15,
@@ -465,8 +501,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   methodTabActive: {
-    borderColor: '#0D9488',
-    backgroundColor: 'rgba(13, 148, 136, 0.08)',
+    borderColor: '#2563EB',
+    backgroundColor: 'rgba(37, 99, 235, 0.08)',
   },
   methodTabText: {
     fontSize: 11,
@@ -474,7 +510,7 @@ const styles = StyleSheet.create({
     color: '#71717A',
   },
   methodTabTextActive: {
-    color: '#0D9488',
+    color: '#2563EB',
     fontWeight: '800',
   },
   methodContent: {
@@ -569,14 +605,14 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   payButton: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#2563EB',
     height: 54,
     borderRadius: 27,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    shadowColor: '#0D9488',
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

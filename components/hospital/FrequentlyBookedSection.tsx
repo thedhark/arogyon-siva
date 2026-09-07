@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
+import { resolveImageSource } from '@/utils/imageUtils';
 import { scale } from '@/utils/responsive';
 
 export interface FrequentlyBookedItem {
@@ -169,7 +170,7 @@ export default function FrequentlyBookedSection({
                 ]}
               >
                 <Image
-                  source={{ uri: item.image }}
+                  source={resolveImageSource(item.image)}
                   style={styles.illustrationImage}
                   resizeMode="contain"
                 />
@@ -276,7 +277,7 @@ export default function FrequentlyBookedSection({
                     ]}
                   >
                     <Image
-                      source={{ uri: selectedItem.image }}
+                      source={resolveImageSource(selectedItem.image)}
                       style={styles.heroImage}
                       resizeMode="contain"
                     />

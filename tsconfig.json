@@ -19,6 +19,7 @@
   ],
   "exclude": [
     "node_modules",
-    "modules/**/package"
+    "modules/**/package",
+    "arogyon-partner-app"
   ]
 }

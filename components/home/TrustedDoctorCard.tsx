@@ -8,6 +8,7 @@ import { useBookingStore } from '@/hooks/useBookingStore';
 import { TrustedDoctor } from '@/constants/trusted-doctors';
 import { Fonts } from '@/constants/theme';
 import BookVisitSelector, { SelectedPatientInfo } from '@/components/booking/BookVisitSelector';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface TrustedDoctorCardProps {
   doctor: TrustedDoctor;
@@ -79,7 +80,7 @@ export default function TrustedDoctorCard({ doctor }: TrustedDoctorCardProps) {
     >
       {/* Doctor Image */}
       <Image
-        source={{ uri: doctor.image }}
+        source={resolveImageSource(doctor.image)}
         style={styles.image}
         resizeMode="cover"
       />

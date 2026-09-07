@@ -18,6 +18,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Fonts } from '@/constants/theme';
 import { useProfileStore } from '@/hooks/useProfileStore';
 import FamilyIllustration from '@/components/booking/FamilyIllustration';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -235,7 +236,7 @@ export default function PeopleVisitModal({
                       >
                         {member.avatar ? (
                           <Image
-                            source={{ uri: member.avatar }}
+                            source={resolveImageSource(member.avatar)}
                             style={styles.avatarImage}
                           />
                         ) : (
@@ -526,23 +527,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'flex-end',
+    ...(Platform.OS === 'web' ? {
+      alignItems: 'center',
+      justifyContent: 'center',
+    } : {}),
   },
   backdropPressable: {
     flex: 1,
+    ...(Platform.OS === 'web' ? {
+      position: 'absolute' as any,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    } : {}),
   },
   bottomSheet: {
+    width: '100%',
+    maxWidth: Platform.OS === 'web' ? 560 : undefined,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     maxHeight: '92%',
-    height: '84%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    elevation: 24,
     borderWidth: 1,
+    ...(Platform.OS === 'web' ? {
+      borderRadius: 28,
+      height: 'auto',
+      maxHeight: '88%',
+      alignSelf: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 24,
+      elevation: 24,
+    } : {
+      height: '84%',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.14,
+      shadowRadius: 18,
+      elevation: 24,
+    }),
   },
   dragHandle: {
     width: 44,

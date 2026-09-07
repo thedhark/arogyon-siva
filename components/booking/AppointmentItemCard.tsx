@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Clock, Calendar, ChevronRight, X } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 export interface AssignedPatient {
   id: string;
@@ -53,7 +54,10 @@ export default function AppointmentItemCard({
       {/* Top Item Row */}
       <View style={styles.mainRow}>
         <Image
-          source={{ uri: item.image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200' }}
+          source={resolveImageSource(
+            item.image,
+            'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200'
+          )}
           style={styles.itemAvatar}
         />
         <View style={styles.infoCol}>
@@ -96,7 +100,10 @@ export default function AppointmentItemCard({
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: item.patient.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150' }}
+          source={resolveImageSource(
+            item.patient.avatar,
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'
+          )}
           style={styles.patientAvatar}
         />
         <View style={styles.patientInfo}>

@@ -4,6 +4,7 @@ import { CreditCard, Smartphone, Wallet, FileText, CheckCircle2, RotateCcw, Cloc
 import { useTheme } from '@/hooks/useTheme';
 import { Appointment } from '@/hooks/useBookingStore';
 import { formatDisplayDate } from '@/utils';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface BookingPaymentCardProps {
   appointment: Appointment;
@@ -46,7 +47,7 @@ export default function BookingPaymentCard({
       <View style={styles.headerRow}>
         <View style={styles.doctorInfo}>
           {appointment.image ? (
-            <Image source={{ uri: appointment.image }} style={styles.avatar} />
+            <Image source={resolveImageSource(appointment.image)} style={styles.avatar} />
           ) : (
             <View style={[styles.avatarPlaceholder, { backgroundColor: colors.accent + '20' }]}>
               <Text style={{ color: colors.accent, fontWeight: '700' }}>{appointment.doctorName[0]}</Text>

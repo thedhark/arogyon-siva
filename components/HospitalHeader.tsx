@@ -10,22 +10,26 @@ interface HospitalHeaderProps {
   title?: string;
   onBackPress: () => void;
   onSearchChange?: (text: string) => void;
+  onSearchOpenChange?: (isOpen: boolean) => void;
   isFavorite?: boolean;
   onFavoriteToggle?: () => void;
   onSharePress?: () => void;
   isDark?: boolean;
   headerTitleOpacity?: any;
+  headerBackdropOpacity?: any;
 }
 
 export default function HospitalHeader({
   title = '',
   onBackPress,
   onSearchChange,
+  onSearchOpenChange,
   isFavorite = false,
   onFavoriteToggle,
   onSharePress,
   isDark = true,
   headerTitleOpacity,
+  headerBackdropOpacity,
 }: HospitalHeaderProps) {
   const insets = useSafeAreaInsets();
   const supportsLiquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable && isLiquidGlassAvailable();
@@ -38,24 +42,47 @@ export default function HospitalHeader({
     if (onSearchChange) onSearchChange(text);
   };
 
-  const topInset = Math.max(insets.top + (Platform.OS === 'ios' ? 4 : 8), 36);
+  const handleOpenSearch = () => {
+    setIsSearchOpen(true);
+    if (onSearchOpenChange) onSearchOpenChange(true);
+  };
+
+  const handleCloseSearch = () => {
+    handleTextChange('');
+    setIsSearchOpen(false);
+    if (onSearchOpenChange) onSearchOpenChange(false);
+  };
+
+  const topInset = Math.max(insets.top + (Platform.OS === 'ios' ? 2 : 4), 28);
+
+  // Cross-fade opacity between white (over hero cover image) and dark (on solid white header in light mode)
+  const whiteIconOpacity = headerBackdropOpacity
+    ? headerBackdropOpacity.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      })
+    : 1;
+
+  const darkIconOpacity = headerBackdropOpacity || 0;
 
   return (
     <View style={[styles.headerContainer, { top: topInset }]}>
-      {/* Left Section: Circular Back Button */}
+      {/* Left Section: Clean Back Button (No wrapper around it) */}
       <TouchableOpacity
         onPress={onBackPress}
-        style={styles.circleBtnWrapper}
-        activeOpacity={0.8}
+        style={styles.cleanActionBtn}
+        activeOpacity={0.7}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <View style={[styles.circleBtn, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(241, 245, 249, 0.9)', borderWidth: 0 }]}>
-          {supportsLiquidGlass ? (
-            <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-          ) : Platform.OS === 'ios' ? (
-            <BlurView intensity={45} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-          ) : null}
-          <ChevronLeft color={isDark ? '#FFFFFF' : '#0F172A'} size={22} strokeWidth={2.5} />
-        </View>
+        <Animated.View style={{ opacity: isDark ? 1 : whiteIconOpacity }}>
+          <ChevronLeft color="#FFFFFF" size={24} strokeWidth={2.5} style={styles.iconDropShadow} />
+        </Animated.View>
+        {!isDark && (
+          <Animated.View style={[StyleSheet.absoluteFill, styles.centerAlign, { opacity: darkIconOpacity }]}>
+            <ChevronLeft color="#0F172A" size={24} strokeWidth={2.5} />
+          </Animated.View>
+        )}
       </TouchableOpacity>
 
       {/* Center Section: Search Bar OR Animated Hospital Title */}
@@ -69,17 +96,14 @@ export default function HospitalHeader({
           <Search size={15} color={isDark ? 'rgba(255, 255, 255, 0.7)' : '#64748B'} strokeWidth={2.2} style={styles.searchIcon} />
           <TextInput
             style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#0F172A' }]}
-            placeholder="Search experts, packages..."
+            placeholder="Search experts, care..."
             placeholderTextColor={isDark ? 'rgba(255, 255, 255, 0.6)' : '#94A3B8'}
             value={searchQuery}
             autoFocus
             onChangeText={handleTextChange}
           />
           <TouchableOpacity
-            onPress={() => {
-              handleTextChange('');
-              setIsSearchOpen(false);
-            }}
+            onPress={handleCloseSearch}
             style={{ padding: 4 }}
           >
             <X size={16} color={isDark ? 'rgba(255, 255, 255, 0.8)' : '#64748B'} />
@@ -102,38 +126,40 @@ export default function HospitalHeader({
         </View>
       )}
 
-      {/* Right Section: Circular Search Icon Button & Three Dots Button */}
+      {/* Right Section: Clean Search & Three Dots Action Buttons (No wrapper around it) */}
       <View style={styles.rightActionsRow}>
         {!isSearchOpen && (
           <TouchableOpacity
-            onPress={() => setIsSearchOpen(true)}
-            style={styles.circleBtnWrapper}
-            activeOpacity={0.8}
+            onPress={handleOpenSearch}
+            style={styles.cleanActionBtn}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <View style={[styles.circleBtn, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(241, 245, 249, 0.9)', borderWidth: 0 }]}>
-              {supportsLiquidGlass ? (
-                <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-              ) : Platform.OS === 'ios' ? (
-                <BlurView intensity={45} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-              ) : null}
-              <Search color={isDark ? '#FFFFFF' : '#0F172A'} size={19} strokeWidth={2.3} />
-            </View>
+            <Animated.View style={{ opacity: isDark ? 1 : whiteIconOpacity }}>
+              <Search color="#FFFFFF" size={21} strokeWidth={2.3} style={styles.iconDropShadow} />
+            </Animated.View>
+            {!isDark && (
+              <Animated.View style={[StyleSheet.absoluteFill, styles.centerAlign, { opacity: darkIconOpacity }]}>
+                <Search color="#0F172A" size={21} strokeWidth={2.3} />
+              </Animated.View>
+            )}
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
           onPress={() => setIsMenuOpen(true)}
-          style={styles.circleBtnWrapper}
-          activeOpacity={0.8}
+          style={styles.cleanActionBtn}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <View style={[styles.circleBtn, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(241, 245, 249, 0.9)', borderWidth: 0 }]}>
-            {supportsLiquidGlass ? (
-              <GlassView glassEffectStyle="regular" isInteractive={true} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-            ) : Platform.OS === 'ios' ? (
-              <BlurView intensity={45} tint={isDark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: 21, overflow: 'hidden' }]} />
-            ) : null}
-            <MoreVertical color={isDark ? '#FFFFFF' : '#0F172A'} size={20} strokeWidth={2.2} />
-          </View>
+          <Animated.View style={{ opacity: isDark ? 1 : whiteIconOpacity }}>
+            <MoreVertical color="#FFFFFF" size={22} strokeWidth={2.3} style={styles.iconDropShadow} />
+          </Animated.View>
+          {!isDark && (
+            <Animated.View style={[StyleSheet.absoluteFill, styles.centerAlign, { opacity: darkIconOpacity }]}>
+              <MoreVertical color="#0F172A" size={22} strokeWidth={2.3} />
+            </Animated.View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -195,25 +221,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    zIndex: 35,
+    zIndex: 100,
+    elevation: 10,
   },
-  circleBtnWrapper: {
-    borderRadius: 21,
-    overflow: 'hidden',
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  cleanActionBtn: {
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(15, 23, 42, 0.75)',
-    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
+  centerAlign: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconDropShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.6,
+    shadowRadius: 2.5,
+    elevation: 2,
   },
   searchCapsule: {
     flex: 1,
-    height: 42,
-    borderRadius: 21,
+    height: 38,
+    borderRadius: 19,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { ArrowLeft, MapPin, ChevronDown, Heart, Share2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { resolveImageSource } from '@/utils/imageUtils';
 
 interface Props {
   title: string;
@@ -48,7 +49,7 @@ export default function CategoryHeader({
       {/* Hero Category Banner Content */}
       <View style={styles.headerContent}>
         <View style={styles.iconContainer}>
-          <Image source={{ uri: icon }} style={styles.categoryIcon} />
+          <Image source={resolveImageSource(icon)} style={styles.categoryIcon} />
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
